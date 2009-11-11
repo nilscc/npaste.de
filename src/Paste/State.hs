@@ -28,7 +28,7 @@ import Control.Monad (liftM2)
 import Control.Monad.State (modify)
 import Control.Monad.Reader (ask)
 import Data.Typeable (Typeable)
-import Data.List (find, (\\))
+import Data.List (find, (\\), null)
 import Data.Maybe (fromJust, fromMaybe)
 
 
@@ -83,7 +83,7 @@ instance Migrate Old.ID ID where
 -- Migrate from older Versions of PasteEntry
 instance Migrate Old.PasteEntry PasteEntry where
     migrate old = PasteEntry { user     = Nothing
-                             , pId      = maybe NoID (migrate) (Old.pId old)
+                             , pId      = maybe NoID migrate (Old.pId old)
                              , date     = maybe (error "Invalid past entry: no paste date")
                                                 (id)
                                                 (Old.date old)
@@ -105,21 +105,20 @@ instance Migrate Old.Paste Paste where
 
 -- Generate a new ID
 incId :: Paste -> ID
-incId (Paste _ ids) = incId' ids' id
+incId (Paste _ ids) = ID $ incId' ids' id
 
   where isId (ID _) = True
         isId NoID   = False
-        ids'        = filter isId ids
+        ids'        = map unId $ filter isId ids
         id | null ids' = ""
-           | otherwise = unId $ last ids'
+           | otherwise = last ids'
 
 -- Helper for incId
 incId' ids id
-    | all (== 'z') id || id == "" = ID $ head chars : map (const $ head chars) id
-    | otherwise = ID . head . tail . takeWhile (`elem` ids') . everything $ length id
+    | all (== 'z') id || id == "" = map (const $ head chars) [1 .. (length id + 1)]
+    | otherwise = head . dropWhile (`elem` ids) . everything . length $ id
 
   where chars   = ['0'..'9'] ++ ['A'..'Z'] ++ ['a'..'z']
-        ids' = map unId ids
         everything n
             | n <= 1    = map (\c -> [c]) chars
             | otherwise = do
