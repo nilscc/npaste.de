@@ -12,6 +12,7 @@ module Paste.State
     , GetPasteById (..)
     , GetNewId (..)
     , GetPastesByUser (..)
+    , DeleteAllPastes (..)
     )
     where
 
@@ -151,4 +152,10 @@ addPaste entry = do
                              }
     return newId
 
-$(mkMethods ''Paste ['addPaste, 'getPastesByUser, 'getPasteById, 'getNewId])
+-- | Delete ALL pastes from memory! Carefull!
+deleteAllPastes :: Update Paste ()
+deleteAllPastes = do
+    paste <- ask
+    modify . const $ Paste [] []
+
+$(mkMethods ''Paste ['addPaste, 'getPastesByUser, 'getPasteById, 'getNewId, 'deleteAllPastes])
