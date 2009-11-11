@@ -30,14 +30,16 @@ stripSpaces = unlines . map (foldr strip "") . lines
         strip s r  = s : r
 
 
+-- | Handle incoming post data
 postHandler :: ServerPartT IO Response
 postHandler = do
     methodM POST
     pData <- getData
     case pData of
          Just pd -> postData pd
-         _ -> badRequest . toResponse $ "Something went wrong. Contact mail (at) n-sch.de if necessary.\n"
+         _       -> badRequest . toResponse $ "Something went wrong. Contact mail (at) n-sch.de if necessary.\n"
 
+-- | Add post data to database
 postData :: PostData -> ServerPartT IO Response
 postData pData = do
     let content  = fromMaybe "" $ cont pData
@@ -110,65 +112,3 @@ instance FromData PostData where
                           , ft   = makeOpt ft
                           , sub  = not $ null submit
                           }
-
-
--- {{{ Old post handler
-
-{-
--- | Take care of POST events
-postHandler :: ServerPartT IO Response
-postHandler = methodM POST >> msum
-    [ do
-        -- Get content, asure its not empty
-        paste <- getDataFn $ do
-            s <- look "content"
-            -- Limit size to 50k chars
-            guard . null . drop (50000) $ s
-            guard . not . null . filter (not . isSpace) $ s
-            return . stripSpaces $ s
-        guard $ isJust paste
-
-        -- Get login data
-        login <- getDataFn $ do
-            u <- look "user"
-            p <- look "pwd"
-            return (u,p)
-        user <- case login of
-                     Just (user,pwd) -> do
-                         resp  <- query $ Validate (Login user) (Password pwd)
-                         return $ case resp of
-                                       OK user -> Just user
-                                       _       -> Nothing
-                     _ -> return $ Nothing
-
-        -- Local time
-        now   <- liftIO getClockTime
-
-        -- New ID, filepath and content text
-        newId <- query $ GetNewId
-        let fp   = "pastes/" ++ unId newId
-            text = fromJust paste
-        
-        -- Save the content to file
-        liftIO $ writeFile fp text
-
-        update $ AddPaste PasteEntry { date    = Just now
-                                     , content = File fp
-                                     , user    = user
-                                     , pId     = Nothing
-                                     }
-
-        -- Handle redirection from a html form
-        let url = "http://npaste.de/" ++ unId newId
-
-        submit <- getDataFn $ look "submit"
-        if isJust submit
-           then seeOther url $ toResponse url
-           else ok . toResponse $ url ++ "\n"
-    , badRequest . toResponse $ "Something went wrong. Contact mail (at) n-sch.de if necessary.\n"
-    ]
-
--}
-
--- }}}
-

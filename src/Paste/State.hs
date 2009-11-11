@@ -64,25 +64,34 @@ $(deriveAll [''Show, ''Eq, ''Ord, ''Default]
   
     |])
 
+--------------------------------------------------------------------------------
 -- Add missing instances
+--------------------------------------------------------------------------------
+
 $(deriveSerialize ''ID)
 instance Version ID where
-    mode = extension 1 (Proxy :: Proxy Old.ID)
+    mode = Versioned 1 Nothing
+    -- mode = extension 1 (Proxy :: Proxy Old.ID)
+
 $(deriveSerialize ''Content)
 instance Version Content
+
 $(deriveSerialize ''PasteEntry)
 instance Version PasteEntry where
-    -- mode = Versioned 1 Nothing
-    mode = extension 1 (Proxy :: Proxy Old.PasteEntry)
+    mode = Versioned 1 Nothing
+    -- mode = extension 1 (Proxy :: Proxy Old.PasteEntry)
+
 $(deriveSerialize ''Paste)
 instance Version Paste where
-    mode = extension 1 (Proxy :: Proxy Old.Paste)
+    mode = Versioned 1 Nothing
+    -- mode = extension 1 (Proxy :: Proxy Old.Paste)
 
 -- Make Paste its own Component
 instance Component Paste where
   type Dependencies Paste = End
   initialValue = Paste [] []
 
+{-
 instance Migrate Old.ID ID where
     migrate old = ID . Old.unId $ old
 -- Migrate from older Versions of PasteEntry
@@ -102,6 +111,7 @@ instance Migrate Old.Paste Paste where
     migrate old = Paste { pasteEntries = map migrate $ Old.pasteEntries old
                         , pasteIDs = map (pId . migrate) $ Old.pasteEntries old
                         }
+-}
 
 -- }}} Data definitions
 
