@@ -9,14 +9,13 @@ module Paste.State
     , ID (..)
     , Content (..)
     , AddPaste (..)
+    , GetAllEntries (..)
     , GetPasteById (..)
     , GetNewId (..)
     , GetPastesByUser (..)
+    , DeleteAllPastes (..)
     )
     where
-
-import Users.State (User (..))
-import qualified Paste.StateOld as Old
 
 import Happstack.Data
 import Happstack.State
@@ -28,8 +27,14 @@ import Control.Monad (liftM2)
 import Control.Monad.State (modify)
 import Control.Monad.Reader (ask)
 import Data.Typeable (Typeable)
-import Data.List (find, (\\), null)
+import Data.List (find, (\\), null, group)
 import Data.Maybe (fromJust, fromMaybe)
+
+import Users.State (User (..))
+import qualified Paste.StateOld as Old
+
+
+
 
 
 -- {{{ Data definitions
@@ -105,28 +110,23 @@ instance Migrate Old.Paste Paste where
 
 -- Generate a new ID
 incId :: Paste -> ID
-incId (Paste _ ids) = ID $ incId' ids' id
+incId (Paste _ ids) = ID $ incId' ids'
 
   where isId (ID _) = True
         isId NoID   = False
         ids'        = map unId $ filter isId ids
-        id | null ids' = ""
-           | otherwise = last ids'
 
 -- Helper for incId
-incId' ids id
-    | all (== 'z') id || id == "" = map (const $ head chars) [1 .. (length id + 1)]
-    | otherwise = head . dropWhile (`elem` ids) . everything . length $ id
+incId' ids = head $ dropWhile (`elem` ids) everything
 
-  where chars   = ['0'..'9'] ++ ['A'..'Z'] ++ ['a'..'z']
-        everything n
-            | n <= 1    = map (\c -> [c]) chars
-            | otherwise = do
-                c <- chars
-                r <- everything (n-1)
-                return $ c : r
+  where chars      = group $ ['0'..'9'] ++ ['A'..'Z'] ++ ['a'..'z']
+        everything = concat $ iterate func chars
+        func list  = concatMap (\char -> map (char ++) list) chars
 
 -- }}} Pure
+
+
+reservedIds = map ID [ "static", "restore" ]
 
 
 -- | Get a paste by ID
@@ -141,14 +141,26 @@ getPastesByUser u = ask >>= return . filter ((== Just u) . user) . pasteEntries
 getNewId :: Query Paste ID
 getNewId = ask >>= return . incId
 
+getAllEntries :: Query Paste [PasteEntry]
+getAllEntries = ask >>= return . pasteEntries
+
 -- | Add a PasteEntry, returns the ID of the new paste
 addPaste :: PasteEntry -> Update Paste ID
 addPaste entry = do
     paste <- ask
-    let newId = incId paste
+    let newId = let id = incId paste
+                in if id `elem` (pasteIDs paste ++ reservedIds)
+                      then newId
+                      else id
     modify $ \paste -> paste { pasteEntries = entry { pId = newId } : pasteEntries paste
                              , pasteIDs = newId : pasteIDs paste
                              }
     return newId
 
-$(mkMethods ''Paste ['addPaste, 'getPastesByUser, 'getPasteById, 'getNewId])
+-- | Delete ALL pastes from memory! Carefull!
+deleteAllPastes :: Update Paste ()
+deleteAllPastes = do
+    paste <- ask
+    modify . const $ Paste [] []
+
+$(mkMethods ''Paste ['addPaste, 'getPastesByUser, 'getPasteById, 'getNewId, 'getAllEntries, 'deleteAllPastes])
