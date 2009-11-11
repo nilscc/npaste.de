@@ -2,7 +2,8 @@ module Main where
 
 import Happstack.Server
   ( Conf(port)
-  , simpleHTTP
+  , simpleHTTPWithSocket
+  , bindPort
   -- , nullConf
   , validator
   , wdgHTMLValidator
@@ -31,38 +32,51 @@ import System.Environment   (getArgs)
 import System.Log.Logger    (Priority(..), logM)
 import System.Exit          (exitFailure)
 import System.Console.GetOpt 
+import System.Posix.User    (setUserID, UserEntry(..), getUserEntryForName)
 
 main = do
-  let progName   = "n-sch"
-      logPath    = rootPath $ defaultConf progName
-      stateProxy = Proxy :: Proxy AppState
-      user       = "nils"
-      
-  setupLogger logPath
+    let progName   = "n-sch"
+        logPath    = rootPath $ defaultConf progName
+        stateProxy = Proxy :: Proxy AppState
+        user       = "nils"
 
-  args <- getArgs
-  appConf <- case parseConfig args of
-                  (Left e) -> do logM progName ERROR (unlines e)
-                                 exitFailure
-                  (Right f) -> return (f $ defaultConf progName)
-  
-  -- start the state system
-  control <- startSystemState stateProxy
-  
-  -- start the http server
-  httpTid <- forkIO $ simpleHTTP (httpConf appConf) (appHandler appConf)
+    -- read arguments
+    args  <- getArgs
+    let eArgs = case parseConfig args of
+                     (Left  e) -> Left  (unlines e)
+                     (Right f) -> Right (f $ defaultConf progName)
 
-  -- checkpoint the state once a day
-  cronTid <- forkIO $ cron (60*60*24) (createCheckpoint control)
-  
-  -- wait for termination signal
-  waitForTermination
-  
-  -- cleanup
-  killThread httpTid
-  killThread cronTid
-  createCheckpoint control
-  shutdownSystem control 
+    -- quit if error in eArgs, extract appConf otherwise
+    appConf <- either (\e -> do getUserEntryForName "nils" >>= setUserID . userID
+                                setupLogger logPath
+                                logM progName ERROR e
+                                exitFailure
+                      ) (return) eArgs
+
+    -- bind port as root
+    socket <- bindPort (httpConf appConf)
+
+    -- Switch to user, enable logging
+    getUserEntryForName "nils" >>= setUserID . userID
+    setupLogger logPath
+
+    -- start the state system
+    control <- startSystemState stateProxy
+
+    -- start the http server
+    httpTid <- forkIO $ simpleHTTPWithSocket socket (httpConf appConf) (appHandler appConf)
+
+    -- checkpoint the state once a day
+    cronTid <- forkIO $ cron (60*60*24) (createCheckpoint control)
+
+    -- wait for termination signal
+    waitForTermination
+
+    -- cleanup
+    killThread httpTid
+    killThread cronTid
+    createCheckpoint control
+    shutdownSystem control 
 
 
 

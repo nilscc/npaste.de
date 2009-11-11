@@ -12,7 +12,7 @@ import Happstack.Server
 -- | Default configuration, just adding a progname
 defaultConf :: String -> AppConf
 defaultConf progName = AppConf
-    { httpConf  = nullConf
+    { httpConf  = nullConf { port = 80 }
     , store     = "_local/" ++ progName ++ "_state"
     , static    = "public"
     , rootPath  = ""
