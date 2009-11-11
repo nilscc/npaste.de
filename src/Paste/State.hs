@@ -31,7 +31,7 @@ import Data.List (find, (\\), null, group)
 import Data.Maybe (fromJust, fromMaybe)
 
 import Users.State (User (..))
-import qualified Paste.StateOld as Old
+-- import qualified Paste.StateOld as Old
 
 
 
