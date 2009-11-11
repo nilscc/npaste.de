@@ -10,7 +10,14 @@ import System.Directory
 import Paste.View (showPaste)
 import Paste.Post (postHandler)
 
-import Paste.State (DeleteAllPastes(..), AddPaste(..), PasteEntry(..), ID(..), Content(..))
+import Paste.State
+    ( DeleteAllPastes(..)
+    , AddPaste(..)
+    , PasteEntry(..)
+    , ID(..)
+    , Content(..)
+    , GetAllEntries(..)
+    )
 import System.Time (getClockTime, ClockTime(..))
 
 pasteHandler :: ServerPartT IO Response
@@ -33,7 +40,10 @@ restore = do
     -- add new pastes
     now <- liftIO getClockTime
     mapM_ (addPaste now) pastes
-    ok . toResponse $ "All pastes restored."
+
+    -- show current pasteentrys
+    pEntries <- query GetAllEntries
+    ok . toResponse $ show pEntries
 
   where chars = ['0'..'9'] ++ ['A'..'Z'] ++ ['a'..'z']
         addPaste now s = update $ AddPaste PasteEntry { date     = now

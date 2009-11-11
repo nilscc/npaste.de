@@ -9,6 +9,7 @@ module Paste.State
     , ID (..)
     , Content (..)
     , AddPaste (..)
+    , GetAllEntries (..)
     , GetPasteById (..)
     , GetNewId (..)
     , GetPastesByUser (..)
@@ -142,6 +143,9 @@ getPastesByUser u = ask >>= return . filter ((== Just u) . user) . pasteEntries
 getNewId :: Query Paste ID
 getNewId = ask >>= return . incId
 
+getAllEntries :: Query Paste [PasteEntry]
+getAllEntries = ask >>= return . pasteEntries
+
 -- | Add a PasteEntry, returns the ID of the new paste
 addPaste :: PasteEntry -> Update Paste ID
 addPaste entry = do
@@ -158,4 +162,4 @@ deleteAllPastes = do
     paste <- ask
     modify . const $ Paste [] []
 
-$(mkMethods ''Paste ['addPaste, 'getPastesByUser, 'getPasteById, 'getNewId, 'deleteAllPastes])
+$(mkMethods ''Paste ['addPaste, 'getPastesByUser, 'getPasteById, 'getNewId, 'getAllEntries, 'deleteAllPastes])
