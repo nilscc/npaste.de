@@ -1,3 +1,3 @@
 #!/bin/sh
 
-ghc --make src/Main.hs -isrc -o happstack && ./happstack "$@"
+ghc --make src/Main.hs -isrc -o happstack
