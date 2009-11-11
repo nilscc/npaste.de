@@ -4,3 +4,4 @@ _local/*
 access.log
 app.log
 lighttpd/*
+happstack
