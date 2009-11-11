@@ -33,8 +33,8 @@ stripSpaces = unlines . map (foldr strip "") . lines
 postHandler :: ServerPartT IO Response
 postHandler = do
     methodM POST
-    -- pData <- getData
-    case Nothing of
+    pData <- getData
+    case pData of
          Just pd -> postData pd
          _ -> badRequest . toResponse $ "Something went wrong. Contact mail (at) n-sch.de if necessary.\n"
 
