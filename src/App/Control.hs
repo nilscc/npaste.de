@@ -20,7 +20,9 @@ vHosts = [ VHost "n-sch.de"  $ fileServe ["index.html"] "n-sch.de"
 
 -- | Handle incoming events
 appHandler :: AppConf -> ServerPartT IO Response
-appHandler appConf = askRq >>= getVHosts . getHeader "host"
+appHandler appConf = if local appConf
+                        then pasteHandler
+                        else askRq >>= getVHosts . getHeader "host"
 
 -- | Helper for appHandler, handle virtual hosts
 getVhosts Nothing   = response . head $ vHosts

@@ -17,7 +17,7 @@ defaultConf progName = AppConf
     , static    = "public"
     , rootPath  = ""
     , debug     = False
-    , local     = False
+    , local     = True
     }
 
 -- | Application configuration

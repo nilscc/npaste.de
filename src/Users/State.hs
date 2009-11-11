@@ -67,6 +67,7 @@ instance Version Users
 $(deriveSerialize ''UserReply)
 instance Version UserReply
 
+
 -- | Dependencies
 instance Component Users where
   type Dependencies Users = End
