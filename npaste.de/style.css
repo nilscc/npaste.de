@@ -74,9 +74,9 @@ div#main
         font-weight: bold;
     }
 
-    div#main form#paste
+    div#main form#paste p
     {
-        
+        text-align: left;
     }
 
 
