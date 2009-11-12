@@ -22,7 +22,7 @@ index =
         <body>
 
             <div id="main">
-                <h1>nPaste.de - Pastebin on <a href="http://www.n-sch.de">n-sch.de</a></h1>
+                <h1>npaste.de - Pastebin on <a href="http://www.n-sch.de">n-sch.de</a></h1>
 
                 <p>This pastebin is running on happstack. You can use it with a simple curl command:</p>
 
