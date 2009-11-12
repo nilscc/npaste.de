@@ -42,7 +42,7 @@ postHandler = do
 -- | Add post data to database
 postData :: PostData -> ServerPartT IO Response
 postData pData = do
-    let content  = fromMaybe "" $ cont pData
+    let content  = stripSpaces . fromMaybe "" $ cont pData
         filetype = ft pData
         submit   = sub pData
         username = fromMaybe "" $ un  pData
