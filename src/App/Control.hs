@@ -15,6 +15,7 @@ import Paste.Control (pasteHandler)
 -- | vHosts for appHandler. Regex should work fine...
 vHosts = [ VHost "n-sch.de"  $ fileServe ["index.html"] "n-sch.de"
          , VHost "npaste.de" $ pasteHandler
+         , VHost "localhost" $ pasteHandler
          ]
 
 

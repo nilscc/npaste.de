@@ -34,9 +34,6 @@ import Users.State (User (..))
 -- import qualified Paste.StateOld as Old
 
 
-
-
-
 -- {{{ Data definitions
 $(deriveAll [''Show, ''Eq, ''Ord, ''Default]
     [d|

@@ -83,7 +83,7 @@ postData pData = do
                                           , filetype = filetype
                                           }
              -- send url
-             let url = "http://npaste.de/" ++ unId newId
+             let url = "http://npaste.de/" ++ unId newId ++ "/"
              if submit
                 then seeOther url . toResponse $ url
                 else ok           . toResponse $ url ++ "\n"
