@@ -59,14 +59,15 @@ showWithSyntax p ext = do
     cont <- liftIO $ getContent p
 
     let paste = case highlightAs ext cont of
-                     Left _   -> PlainText cont
+                     Left _   -> PlainText   { lang'       = filetype p
+                                             , plainText   = cont
+                                             }
                      Right sl -> Highlighted { lang        = ext
                                              , plainText   = cont
                                              , highlighted = formatAsXHtml [] ext sl
                                              }
 
     webHSP $ pasteBody (CssString defaultHighlightingCss) (unId $ pId p) paste
-
 
 
 --------------------------------------------------------------------------------
@@ -90,7 +91,7 @@ pasteBody css id content =
                 <select size="1" id="languages" 
                   onChange="menu = document.getElementById('languages'); window.location = menu.options[menu.selectedIndex].text">
                     <%
-                        map option (("Current: " ++ lang) : languages)
+                        map option (("Current: " ++ (language content)) : languages)
                     %>
                 </select>
                 </p>
@@ -99,10 +100,10 @@ pasteBody css id content =
         </body>
     </html>
   where option l = <option><% l %></option>
-        lang = case content of
-                    Highlighted l _ _ | (not . null $ languagesByExtension l) ->
-                        head $ languagesByExtension l
-                    _ -> "Plain text"
+        language (Highlighted l _ _) = language' l
+        language (PlainText l _)     = language' $ fromMaybe "" l
+        language' s | (not . null $ languagesByExtension s) = head $ languagesByExtension s
+                    | otherwise                             = "Plain text"
 
 
 
@@ -112,7 +113,9 @@ sourcePre Nothing code = <pre class="sourceCode"><% code %></pre>
 sourcePre (Just ext) code = <pre class="sourceCode"><% code %></pre>
 
 -- | Paste data
-data PasteContent = PlainText String
+data PasteContent = PlainText   { lang'       :: Maybe String
+                                , plainText   :: String
+                                }
                   | Highlighted { lang        :: String
                                 , plainText   :: String
                                 , highlighted :: X.Html
@@ -138,7 +141,7 @@ instance (XMLGenerator m, EmbedAsChild m XML, HSX.XML m ~ XML) => (EmbedAsChild 
               </td>
               <td class="sourceCode">
                 <% case content of
-                        PlainText _          -> <pre><% text %></pre>
+                        PlainText _ _        -> <pre><% text %></pre>
                         Highlighted _ _ html -> toXML html
                 %>
               </td>
@@ -146,7 +149,7 @@ instance (XMLGenerator m, EmbedAsChild m XML, HSX.XML m ~ XML) => (EmbedAsChild 
           </table>
         %>
       where text = case content of
-                        PlainText str       -> str
+                        PlainText _ str     -> str
                         Highlighted _ str _ -> str
 
 -- WHY?!
