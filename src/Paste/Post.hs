@@ -12,7 +12,7 @@ import Data.Maybe (fromJust, isJust, fromMaybe)
 import System.Time (getClockTime, ClockTime(..))
 
 import HSP
-import Text.Highlighting.Kate (languagesByExtension)
+import Text.Highlighting.Kate (languagesByExtension, languages)
 
 import Paste.State
 import Users.State
@@ -107,13 +107,10 @@ instance FromData PostData where
         ft      <- look "filetype" `mplus` return ""
         let makeOpt "" = Nothing
             makeOpt s  = Just s
-            lang l | (not . null $ languages) = Just . head $ languages
-                   | otherwise                = Nothing
-              where languages = languagesByExtension l
 
         return $ PostData { cont = makeOpt content
                           , un   = makeOpt user
                           , pwd  = makeOpt passwd
-                          , ft   = lang ft
+                          , ft   = makeOpt ft
                           , sub  = not $ null submit
                           }
