@@ -1,4 +1,4 @@
-{-# OPTIONS_GHC -F -pgmFtrhsx #-}
+-- {-# OPTIONS_GHC -F -pgmFtrhsx #-}
 module Paste.Post (postHandler) where
 
 import Happstack.Server
@@ -57,7 +57,7 @@ postData pData = do
         error | null content =
                   Just "No content given."
               | not (null $ drop (50000) content) =
-                  Just "Content size too big (max 100kb)."
+                  Just "Content size too big."
               | not (null username) =
                   case userReply of
                        OK _             -> Nothing
@@ -68,7 +68,7 @@ postData pData = do
                   Nothing
 
     case error of
-         Just e  -> badRequest $ toResponse e
+         Just e  -> badRequest . toResponse $ e ++ "\n"
          Nothing -> do
              -- get time, id and filepath
              now <- liftIO getClockTime
@@ -85,8 +85,8 @@ postData pData = do
              -- send url
              let url = "http://npaste.de/" ++ unId newId
              if submit
-                then seeOther url (toResponse url)
-                else ok . toResponse $ url ++ "\n"
+                then seeOther url . toResponse $ url
+                else ok           . toResponse $ url ++ "\n"
 
 
 -- | Define post data
