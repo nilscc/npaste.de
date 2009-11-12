@@ -103,6 +103,7 @@ pasteBody css id content =
         language (Highlighted l _ _) = language' l
         language (PlainText l _)     = language' $ fromMaybe "" l
         language' s | (not . null $ languagesByExtension s) = head $ languagesByExtension s
+                    | s `elem` languages                    = s
                     | otherwise                             = "Plain text"
 
 
