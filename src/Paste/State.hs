@@ -124,16 +124,19 @@ incId (Paste _ ids) = ID $ incId' ids'
         ids'        = map unId $ filter isId ids
 
 -- Helper for incId
-incId' ids = head $ dropWhile (`elem` ids) everything
+incId' :: [String] -> String
+incId' ids = head $ dropWhile (`elem` ids ++ reservedIds) everything
 
   where chars      = group $ ['0'..'9'] ++ ['A'..'Z'] ++ ['a'..'z']
         everything = concat $ iterate func chars
         func list  = concatMap (\char -> map (char ++) list) chars
 
+-- | Reserved IDs
+reservedIds = [ "static", "client" ]
+
 -- }}} Pure
 
 
-reservedIds = map ID [ "static", "restore" ]
 
 
 -- | Get a paste by ID
@@ -155,10 +158,7 @@ getAllEntries = ask >>= return . pasteEntries
 addPaste :: PasteEntry -> Update Paste ID
 addPaste entry = do
     paste <- ask
-    let newId = let id = incId paste
-                in if id `elem` (pasteIDs paste ++ reservedIds)
-                      then newId
-                      else id
+    let newId = incId paste
     modify $ \paste -> paste { pasteEntries = entry { pId = newId } : pasteEntries paste
                              , pasteIDs = newId : pasteIDs paste
                              }

@@ -13,6 +13,7 @@ pasteHandler :: ServerPartT IO Response
 pasteHandler = msum
     [ postHandler
     , dir "static" $ fileServe ["index.html"] "npaste.de"
+    , dir "client" $ fileServe ["index.html"] "npaste.de/client"
     , path showPaste
     , showIndex
     ]
