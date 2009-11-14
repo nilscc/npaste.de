@@ -101,5 +101,5 @@ index showOnIndex =
 
   where option l = <option><% l %></option>
         idTypeOptions = ["Default ID", "Random ID", "Custom ID"]
-        langOptions   = ("Plain text" : optSeparator : languages ++ [optSeparator])
+        langOptions   = ("Plain text" : "Tiny Url" : optSeparator : languages ++ [optSeparator])
         optSeparator  = "----------"
