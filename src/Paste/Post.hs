@@ -1,5 +1,8 @@
 -- {-# OPTIONS_GHC -F -pgmFtrhsx #-}
-module Paste.Post (postHandler) where
+module Paste.Post
+    ( postHandler
+    , PasteResponse(..)
+    ) where
 
 import Happstack.Server
 import Happstack.State
@@ -7,14 +10,25 @@ import Happstack.State
 import Control.Exception (try)
 import Control.Monad.Trans (liftIO)
 import Control.Monad (msum, mplus, mzero, guard)
-import Data.Char (isSpace)
+
+import Data.Char (isSpace, toLower)
 import Data.Maybe (fromJust, isJust, fromMaybe)
+
+import System.Directory (createDirectoryIfMissing)
+import System.FilePath (pathSeparator)
 import System.Time (getClockTime, ClockTime(..))
 
 import HSP
 import Text.Highlighting.Kate (languagesByExtension, languages)
 
+import Paste.ViewIndex (showIndex')
 import Paste.State
+import Paste.Types
+    ( PasteResponse (..)
+    , PostData (..)
+    , ShowOnIndex (..)
+    )
+
 import Users.State
     ( Validate (..)
     , UserReply (..)
@@ -37,80 +51,97 @@ postHandler = do
     methodM POST
     pData <- getData
     case pData of
-         Just pd -> postData pd
+         Just pd -> post pd
          _       -> badRequest . toResponse $ "Something went wrong. Contact mail (at) n-sch.de if necessary.\n"
 
 -- | Add post data to database
-postData :: PostData -> ServerPartT IO Response
-postData pData = do
-    let content  = stripSpaces . fromMaybe "" $ cont pData
+post :: PostData -> ServerPartT IO Response
+post pData = do
+    let content  = stripSpaces  $ cont pData
         filetype = ft pData
         submit   = sub pData
         username = fromMaybe "" $ un  pData
         password = fromMaybe "" $ pwd pData
+        idT      = idType pData
+
+    -- Generate a new ID
+    id  <- query $ GenerateId idT
 
     -- Get user
     userReply <- query $ Validate (Login username) (Password password)
     let user = case userReply of
                     OK user -> Just user
-                    _ -> Nothing
+                    _       -> Nothing
+        maxSize = 50 -- max size in kb
+        response | null content =
+                     EmptyContent
+                 | not (null $ drop (maxSize * 1000) content) =
+                     ContentTooBig maxSize
+                 | not (null username) =
+                     case userReply of
+                          OK _             -> NoError idT
+                          WrongLogin       -> WrongUserLogin
+                          WrongPassword    -> WrongUserPassword
+                          _                -> Other
+                 | id == NoID =
+                     InvalidID
+                 | otherwise =
+                     NoError idT
 
-        error | null content =
-                  Just "No content given."
-              | not (null $ drop (50000) content) =
-                  Just "Content size too big."
-              | not (null username) =
-                  case userReply of
-                       OK _             -> Nothing
-                       WrongLogin       -> Just "Wrong login name."
-                       WrongPassword    -> Just "Wrong password."
-                       _                -> Just "User validation failed."
-              | otherwise =
-                  Nothing
-
-    case error of
-         Just e  -> badRequest . toResponse $ e ++ "\n"
-         Nothing -> do
+    case response of
+         NoError _ -> do
              -- get time, id and filepath
+             let folder = "pastes"
+                 fp     = folder ++ [pathSeparator] ++ unId id
+                 url    = "http://npaste.de/" ++ unId id ++ "/"
              now <- liftIO getClockTime
-             newId <- query $ GetNewId
-             let fp = "pastes/" ++ unId newId
+
              -- write file & add paste
-             liftIO $ writeFile fp content
-             update $ AddPaste PasteEntry { date     = now
-                                          , content  = File fp
-                                          , user     = user
-                                          , pId      = NoID
-                                          , filetype = filetype
-                                          }
-             -- send url
-             let url = "http://npaste.de/" ++ unId newId ++ "/"
-             if submit
-                then seeOther url . toResponse $ url
-                else ok           . toResponse $ url ++ "\n"
+             idR <- update $ AddPaste PasteEntry { date     = now
+                                                 , content  = File fp
+                                                 , user     = user
+                                                 , pId      = id
+                                                 , filetype = filetype
+                                                 }
+
+             case idR of
+                  NoID -> badRequest . toResponse . show $ Other
+                  ID _ -> do -- save paste to file
+                             liftIO $ do createDirectoryIfMissing True folder
+                                         writeFile fp content
+
+                             -- handle http post form / curl post
+                             if submit
+                                then seeOther url . toResponse $ url
+                                else ok           . toResponse $ url ++ "\n"
+         _ -> if submit
+                 then showIndex' $ ShowOnIndex (Just pData) (Just response)
+                 else badRequest . toResponse $ show response ++ "\n"
 
 
--- | Define post data
-data PostData = PostData { cont :: Maybe String -- ^ Necessary content
-                         , un   :: Maybe String -- ^ Username
-                         , pwd  :: Maybe String -- ^ Password
-                         , ft   :: Maybe String -- ^ Filetype
-                         , sub  :: Bool         -- ^ Submit button from form
-                         }
 -- | Read post data
 instance FromData PostData where
     fromData = do
-        content <- look "content"  `mplus` return ""
+        content <- look "content"
         submit  <- look "submit"   `mplus` return ""
         user    <- look "user"     `mplus` return ""
         passwd  <- look "password" `mplus` return ""
         ft      <- look "filetype" `mplus` return ""
+        id      <- look "id"       `mplus` return ""
+        idT     <- look "id-type"  `mplus` return ""
         let makeOpt "" = Nothing
             makeOpt s  = Just s
+            id' | idT' `elem` defaultIds = DefaultID
+                | idT' `elem` randomIds  = RandomID 10
+                | otherwise              = CustomID $ ID id
+              where idT' | null idT  = map toLower id
+                         | otherwise = map toLower idT
 
-        return $ PostData { cont = makeOpt content
-                          , un   = makeOpt user
-                          , pwd  = makeOpt passwd
-                          , ft   = makeOpt ft
-                          , sub  = not $ null submit
+        return $ PostData { cont    = content
+                          , un      = makeOpt user
+                          , pwd     = makeOpt passwd
+                          , ft      = makeOpt ft
+                          , idReq   = makeOpt id
+                          , idType  = id'
+                          , sub     = not $ null submit
                           }
