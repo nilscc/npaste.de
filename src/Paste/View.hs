@@ -20,6 +20,7 @@ import Text.XHtml
 
 import Control.Monad (msum, mzero, liftM)
 import Control.Monad.Trans (liftIO)
+import Data.Char  (toLower)
 import Data.Maybe (fromMaybe)
 
 -- import Paste.View
@@ -34,7 +35,7 @@ import Users.State
 -- | Show paste handler
 showPaste :: String -> ServerPartT IO Response
 showPaste id = do
-    mPaste <- query . GetPasteById $ ID id
+    mPaste <- query $ GetPasteById (ID id)
     case mPaste of
          Nothing -> notFound . toResponse $ "Paste not found with ID \"" ++ id ++ "\""
          Just p  -> do
@@ -56,7 +57,7 @@ showPlain p = liftIO (getContent p) >>= ok . setHeader "Content-Type" "text/plai
 -- | Syntax highlighting
 showWithSyntax :: PasteEntry -> String -> ServerPartT IO Response
 showWithSyntax p ext
-    | ext `elem` tinyIds = do
+    | ext' `elem` tinyIds = do
         url <- liftIO $ getContent p
         seeOther url . toResponse $ url
 
@@ -73,6 +74,8 @@ showWithSyntax p ext
                                              }
 
     webHSP $ pasteBody (CssString defaultHighlightingCss) (unId $ pId p) paste
+
+  where ext' = map toLower ext
 
 
 --------------------------------------------------------------------------------
