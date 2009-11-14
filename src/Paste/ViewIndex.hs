@@ -50,8 +50,8 @@ index showOnIndex =
 
                 <p>Or simply enter your paste below:</p>
 
-                -- <form id="paste" action="http://npaste.de" method="post">
-                <form id="paste" action="http://localhost" method="post">
+                <form id="paste" action="http://npaste.de" method="post">
+                -- <form id="paste" action="http://localhost" method="post">
                     <%
                         -- Show error if any
                         case pasteResponse showOnIndex of
