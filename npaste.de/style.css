@@ -68,6 +68,12 @@ div#main
     width: 760px;
 }
 
+    div#main .error
+    {
+        font-weight: bold;
+        color: #f00
+    }
+
     div#main pre
     {
         margin: auto 30px 20px;
@@ -77,6 +83,11 @@ div#main
     div#main form#paste p
     {
         text-align: left;
+    }
+
+    div#main form#paste input#id
+    {
+        width: 50px;
     }
 
 
