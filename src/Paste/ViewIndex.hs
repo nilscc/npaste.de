@@ -46,10 +46,12 @@ index showOnIndex =
 
                 <pre><% "cat <file>| curl -F \"content=<-\" -F \"filetype=<filetype>\" npaste.de" %></pre>
 
-                <p>Where <% "\"<filetype>\"" %> specifies your default highlighting language (optional).<br />
-                    You can also get one of the unix clients (<a href="http://npaste.de/client/32bit/np">32bit</a>
-                    and <a href="http://npaste.de/client/64bit/np">64bit</a>).
-                    Source code is available at <a href="http://npaste.de/clientsrc/">#clientsrc</a>.
+                <p>Where <% "\"<filetype>\"" %> specifies your default highlighting language (optional).</p>
+                <p>
+                    You can also get one of the linux clients
+                    (<a href="http://npaste.de/client/32bit/np">32bit</a> and <a href="http://npaste.de/client/64bit/np">64bit</a>,
+                    compiled on Arch Linux).
+                    The source code is available at <a href="http://npaste.de/clientsrc/">#clientsrc</a>.
                 </p>
 
                 <p>Or simply enter your paste below:</p>
