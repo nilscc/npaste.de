@@ -55,7 +55,12 @@ showPlain p = liftIO (getContent p) >>= ok . setHeader "Content-Type" "text/plai
 
 -- | Syntax highlighting
 showWithSyntax :: PasteEntry -> String -> ServerPartT IO Response
-showWithSyntax p ext = do
+showWithSyntax p ext
+    | ext `elem` tinyIds = do
+        url <- liftIO $ getContent p
+        seeOther url . toResponse $ url
+
+    | otherwise = do
     cont <- liftIO $ getContent p
 
     let paste = case highlightAs ext cont of

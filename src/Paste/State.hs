@@ -18,6 +18,7 @@ module Paste.State
     , defaultIds
     , randomId
     , randomIds
+    , tinyIds
     , customId
     )
     where
@@ -44,9 +45,10 @@ import Users.State (User (..))
 -- | Reserved IDs
 validChars  = ['0'..'9'] ++ ['A'..'Z'] ++ ['a'..'z']
 
-reservedIds = [ "static", "client" ] ++ defaultIds ++ randomIds
-defaultIds  = [ "", "default", "default id" ]
-randomIds   = [ "rand", "random", "random id" ]
+reservedIds = [ "static", "client" ] ++ defaultIds ++ randomIds ++ tinyIds
+defaultIds  = [ "", "default", "default id", "defaultid" ]
+randomIds   = [ "rand", "random", "random id", "randomid" ]
+tinyIds     = [ "tiny", "tiny url", "tinyurl" ]
 
 
 --------------------------------------------------------------------------------
