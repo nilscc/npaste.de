@@ -14,18 +14,21 @@ module Paste.State
     , GetPasteById (..)
     , GenerateId (..)
     , GetPastesByUser (..)
+    , GetPasteEntryByMd5sum (..)
     , defaultId
     , defaultIds
     , randomId
     , randomIds
     , tinyIds
     , customId
+    , md5string
     )
     where
 
 import Happstack.Data
 import Happstack.State
 import Happstack.State.ClockTime
+import Happstack.Crypto.MD5 (md5)
 
 import System.Random
 import System.Time
@@ -34,12 +37,19 @@ import Control.Monad (liftM2, forM)
 import Control.Monad.Reader (ask)
 import Control.Monad.State (modify)
 import Control.Monad.Trans (liftIO)
+
+import qualified Data.ByteString as BS
+import qualified Data.ByteString.Lazy.Char8 as BS8
 import Data.Typeable (Typeable)
 import Data.List (find, (\\), null, group)
 import Data.Maybe (fromJust, fromMaybe)
 
 import Users.State (User (..))
--- import qualified Paste.StateOld as Old
+
+
+---- OLD ----
+import qualified Paste.StateOld as Old
+---- OLD ----
 
 
 -- | Reserved IDs
@@ -50,12 +60,16 @@ defaultIds  = [ "", "default", "default id", "defaultid" ]
 randomIds   = [ "rand", "random", "random id", "randomid" ]
 tinyIds     = [ "tiny", "tiny url", "tinyurl" ]
 
+-- | Generate MD5 sum of a string, returns a strict ByteString
+md5string :: String -> BS.ByteString
+md5string str = BS.concat . BS8.toChunks . md5 $ BS8.pack str
 
 --------------------------------------------------------------------------------
 -- State data definitions
 --------------------------------------------------------------------------------
 
 -- {{{ state
+
 
 $(deriveAll [''Show, ''Eq, ''Ord, ''Default]
     [d|
@@ -79,6 +93,7 @@ $(deriveAll [''Show, ''Eq, ''Ord, ''Default]
                     , pId       :: ID
                     , date      :: ClockTime
                     , content   :: Content
+                    , md5hash   :: BS.ByteString
                     , filetype  :: Maybe String
                     }
 
@@ -108,8 +123,8 @@ instance Version Content
 
 $(deriveSerialize ''PasteEntry)
 instance Version PasteEntry where
-    mode = Versioned 1 Nothing
-    -- mode = extension 1 (Proxy :: Proxy Old.PasteEntry)
+    -- mode = Versioned 1 Nothing
+    mode = extension 1 (Proxy :: Proxy Old.PasteEntry)
 
 $(deriveSerialize ''Paste)
 instance Version Paste where
@@ -121,21 +136,22 @@ instance Component Paste where
   type Dependencies Paste = End
   initialValue = Paste [] []
 
-{-
-instance Migrate Old.ID ID where
-    migrate old = ID . Old.unId $ old
 -- Migrate from older Versions of PasteEntry
 instance Migrate Old.PasteEntry PasteEntry where
-    migrate old = PasteEntry { user     = Nothing
-                             , pId      = maybe NoID migrate (Old.pId old)
-                             , date     = maybe (error "Invalid past entry: no paste date")
-                                                (id)
-                                                (Old.date old)
+    migrate old = PasteEntry { user     = Old.user old
+                             , pId      = ID . Old.unId $ Old.pId old
+                             , date     = Old.date old
                              , content  = case Old.content old of
                                                Old.File fp    -> File fp
                                                Old.Plain text -> Plain text
-                             , filetype = Nothing
+                             , filetype = Old.filetype old
+                             , md5hash  = BS.empty
                              }
+
+{-
+
+instance Migrate Old.ID ID where
+    migrate old = ID . Old.unId $ old
 
 instance Migrate Old.Paste Paste where
     migrate old = Paste { pasteEntries = map migrate $ Old.pasteEntries old
@@ -162,6 +178,10 @@ getPastesByUser u = ask >>= return . filter ((== Just u) . user) . pasteEntries
 -- | Get all entries
 getAllEntries :: Query Paste [PasteEntry]
 getAllEntries = ask >>= return . pasteEntries
+
+-- | Return ID of an MD5 sum
+getPasteEntryByMd5sum :: BS.ByteString -> Query Paste (Maybe PasteEntry)
+getPasteEntryByMd5sum bs = ask >>= return . find ((== bs) . md5hash) . pasteEntries
 
 
 
@@ -264,4 +284,4 @@ addPaste entry = do
 
 
 -- Generate methods
-$(mkMethods ''Paste ['addPaste, 'getPastesByUser, 'getPasteById, 'generateId, 'getAllEntries])
+$(mkMethods ''Paste ['addPaste, 'getPastesByUser, 'getPasteById, 'getPasteEntryByMd5sum, 'generateId, 'getAllEntries])

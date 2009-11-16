@@ -9,6 +9,7 @@ import Paste.State
 type MaxSize = Int
 -- | Define post error data
 data PasteResponse = NoError IDType         -- ^ URL of paste
+                   | MD5Exists PasteEntry   -- ^ md5 of a paste entry already exists
                    | EmptyContent           -- ^ no content given
                    | ContentTooBig MaxSize  -- ^ max size in kb
                    | WrongUserLogin         -- ^ wrong login name
@@ -19,6 +20,7 @@ data PasteResponse = NoError IDType         -- ^ URL of paste
 -- | Show instance
 instance Show PasteResponse where
     show (NoError id)       = "Paste successful."
+    show (MD5Exists pe)     = "Paste already exists at ID #" ++ (unId . pId $ pe)
     show EmptyContent       = "No content given."
     show (ContentTooBig ms) = "Content size too big (max " ++ show ms ++ "kb)."
     show WrongUserLogin     = "Wrong login name."

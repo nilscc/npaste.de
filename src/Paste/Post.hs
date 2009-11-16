@@ -57,19 +57,22 @@ postHandler = do
 -- | Add post data to database
 post :: PostData -> ServerPartT IO Response
 post pData = do
-    let content  = stripSpaces  $ cont pData
-        filetype = ft pData
-        submit   = sub pData
-        username = fromMaybe "" $ un  pData
-        password = fromMaybe "" $ pwd pData
-        idT      = idType pData
+    let content     = stripSpaces  $ cont pData
+        filetype    = ft pData
+        submit      = sub pData
+        username    = fromMaybe "" $ un  pData
+        password    = fromMaybe "" $ pwd pData
+        idT         = idType pData
+        md5content  = md5string content
 
+    -- validate that there is no other paste entry with the same md5
+    peByMd5 <- query $ GetPasteEntryByMd5sum md5content
     -- Generate a new ID
     id  <- query $ GenerateId idT
 
     -- Get user
     userReply <- query $ Validate (Login username) (Password password)
-    let user = case userReply of
+    let user' = case userReply of
                     OK user -> Just user
                     _       -> Nothing
         maxSize = 50 -- max size in kb
@@ -86,9 +89,13 @@ post pData = do
                  | id == NoID =
                      InvalidID
                  | otherwise =
-                     NoError idT
+                     case peByMd5 of
+                          Just pe | user' == user pe -> MD5Exists pe
+                          _ -> NoError idT
 
     case response of
+         MD5Exists pe -> let url = "http://npaste.de/" ++ unId (pId pe) ++ "/"
+                         in  showUrl submit url
          NoError _ -> do
              -- get time, id and filepath
              let folder = "pastes"
@@ -99,9 +106,10 @@ post pData = do
              -- write file & add paste
              idR <- update $ AddPaste PasteEntry { date     = now
                                                  , content  = File fp
-                                                 , user     = user
+                                                 , user     = user'
                                                  , pId      = id
                                                  , filetype = filetype
+                                                 , md5hash  = md5content
                                                  }
 
              case idR of
@@ -109,16 +117,18 @@ post pData = do
                   ID _ -> do -- save paste to file
                              liftIO $ do createDirectoryIfMissing True folder
                                          writeFile fp content
+                             showUrl submit url
 
-                             -- handle http post form / curl post
-                             if submit
-                                then seeOther url . toResponse $ url
-                                else ok           . toResponse $ url ++ "\n"
+
          _ -> if submit
                  then showIndex' $ ShowOnIndex (Just pData) (Just response)
                  else badRequest . toResponse $ show response ++ "\n"
 
-
+-- handle http post form / curl post
+showUrl :: Bool -> String -> ServerPartT IO Response
+showUrl submit url = if submit
+                        then seeOther url . toResponse $ url
+                        else ok           . toResponse $ url ++ "\n"
 -- | Read post data
 instance FromData PostData where
     fromData = do
