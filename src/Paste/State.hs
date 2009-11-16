@@ -9,14 +9,14 @@ module Paste.State
     , GetPasteById (..)
     , GenerateId (..)
     , GetPastesByUser (..)
-    -- , GetPasteEntryByMd5sum (..)
+    , GetPasteEntryByMd5sum (..)
     , defaultId
     , defaultIds
     , randomId
     , randomIds
     , tinyIds
     , customId
-    -- , md5string
+    , md5string
 
     , module Paste.State.Content
     , module Paste.State.ID
@@ -61,11 +61,6 @@ import Data.Maybe (fromJust, fromMaybe)
 import Users.State (User (..))
 
 
----- OLD ----
--- import qualified Paste.StateOld as Old
----- OLD ----
-
-
 -- | Reserved IDs
 validChars  = ['0'..'9'] ++ ['A'..'Z'] ++ ['a'..'z']
 
@@ -75,8 +70,8 @@ randomIds   = [ "rand", "random", "random id", "randomid" ]
 tinyIds     = [ "tiny", "tiny url", "tinyurl" ]
 
 -- | Generate MD5 sum of a string, returns a strict ByteString
--- md5string :: String -> BS.ByteString
--- md5string str = BS.concat . BS8.toChunks . md5 $ BS8.pack str
+md5string :: String -> BS.ByteString
+md5string str = BS.concat . BS8.toChunks . md5 $ BS8.pack str
 
 
 --------------------------------------------------------------------------------
@@ -97,8 +92,8 @@ getAllEntries :: Query Paste [PasteEntry]
 getAllEntries = ask >>= return . pasteEntries
 
 -- | Return ID of an MD5 sum
--- getPasteEntryByMd5sum :: BS.ByteString -> Query Paste (Maybe PasteEntry)
--- getPasteEntryByMd5sum bs = ask >>= return . find ((== bs) . md5hash) . pasteEntries
+getPasteEntryByMd5sum :: BS.ByteString -> Query Paste (Maybe PasteEntry)
+getPasteEntryByMd5sum bs = ask >>= return . find ((== bs) . md5hash) . pasteEntries
 
 
 
@@ -201,4 +196,4 @@ addPaste entry = do
 
 
 -- Generate methods
-$(mkMethods ''Paste ['addPaste, 'getPastesByUser, 'getPasteById, 'generateId, 'getAllEntries])
+$(mkMethods ''Paste ['addPaste, 'getPastesByUser, 'getPasteById, 'getPasteEntryByMd5sum, 'generateId, 'getAllEntries])

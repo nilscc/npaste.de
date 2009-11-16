@@ -12,14 +12,8 @@ import Users.State          (User (..))
 import Paste.State.ID       (ID (..))
 import Paste.State.Content  (Content (..))
 
--- import qualified Data.ByteString as BS
-
-
---------------------------------------------------------------------------------
--- Migration import
--- import qualified Paste.State.PasteEntry (PasteEntry (..)) as Old
--- 
---------------------------------------------------------------------------------
+import qualified Data.ByteString as BS
+import qualified Paste.State.PasteEntryOld as Old (PasteEntry (..)) 
 
 $(deriveAll [''Show, ''Eq, ''Ord, ''Default]
     [d|
@@ -30,17 +24,15 @@ $(deriveAll [''Show, ''Eq, ''Ord, ''Default]
                     , pId       :: ID
                     , date      :: ClockTime
                     , content   :: Content
-                    -- , md5hash   :: BS.ByteString
+                    , md5hash   :: BS.ByteString
                     , filetype  :: Maybe String
                     }
     |])
 
 $(deriveSerialize ''PasteEntry)
 instance Version PasteEntry where
-    mode = Versioned 1 Nothing
-    -- mode = extension 1 (Proxy :: Proxy Old.PasteEntry)
+    -- mode = Versioned 1 Nothing
+    mode = extension 2 (Proxy :: Proxy Old.PasteEntry)
 
-{-
-instance Migration Old.PasteEntry PasteEntry where
+instance Migrate Old.PasteEntry PasteEntry where
     migrate (Old.PasteEntry u i d c f) = PasteEntry u i d c BS.empty f
--}
