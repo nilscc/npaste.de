@@ -20,7 +20,7 @@ data VHost = VHost { toMatch :: String
 -- | vHosts for appHandler. Regex should work fine...
 vHosts = [ VHost "n-sch.de"  $ fileServe ["index.html"] "n-sch.de"
          , VHost "npaste.de" $ pasteHandler
-         , VHost "localhost" $ testing
+         , VHost "localhost" $ pasteHandler
          ]
 
 
@@ -44,5 +44,3 @@ getVHosts host =
 --------------------------------------------------------------------------------
 -- TESTING
 --------------------------------------------------------------------------------
-
-testing = getHeaderM "host" >>= ok . toResponse . show
