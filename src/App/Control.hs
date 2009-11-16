@@ -12,12 +12,15 @@ import Text.Regex
 import Paste.Control (pasteHandler)
 
 
+-- | VHost data definition
+data VHost = VHost { toMatch :: String
+                   , response :: ServerPartT IO Response
+                   }
+
 -- | vHosts for appHandler. Regex should work fine...
 vHosts = [ VHost "n-sch.de"  $ fileServe ["index.html"] "n-sch.de"
-         , VHost "testing.npaste.de" $ testing
          , VHost "npaste.de" $ pasteHandler
-
-         , VHost "localhost" $ pasteHandler
+         , VHost "localhost" $ testing
          ]
 
 
@@ -25,21 +28,14 @@ vHosts = [ VHost "n-sch.de"  $ fileServe ["index.html"] "n-sch.de"
 appHandler :: AppConf -> ServerPartT IO Response
 appHandler appConf = if local appConf
                         then pasteHandler
-                        else askRq >>= getVHosts . getHeader "host"
+                        else withHost getVHosts
 
 -- | Helper for appHandler, handle virtual hosts
-getVhosts Nothing   = response . head $ vHosts
-getVHosts (Just bs) =
-    let host   = unpack bs
-        f vh r = maybe r (const (vh:r)) $ matchRegex (mkRegex . toMatch $ vh) host
+getVHosts host =
+    let vh `f` r = maybe r (const (vh:r)) $ matchRegex (mkRegex . toMatch $ vh) host
     in response . head $ case foldr f [] vHosts of
                               [] -> vHosts
                               l  -> l
-
--- | VHost data definition
-data VHost = VHost { toMatch :: String
-                   , response :: ServerPartT IO Response
-                   }
 
 
 
@@ -49,4 +45,4 @@ data VHost = VHost { toMatch :: String
 -- TESTING
 --------------------------------------------------------------------------------
 
-testing = askRq >>= ok . toResponse . show
+testing = getHeaderM "host" >>= ok . toResponse . show
