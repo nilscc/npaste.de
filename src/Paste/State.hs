@@ -5,6 +5,9 @@
 
 module Paste.State
     ( AddPaste (..)
+    , AddKnownHost (..)
+    , ClearKnownHosts (..)
+    , GetClockTimeByHost (..)
     , GetAllEntries (..)
     , GetPasteById (..)
     , GenerateId (..)
@@ -40,23 +43,25 @@ import Paste.State.PasteEntry
 
 
 import Happstack.Data
+import Happstack.Server.HTTP.Types  (Host)
 import Happstack.State
 import Happstack.State.ClockTime
-import Happstack.Crypto.MD5 (md5)
+import Happstack.Crypto.MD5         (md5)
 
 import System.Random
 import System.Time
 
-import Control.Monad (liftM2, forM)
-import Control.Monad.Reader (ask)
-import Control.Monad.State (modify)
-import Control.Monad.Trans (liftIO)
+import Control.Monad                (liftM2, forM)
+import Control.Monad.Reader         (ask)
+import Control.Monad.State          (modify)
+import Control.Monad.Trans          (liftIO)
+
+import Data.Typeable                (Typeable)
+import Data.List                    (find, (\\), null, group)
+import Data.Maybe                   (fromJust, fromMaybe)
 
 import qualified Data.ByteString as BS
 import qualified Data.ByteString.Lazy.Char8 as BS8
-import Data.Typeable (Typeable)
-import Data.List (find, (\\), null, group)
-import Data.Maybe (fromJust, fromMaybe)
 
 import Users.State (User (..))
 
@@ -92,8 +97,11 @@ getAllEntries :: Query Paste [PasteEntry]
 getAllEntries = ask >>= return . pasteEntries
 
 -- | Return ID of an MD5 sum
-getPasteEntryByMd5sum :: BS.ByteString -> Query Paste (Maybe PasteEntry)
-getPasteEntryByMd5sum bs = ask >>= return . find ((== bs) . md5hash) . pasteEntries
+getPasteEntryByMd5sum :: Maybe User -> BS.ByteString -> Query Paste (Maybe PasteEntry)
+getPasteEntryByMd5sum user' bs = ask >>= return . find userAndMd5 . pasteEntries
+  where userAndMd5 pe = let peUser = user pe
+                            peMd5  = md5hash pe
+                        in user' == peUser && bs == peMd5
 
 
 
@@ -102,25 +110,26 @@ getPasteEntryByMd5sum bs = ask >>= return . find ((== bs) . md5hash) . pasteEntr
 -- State: ID functions
 --------------------------------------------------------------------------------
 
+-- TODO: Handle each users ID separately
 
 -- | General ID generation
-generateId :: IDType -> Query Paste ID
-generateId idT = do
-    id <- generateId' idT
+generateId :: Maybe User -> IDType -> Query Paste ID
+generateId us idT = do
+    id <- generateId' idT us
     -- Limit ID size to 15 chars
     return $ case id of
                   ID s | length s <= 15 -> ID s
                   _                     -> NoID
 
 generateId' DefaultID    = defaultId
-generateId' (RandomID r) = randomId (r,r)
-generateId' (CustomID i) = customId i
+generateId' (RandomID r) = flip randomId (r,r)
+generateId' (CustomID i) = flip customId i
 
 
 -- | Generate a new default ID
-defaultId :: Query Paste ID
-defaultId = do
-    (Paste _ ids) <- ask
+defaultId :: Maybe User -> Query Paste ID
+defaultId u = do
+    (Paste _ ids _) <- ask
     let ids' = map unId $ filter isId ids
     return . ID $ defaultId' ids'
 
@@ -138,9 +147,10 @@ defaultId' ids = head $ dropWhile (`elem` ids ++ reservedIds) everything
 
 -- | Random ID generation. Increases maximum ID length everytime it fails to
 -- create a unique ID.
-randomId :: (Int,Int) -- ^ min & max number of chars to start with
+randomId :: Maybe User            -- ^ user posting that paste
+         -> (Int,Int)       -- ^ min & max number of chars to start with
          -> Query Paste ID
-randomId r@(min,max) = do
+randomId us r@(min,max) = do
     paste <- ask
     n     <- getRandomR r
     iList <- randomRs n (0,length validChars - 1) []
@@ -148,7 +158,7 @@ randomId r@(min,max) = do
     let randId = ID $ map (validChars !!) iList
 
     if randId `elem` pasteIDs paste
-       then randomId (min,max+1) -- increase max number to make sure we don't run out of IDs
+       then randomId us (min,max+1) -- increase max number to make sure we don't run out of IDs
        else return randId
 
   where randomRs 0 _ akk = return akk
@@ -156,8 +166,8 @@ randomId r@(min,max) = do
                               randomRs (n-1) r (akk ++ [random])
 
 -- | Validate a custom ID
-customId :: ID -> Query Paste ID
-customId id@(ID id') = do
+customId :: Maybe User -> ID -> Query Paste ID
+customId us id@(ID id') = do
     paste <- ask
     let ids = reservedIds ++ (map unId $ pasteIDs paste)
     if not (id' `elem` ids) && all (`elem` validChars) id'
@@ -168,9 +178,44 @@ customId id@(ID id') = do
 
 
 --------------------------------------------------------------------------------
--- State: Change content
+-- Paste operations
 --------------------------------------------------------------------------------
 
+-- | Add a host to the knownHosts field of our Paste
+addKnownHost :: Host -> Update Paste ()
+addKnownHost host = do
+
+    paste <- ask
+    ctime <- getEventClockTime
+
+    modify $ \paste -> paste { knownHosts = (ctime,host) : knownHosts paste }
+
+-- | Remove all known hosts older than X minutes
+clearKnownHosts :: Int              -- ^ age in minutes (one month = 30 days)
+                -> Update Paste ()
+clearKnownHosts min = do
+    paste <- ask
+    ctime <- getEventClockTime
+    let maxTime = normalizeTimeDiff $ noTimeDiff { tdMin = min }
+        timeDiff (time,_) = let tdiff = normalizeTimeDiff $ diffClockTimes ctime time
+                            in tdiff <= maxTime
+    modify $ \paste -> paste { knownHosts = filter timeDiff $ knownHosts paste }
+
+-- | Get ClockTime if pasteNo >= maxNum
+getClockTimeByHost :: Int                            -- ^ max number of pastes
+                   -> Host                           -- ^ host
+                   -> Query Paste (Maybe ClockTime)
+getClockTimeByHost maxNum host = do
+    -- get paste & current time
+    paste <- ask
+    ctime <- getEventClockTime
+
+    -- get oldest paste time
+    let ctimes = filter ((== host) . snd) (knownHosts paste)
+
+    if length ctimes >= maxNum
+       then return . Just . minimum $ map fst ctimes
+       else return Nothing
 
 -- | Add a PasteEntry, returns the ID of the new paste
 addPaste :: PasteEntry -> Update Paste ID
@@ -196,4 +241,14 @@ addPaste entry = do
 
 
 -- Generate methods
-$(mkMethods ''Paste ['addPaste, 'getPastesByUser, 'getPasteById, 'getPasteEntryByMd5sum, 'generateId, 'getAllEntries])
+$(mkMethods ''Paste
+    [ 'addPaste
+    , 'addKnownHost
+    , 'clearKnownHosts
+    , 'getClockTimeByHost
+    , 'getPastesByUser
+    , 'getPasteById
+    , 'getPasteEntryByMd5sum
+    , 'generateId
+    , 'getAllEntries
+    ])

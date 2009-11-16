@@ -16,7 +16,7 @@ import Data.Maybe (fromJust, isJust, fromMaybe)
 
 import System.Directory (createDirectoryIfMissing)
 import System.FilePath (pathSeparator)
-import System.Time (getClockTime, ClockTime(..))
+import System.Time
 
 import HSP
 import Text.Highlighting.Kate (languagesByExtension, languages)
@@ -57,6 +57,10 @@ postHandler = do
 -- | Add post data to database
 post :: PostData -> ServerPartT IO Response
 post pData = do
+
+    -- get Request
+    rq <- askRq
+
     let content     = stripSpaces  $ cont pData
         filetype    = ft pData
         submit      = sub pData
@@ -64,18 +68,26 @@ post pData = do
         password    = fromMaybe "" $ pwd pData
         idT         = idType pData
         md5content  = md5string content
-
-    -- validate that there is no other paste entry with the same md5
-    peByMd5 <- query $ GetPasteEntryByMd5sum md5content
-    -- Generate a new ID
-    id  <- query $ GenerateId idT
+        peer        = rqPeer rq
 
     -- Get user
     userReply <- query $ Validate (Login username) (Password password)
     let user' = case userReply of
-                    OK user -> Just user
-                    _       -> Nothing
-        maxSize = 50 -- max size in kb
+                     OK user -> Just user
+                     _       -> Nothing
+
+    -- clean known hosts older than 60 minutes
+    update $ ClearKnownHosts 60
+
+    -- Validate that there is no other paste entry with the same md5
+    peByMd5 <- query $ GetPasteEntryByMd5sum user' md5content
+    -- Generate a new ID
+    id      <- query $ GenerateId user' idT
+    -- Get ClockTimes
+    ctime   <- liftIO $ getClockTime
+    htime   <- query $ GetClockTimeByHost 10 peer -- 10 = maxNum
+
+    let maxSize = 50 -- max size in kb
         response | null content =
                      EmptyContent
                  | not (null $ drop (maxSize * 1000) content) =
@@ -89,8 +101,10 @@ post pData = do
                  | id == NoID =
                      InvalidID
                  | otherwise =
-                     case peByMd5 of
-                          Just pe | user' == user pe -> MD5Exists pe
+                     case (peByMd5,htime) of
+                          (Just pe,_)   | user' == user pe -> MD5Exists pe
+                          (_,Just time) -> MaxPastes $ let time'   = addToClockTime noTimeDiff { tdHour = 1 } time
+                                                       in  normalizeTimeDiff $ diffClockTimes time' ctime
                           _ -> NoError idT
 
     case response of
@@ -110,6 +124,7 @@ post pData = do
                                                  , pId      = id
                                                  , filetype = filetype
                                                  , md5hash  = md5content
+                                                 , postedBy = peer
                                                  }
 
              case idR of
@@ -117,6 +132,8 @@ post pData = do
                   ID _ -> do -- save paste to file
                              liftIO $ do createDirectoryIfMissing True folder
                                          writeFile fp content
+                             -- add peer to known hosts
+                             update $ AddKnownHost peer
                              showUrl submit url
 
 
@@ -129,6 +146,7 @@ showUrl :: Bool -> String -> ServerPartT IO Response
 showUrl submit url = if submit
                         then seeOther url . toResponse $ url
                         else ok           . toResponse $ url ++ "\n"
+
 -- | Read post data
 instance FromData PostData where
     fromData = do
