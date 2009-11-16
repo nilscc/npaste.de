@@ -69,6 +69,7 @@ post pData = do
         idT         = idType pData
         md5content  = md5string content
         peer        = rqPeer rq
+        spam        = isSpam pData
 
     -- Get user
     userReply <- query $ Validate (Login username) (Password password)
@@ -88,7 +89,7 @@ post pData = do
     htime   <- query $ GetClockTimeByHost 10 peer -- 10 = maxNum
 
     let maxSize = 50 -- max size in kb
-        response | null content =
+        response | null content || spam =
                      EmptyContent
                  | not (null $ drop (maxSize * 1000) content) =
                      ContentTooBig maxSize
@@ -157,6 +158,7 @@ instance FromData PostData where
         ft      <- look "filetype" `mplus` return ""
         id      <- look "id"       `mplus` return ""
         idT     <- look "id-type"  `mplus` return ""
+        spamSchutz <- look "email" `mplus` return ""
         let makeOpt "" = Nothing
             makeOpt s  = Just s
             id' | idT' `elem` defaultIds = DefaultID
@@ -172,4 +174,5 @@ instance FromData PostData where
                           , idReq   = makeOpt id
                           , idType  = id'
                           , sub     = not $ null submit
+                          , isSpam  = not $ null spamSchutz
                           }

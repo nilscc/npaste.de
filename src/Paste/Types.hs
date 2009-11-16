@@ -41,6 +41,7 @@ data PostData = PostData { cont     :: String       -- ^ Necessary content
                          , sub      :: Bool         -- ^ Submit button from form
                          , idType   :: IDType       -- ^ handle custom IDs request
                          , idReq    :: Maybe String -- ^ string of the requested ID
+                         , isSpam   :: Bool         -- ^ invisible email field for HTML form which should be *always* empty
                          }
 
 -- | Data definition for index page rendering

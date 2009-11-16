@@ -98,6 +98,7 @@ index showOnIndex =
                         </select>
                         <input type="text" name="id" id="id" value="" />
                         <input type="submit" name="submit" id="submit"/>
+                        <input type="text" style="display: none;" name="email" id="email"/> -- invisible anti-spam input
                     </p>
                 </form>
             </div>
