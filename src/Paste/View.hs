@@ -141,16 +141,16 @@ instance (XMLGenerator m, EmbedAsChild m XML, HSX.XML m ~ XML) => (EmbedAsChild 
           <table class="sourceCode">
             <tr>
               <td class="lineNumbers" title="Click to toggle line numbers"
-                  onClick="with (this.firstChild.style) { display = (display == '') ? 'none' : '' }"
+                  -- onClick="with (this.firstChild.style) { display = (display == '') ? 'none' : '' }"
                   >
                 <pre><%
-                    let -- clickable n = <a hef=("#n" ++ n) class="no" name=("n" ++ n) id=("n" ++ n)><% n %></a>
-                    in unlines . map (fst) $ zip (map show [1..]) (lines text)
+                    let clickable n = <a href=("#n" ++ n) class="no" name=("n" ++ n) id=("n" ++ n)><% n ++ "\n" %></a>
+                    in map clickable . map (fst) $ zip (map show [1..]) (lines text)
                 %></pre>
               </td>
               <td class="sourceCode">
                 <% case content of
-                        PlainText _ _        -> <pre><% text %></pre>
+                        PlainText _ _        -> <pre><% "\n" ++ text %></pre>
                         Highlighted _ _ html -> toXML html
                 %>
               </td>
