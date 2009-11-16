@@ -63,10 +63,10 @@ post pData = do
         username    = fromMaybe "" $ un  pData
         password    = fromMaybe "" $ pwd pData
         idT         = idType pData
-        md5content  = md5string content
+        -- md5content  = md5string content
 
     -- validate that there is no other paste entry with the same md5
-    peByMd5 <- query $ GetPasteEntryByMd5sum md5content
+    -- peByMd5 <- query $ GetPasteEntryByMd5sum md5content
     -- Generate a new ID
     id  <- query $ GenerateId idT
 
@@ -88,14 +88,14 @@ post pData = do
                           _                -> Other
                  | id == NoID =
                      InvalidID
-                 | otherwise =
-                     case peByMd5 of
-                          Just pe | user' == user pe -> MD5Exists pe
-                          _ -> NoError idT
+                 | otherwise = NoError idT
+                     -- case peByMd5 of
+                          -- Just pe | user' == user pe -> MD5Exists pe
+                          -- _ -> NoError idT
 
     case response of
-         MD5Exists pe -> let url = "http://npaste.de/" ++ unId (pId pe) ++ "/"
-                         in  showUrl submit url
+         -- MD5Exists pe -> let url = "http://npaste.de/" ++ unId (pId pe) ++ "/"
+                         -- in  showUrl submit url
          NoError _ -> do
              -- get time, id and filepath
              let folder = "pastes"
@@ -109,7 +109,7 @@ post pData = do
                                                  , user     = user'
                                                  , pId      = id
                                                  , filetype = filetype
-                                                 , md5hash  = md5content
+                                                 -- , md5hash  = md5content
                                                  }
 
              case idR of

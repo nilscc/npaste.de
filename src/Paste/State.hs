@@ -4,26 +4,40 @@
     #-}
 
 module Paste.State
-    ( Paste (..)
-    , PasteEntry (..)
-    , ID (..)
-    , IDType (..)
-    , Content (..)
-    , AddPaste (..)
+    ( AddPaste (..)
     , GetAllEntries (..)
     , GetPasteById (..)
     , GenerateId (..)
     , GetPastesByUser (..)
-    , GetPasteEntryByMd5sum (..)
+    -- , GetPasteEntryByMd5sum (..)
     , defaultId
     , defaultIds
     , randomId
     , randomIds
     , tinyIds
     , customId
-    , md5string
+    -- , md5string
+
+    , module Paste.State.Content
+    , module Paste.State.ID
+    , module Paste.State.IDType
+    , module Paste.State.Paste
+    , module Paste.State.PasteEntry
     )
     where
+
+--------------------------------------------------------------------------------
+-- State imports
+--------------------------------------------------------------------------------
+
+import Paste.State.Content
+import Paste.State.ID
+import Paste.State.IDType
+import Paste.State.Paste
+import Paste.State.PasteEntry
+
+
+
 
 import Happstack.Data
 import Happstack.State
@@ -48,7 +62,7 @@ import Users.State (User (..))
 
 
 ---- OLD ----
-import qualified Paste.StateOld as Old
+-- import qualified Paste.StateOld as Old
 ---- OLD ----
 
 
@@ -61,105 +75,8 @@ randomIds   = [ "rand", "random", "random id", "randomid" ]
 tinyIds     = [ "tiny", "tiny url", "tinyurl" ]
 
 -- | Generate MD5 sum of a string, returns a strict ByteString
-md5string :: String -> BS.ByteString
-md5string str = BS.concat . BS8.toChunks . md5 $ BS8.pack str
-
---------------------------------------------------------------------------------
--- State data definitions
---------------------------------------------------------------------------------
-
--- {{{ state
-
-
-$(deriveAll [''Show, ''Eq, ''Ord, ''Default]
-    [d|
-
-        -- | Default ID definition
-        data ID = ID { unId :: String }
-                | NoID
-
-        -- | Data definitions for custom IDs
-        data IDType = DefaultID     -- ^ generate default ID
-                    | RandomID Int  -- ^ (min) number of digits
-                    | CustomID ID   -- ^ custom ID
-
-        -- | Way content is saved: either in a file or plain as a string
-        data Content = File { filepath :: String }
-                     | Plain { plain   :: String }
-
-        -- | PasteEntry: Simple paste entry
-        data PasteEntry = PasteEntry
-                    { user      :: Maybe User
-                    , pId       :: ID
-                    , date      :: ClockTime
-                    , content   :: Content
-                    , md5hash   :: BS.ByteString
-                    , filetype  :: Maybe String
-                    }
-
-        -- | Paste: A list of all PasteEntry with the last used ID
-        data Paste = Paste { pasteEntries  :: [PasteEntry]
-                           , pasteIDs      :: [ID]
-                           }
-  
-    |])
-
---------------------------------------------------------------------------------
--- Add missing instances
---------------------------------------------------------------------------------
-
-$(deriveSerialize ''ID)
-instance Version ID where
-    mode = Versioned 1 Nothing
-    -- mode = extension 1 (Proxy :: Proxy Old.ID)
-
-$(deriveSerialize ''IDType)
-instance Version IDType -- where
-    -- mode = Versioned 1 Nothing
-    -- mode = extension 1 (Proxy :: Proxy Old.ID)
-
-$(deriveSerialize ''Content)
-instance Version Content
-
-$(deriveSerialize ''PasteEntry)
-instance Version PasteEntry where
-    -- mode = Versioned 1 Nothing
-    mode = extension 1 (Proxy :: Proxy Old.PasteEntry)
-
-$(deriveSerialize ''Paste)
-instance Version Paste where
-    mode = Versioned 1 Nothing
-    -- mode = extension 1 (Proxy :: Proxy Old.Paste)
-
--- Make Paste its own Component
-instance Component Paste where
-  type Dependencies Paste = End
-  initialValue = Paste [] []
-
--- Migrate from older Versions of PasteEntry
-instance Migrate Old.PasteEntry PasteEntry where
-    migrate old = PasteEntry { user     = Old.user old
-                             , pId      = ID . Old.unId $ Old.pId old
-                             , date     = Old.date old
-                             , content  = case Old.content old of
-                                               Old.File fp    -> File fp
-                                               Old.Plain text -> Plain text
-                             , filetype = Old.filetype old
-                             , md5hash  = BS.empty
-                             }
-
-{-
-
-instance Migrate Old.ID ID where
-    migrate old = ID . Old.unId $ old
-
-instance Migrate Old.Paste Paste where
-    migrate old = Paste { pasteEntries = map migrate $ Old.pasteEntries old
-                        , pasteIDs = map (pId . migrate) $ Old.pasteEntries old
-                        }
--}
-
--- }}} Data definitions
+-- md5string :: String -> BS.ByteString
+-- md5string str = BS.concat . BS8.toChunks . md5 $ BS8.pack str
 
 
 --------------------------------------------------------------------------------
@@ -180,8 +97,8 @@ getAllEntries :: Query Paste [PasteEntry]
 getAllEntries = ask >>= return . pasteEntries
 
 -- | Return ID of an MD5 sum
-getPasteEntryByMd5sum :: BS.ByteString -> Query Paste (Maybe PasteEntry)
-getPasteEntryByMd5sum bs = ask >>= return . find ((== bs) . md5hash) . pasteEntries
+-- getPasteEntryByMd5sum :: BS.ByteString -> Query Paste (Maybe PasteEntry)
+-- getPasteEntryByMd5sum bs = ask >>= return . find ((== bs) . md5hash) . pasteEntries
 
 
 
@@ -284,4 +201,4 @@ addPaste entry = do
 
 
 -- Generate methods
-$(mkMethods ''Paste ['addPaste, 'getPastesByUser, 'getPasteById, 'getPasteEntryByMd5sum, 'generateId, 'getAllEntries])
+$(mkMethods ''Paste ['addPaste, 'getPastesByUser, 'getPasteById, 'generateId, 'getAllEntries])
