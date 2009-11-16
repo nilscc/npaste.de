@@ -14,7 +14,9 @@ import Paste.Control (pasteHandler)
 
 -- | vHosts for appHandler. Regex should work fine...
 vHosts = [ VHost "n-sch.de"  $ fileServe ["index.html"] "n-sch.de"
+         , VHost "testing.npaste.de" $ testing
          , VHost "npaste.de" $ pasteHandler
+
          , VHost "localhost" $ pasteHandler
          ]
 
@@ -38,3 +40,13 @@ getVHosts (Just bs) =
 data VHost = VHost { toMatch :: String
                    , response :: ServerPartT IO Response
                    }
+
+
+
+
+
+--------------------------------------------------------------------------------
+-- TESTING
+--------------------------------------------------------------------------------
+
+testing = askRq >>= ok . toResponse . show
