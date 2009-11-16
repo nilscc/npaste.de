@@ -31,8 +31,11 @@ $(deriveAll [''Show, ''Eq, ''Ord, ''Default]
 
 $(deriveSerialize ''PasteEntry)
 instance Version PasteEntry where
-    -- mode = Versioned 1 Nothing
-    mode = extension 2 (Proxy :: Proxy Old.PasteEntry)
+    mode = Versioned 2 Nothing
+    -- mode = extension 2 (Proxy :: Proxy Old.PasteEntry)
 
+{-
 instance Migrate Old.PasteEntry PasteEntry where
     migrate (Old.PasteEntry u i d c f) = PasteEntry u i d c BS.empty f
+
+-}
