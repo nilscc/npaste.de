@@ -13,7 +13,6 @@ import Paste.State.ID       (ID (..))
 import Paste.State.Content  (Content (..))
 
 import qualified Data.ByteString as BS
-import qualified Paste.State.PasteEntryOld as Old (PasteEntry (..)) 
 
 $(deriveAll [''Show, ''Eq, ''Ord, ''Default]
     [d|
