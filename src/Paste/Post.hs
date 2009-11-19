@@ -21,7 +21,7 @@ import System.Time
 import HSP
 import Text.Highlighting.Kate (languagesByExtension, languages)
 
-import Paste.ViewIndex (showIndex')
+import Paste.View.Index (showIndex')
 import Paste.State
 import Paste.Types
     ( PasteResponse (..)
@@ -30,11 +30,9 @@ import Paste.Types
     )
 
 import Users.State
-    ( Validate (..)
+    ( Validate' (..)
     , UserReply (..)
-    , User(..)
-    , Login (..)
-    , Password (..)
+    , User (..)
     )
 
 
@@ -72,7 +70,7 @@ post pData = do
         spam        = isSpam pData
 
     -- Get user
-    userReply <- query $ Validate (Login username) (Password password)
+    userReply <- query $ Validate' username password
     let user' = case userReply of
                      OK user -> Just user
                      _       -> Nothing

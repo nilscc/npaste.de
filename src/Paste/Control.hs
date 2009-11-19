@@ -3,11 +3,11 @@ module Paste.Control (pasteHandler) where
 import Happstack.State
 import Happstack.Server
 
-import Control.Monad (msum)
+import Control.Monad        (msum)
 
-import Paste.View (showPaste)
-import Paste.ViewIndex (showIndex)
-import Paste.Post (postHandler)
+import Paste.View.Pastes    (showPaste)
+import Paste.View.Index     (showIndex)
+import Paste.Post           (postHandler)
 
 pasteHandler :: ServerPartT IO Response
 pasteHandler = msum

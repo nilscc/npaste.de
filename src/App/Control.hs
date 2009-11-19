@@ -17,10 +17,11 @@ data VHost = VHost { toMatch :: String
                    , response :: ServerPartT IO Response
                    }
 
--- | vHosts for appHandler. Regex should work fine...
-vHosts = [ VHost "n-sch.de"  $ fileServe ["index.html"] "n-sch.de"
+-- | vHosts for appHandler. Regex should work fine... Go from top to bottom and
+-- run the first match.
+vHosts = [ VHost "localhost" $ pasteHandler
          , VHost "npaste.de" $ pasteHandler
-         , VHost "localhost" $ pasteHandler
+         , VHost "n-sch.de"  $ fileServe ["index.html"] "n-sch.de"
          ]
 
 
@@ -33,7 +34,7 @@ appHandler appConf = if local appConf
 -- | Helper for appHandler, handle virtual hosts
 getVHosts host =
     let vh `f` r = maybe r (const (vh:r)) $ matchRegex (mkRegex . toMatch $ vh) host
-    in response . head $ case foldr f [] vHosts of
+    in response . last $ case foldr f [] vHosts of
                               [] -> vHosts
                               l  -> l
 
@@ -42,3 +43,6 @@ getVHosts host =
 --------------------------------------------------------------------------------
 -- TESTING
 --------------------------------------------------------------------------------
+
+testing :: ServerPartT IO Response
+testing = askRq >>= ok . toResponse . show

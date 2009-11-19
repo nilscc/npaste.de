@@ -19,7 +19,6 @@ module Paste.State
     , randomIds
     , tinyIds
     , customId
-    , md5string
 
     , module Paste.State.Content
     , module Paste.State.ID
@@ -63,7 +62,12 @@ import Data.Maybe                   (fromJust, fromMaybe)
 import qualified Data.ByteString as BS
 import qualified Data.ByteString.Lazy.Char8 as BS8
 
-import Users.State (User (..))
+import Users.State
+    ( User (..)
+    , Password
+    , PasswordPlain
+    , Login
+    )
 
 
 -- | Reserved IDs
@@ -73,10 +77,6 @@ reservedIds = [ "static", "client" ] ++ defaultIds ++ randomIds ++ tinyIds
 defaultIds  = [ "", "default", "default id", "defaultid" ]
 randomIds   = [ "rand", "random", "random id", "randomid" ]
 tinyIds     = [ "tiny", "tiny url", "tinyurl" ]
-
--- | Generate MD5 sum of a string, returns a strict ByteString
-md5string :: String -> BS.ByteString
-md5string str = BS.concat . BS8.toChunks . md5 $ BS8.pack str
 
 
 --------------------------------------------------------------------------------
@@ -97,7 +97,7 @@ getAllEntries :: Query Paste [PasteEntry]
 getAllEntries = ask >>= return . pasteEntries
 
 -- | Return ID of an MD5 sum
-getPasteEntryByMd5sum :: Maybe User -> BS.ByteString -> Query Paste (Maybe PasteEntry)
+getPasteEntryByMd5sum :: Maybe User -> Password -> Query Paste (Maybe PasteEntry)
 getPasteEntryByMd5sum user' bs = ask >>= return . find userAndMd5 . pasteEntries
   where userAndMd5 pe = let peUser = user pe
                             peMd5  = md5hash pe

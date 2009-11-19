@@ -1,131 +1,181 @@
 {-# LANGUAGE TemplateHaskell, TypeFamilies, DeriveDataTypeable,
     FlexibleInstances, MultiParamTypeClasses, FlexibleContexts,
-    UndecidableInstances, TypeOperators
+    UndecidableInstances, TypeOperators, ScopedTypeVariables
     #-}
 module Users.State
-    ( Users (..)
-    , User (..)
-    , Login (..)
-    , Password (..)
+    ( Validate (..)
+    , Validate' (..)
+    , UserExists (..)
+
     , AddUser (..)
+    , AddUser' (..)
     , RemoveUser (..)
-    , UserReply (..)
-    , Validate (..)
-    , valid
+    , RemoveUser' (..)
+
+    , LoginUser (..)
+    , LogoutUser (..)
+
+    , Login
+    , Password
+    , PasswordPlain
+    , Email
+
+    , passwordFromString
+
+    , module Users.State.User
+    , module Users.State.Users
+    , module Users.State.UserReply
+    , module Users.State.SessionID
     ) where
+
+import Users.State.User
+import Users.State.Users
+import Users.State.UserReply
+import Users.State.SessionID
 
 import Happstack.Data
 import Happstack.State
-import Happstack.Crypto.MD5 (stringMD5)
+import Happstack.Crypto.MD5         (md5)
+import Happstack.Server.HTTP.Types  (Host)
 
-import Data.ByteString.Lazy.Char8 (pack)
-import Data.List (find, delete)
-import Data.Maybe (isJust, fromJust)
-import Control.Monad (liftM)
-import Control.Monad.State (modify)
-import Control.Monad.Reader (ask)
+import Data.List                    (find, delete)
+import Control.Monad                (liftM)
+import Control.Monad.State          (modify)
+import Control.Monad.Reader         (ask)
 
--- {{{ Data definitions
-
-$(deriveAll [''Show, ''Eq, ''Ord, ''Default]
-  [d|
-
-      -- | Login ID
-      newtype Login = Login { login :: String }
-      -- | Password
-      newtype Password = Password { password :: String }
-
-      -- | User data
-      data User = User { userLogin    :: Login
-                       , userPassword :: Password
-                       , userEmail    :: Maybe String -- ^ (optional) Email
-                       }
-
-      -- | Just a list of users
-      newtype Users = Users { users :: [User] }
-
-      -- | Data definition for replies
-      data UserReply = OK User
-                     | WrongLogin
-                     | WrongPassword
-                     | AlreadyExists User
-
-  |])
-
-$(deriveSerialize ''Login)
-instance Version Login
-
-$(deriveSerialize ''Password)
-instance Version Password
-
-$(deriveSerialize ''User)
-instance Version User
-
-$(deriveSerialize ''Users)
-instance Version Users
-
-$(deriveSerialize ''UserReply)
-instance Version UserReply
+import qualified Data.ByteString            as B
+import qualified Data.ByteString.Lazy.Char8 as C
+import qualified Data.Map                   as M
 
 
--- | Dependencies
-instance Component Users where
-  type Dependencies Users = End
-  initialValue = Users []
 
--- }}} Data definitions
+--------------------------------------------------------------------------------
+-- Pure stuff
+--------------------------------------------------------------------------------
 
+type Login          = String
+type PasswordPlain  = String
+type Password       = B.ByteString
+type Email          = String
 
 -- | MD5 generation
-md5Password = Password . md5Plain . password
-md5Plain = stringMD5 . pack
-
--- | Get a user by his login
-getUserByLogin :: Login -> Users -> Maybe User
-getUserByLogin l u = find ((== l) . userLogin) (users u)
-
--- | Validate login and password:
-valid :: Login -> Password -> Users -> UserReply
-valid name pw userList =
-    case getUserByLogin name userList of
-         Nothing   -> WrongLogin
-         Just user -> if pw == userPassword user
-                         then OK user
-                         else WrongPassword
+passwordFromString :: String -> Password
+passwordFromString = B.concat . C.toChunks . md5 . C.pack
 
 
--- {{{ State actions
+third (a,b,c) = c
 
--- | Add a new User
-addUser :: Login
-        -> Password
-        -> Maybe String -- ^ E-Mail
-        -> Update Users UserReply
-addUser name pw email = do
-    userList <- ask
-    case valid name pw userList of
-         OK user -> do modify $ Users . (:) (User name (md5Password pw) email) . users
-                       return $ OK user
-         reply   -> return reply
 
--- | Remove a user
-removeUser :: Login
-           -> Password
-           -> Update Users UserReply
-removeUser name pw = do
-    userList <- ask
-    case valid name (md5Password pw) userList of
-         OK user -> do modify $ Users . delete user . users
-                       return $ OK user
-         reply   -> return reply
+--------------------------------------------------------------------------------
+-- Password/user validation
+--------------------------------------------------------------------------------
 
--- | Validate a user
+-- | Validate a user + password
 validate :: Login
          -> Password
          -> Query Users UserReply
-validate name pw = ask >>= return . valid name (md5Password pw)
+validate login pw = do
+    users' <- ask
+    case find ((== login) . userLogin) (allUsers users') of
+         Nothing -> return WrongLogin
+         Just us -> return $ if userPassword us == pw
+                                then OK us
+                                else WrongPassword
 
--- }}} State actions
+-- | Validate a user, plain password version
+validate' :: Login
+          -> PasswordPlain
+          -> Query Users UserReply
+validate' name pw = validate name (passwordFromString pw)
 
+
+-- | Check if a login already exists
+userExists :: Login
+           -> Query Users Bool
+userExists name = ask >>= return . elem name . map userLogin . allUsers
+
+
+
+--------------------------------------------------------------------------------
+-- Add/remove users
+--------------------------------------------------------------------------------
+
+-- | Add new user
+addUser :: User
+        -> Update Users UserReply
+addUser user = do
+    exists <- runQuery . userExists $ userLogin user
+    if exists
+       then return $ AlreadyExists
+       else do modify  $ \users -> users { allUsers = user : allUsers users }
+               return  $ OK user
+
+-- | Plaintext version of addUser
+addUser' :: Login
+         -> PasswordPlain
+         -> Maybe Email
+         -> Update Users UserReply
+addUser' name pw email = addUser $ User name (passwordFromString pw) email
+
+
+-- | Remove a user
+removeUser :: User
+           -> Update Users ()
+removeUser user = modify $ \userList -> userList { allUsers = delete user $ allUsers userList }
+
+
+-- | Plaintext version of removeUser
+removeUser' :: Login
+            -> PasswordPlain
+            -> Maybe Email
+            -> Update Users ()
+removeUser' name pw email = removeUser $ User name (passwordFromString pw) email
+
+
+
+--------------------------------------------------------------------------------
+-- Login/logout users
+--------------------------------------------------------------------------------
+
+-- generate a new sessionID
+generateSessionID :: Query Users SessionID
+generateSessionID = do
+    users <- ask
+    sid   <- liftM abs getRandom >>= return . SessionID
+    case sid `M.lookupIndex` sessionIDs users of
+         Nothing -> return sid
+         Just _  -> generateSessionID
+
+-- | Log in a user
+loginUser :: User   -- ^ user
+          -> Host   -- ^ (IP :: String, Port :: Integer) pair
+          -> Update Users SessionID
+loginUser user host = do
+    sid <- runQuery $ generateSessionID
+    now <- getEventClockTime
+    modify $ \ users -> users { sessionIDs = M.insert sid (user,host,now) $ sessionIDs users }
+    return sid
+
+-- | Log out a user
+logoutUser :: SessionID
+           -> Update Users ()
+logoutUser sid = modify $ \ users -> users { sessionIDs = M.delete sid $ sessionIDs users }
+
+
+
+--------------------------------------------------------------------------------
 -- Register methods
-$(mkMethods ''Users ['addUser, 'removeUser, 'validate])
+--------------------------------------------------------------------------------
+
+$(mkMethods ''Users [ 'validate
+                    , 'validate'
+                    , 'userExists
+
+                    , 'addUser
+                    , 'addUser'
+                    , 'removeUser
+                    , 'removeUser'
+
+                    , 'loginUser
+                    , 'logoutUser
+                    ])
