@@ -9,3 +9,4 @@ happstack
 *.o
 *.swp
 backup
+_darcs/*
