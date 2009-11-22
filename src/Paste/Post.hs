@@ -21,6 +21,10 @@ import System.Time
 import HSP
 import Text.Highlighting.Kate (languagesByExtension, languages)
 
+import Happstack.Crypto.MD5         (md5)
+import qualified Data.ByteString            as B
+import qualified Data.ByteString.Lazy.Char8 as C
+
 import Paste.View.Index (showIndex')
 import Paste.State
 import Paste.Types
@@ -35,6 +39,8 @@ import Users.State
     , User (..)
     )
 
+md5string :: String -> B.ByteString
+md5string = B.concat . C.toChunks . md5 . C.pack
 
 -- | Remove any trailing white space characters
 stripSpaces :: String -> String
@@ -44,7 +50,7 @@ stripSpaces = unlines . map (foldr strip "") . lines
 
 
 -- | Handle incoming post data
-postHandler :: ServerPartT IO Response
+postHandler :: ServerPart Response
 postHandler = do
     methodM POST
     pData <- getData
@@ -53,7 +59,7 @@ postHandler = do
          _       -> badRequest . toResponse $ "Something went wrong. Contact mail (at) n-sch.de if necessary.\n"
 
 -- | Add post data to database
-post :: PostData -> ServerPartT IO Response
+post :: PostData -> ServerPart Response
 post pData = do
 
     -- get Request
@@ -141,7 +147,7 @@ post pData = do
                  else badRequest . toResponse $ show response ++ "\n"
 
 -- handle http post form / curl post
-showUrl :: Bool -> String -> ServerPartT IO Response
+showUrl :: Bool -> String -> ServerPart Response
 showUrl submit url = if submit
                         then seeOther url . toResponse $ url
                         else ok           . toResponse $ url ++ "\n"
