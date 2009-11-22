@@ -35,32 +35,23 @@ div#topmenu
 {
     background-color: #666;
     color: #fff;
-    height: 24px;
     font-size: 12px;
-    margin-bottom: 10px;
     text-align: right;
+    padding: 0;
+    margin: 0;
 }
 
-
-    div#topmenu p#view_plain :before { content: "["; }
-    div#topmenu p#view_plain
-    {
-        display: inline;
-        margin: 5px 10px 0;
-    }
-    div#topmenu p#view_plain a { color: #ccc; }
-    div#topmenu p#view_plain :after { content: "]"; }
-
+    div#topmenu form,
+    div#topmenu p#view_plain,
     div#topmenu p#available_languages
     {
         display: inline;
-        margin-right: 10px;
     }
 
-    div#topmenu form
-    {
-        display: inline;
-    }
+    div#topmenu p#view_plain         { margin-right: 10px; }
+    div#topmenu p#view_plain :before { content: "["; }
+    div#topmenu p#view_plain :after  { content: "]"; }
+    div#topmenu p#view_plain a       { color: #ccc;  }
 
 div#main
 {
