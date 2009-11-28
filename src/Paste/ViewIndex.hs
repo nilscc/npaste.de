@@ -49,7 +49,7 @@ index showOnIndex =
                 <p>Where <% "\"<filetype>\"" %> specifies your default highlighting language (optional).</p>
                 <p>
                     You can also get one of the linux clients
-                    (<a href="http://npaste.de/client/32bit/np">32bit</a> and <a href="http://npaste.de/client/64bit/np">64bit</a>,
+                    (<a href="http://npaste.de/client/i686/np">32bit</a> and <a href="http://npaste.de/client/x86_64/np">64bit</a>,
                     compiled on Arch Linux).
                     The source code is available at <a href="http://npaste.de/clientsrc/">#clientsrc</a>.
                 </p>
