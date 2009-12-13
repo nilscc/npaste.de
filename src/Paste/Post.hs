@@ -70,6 +70,7 @@ post pData = do
         md5content  = md5string content
         peer        = rqPeer rq
         spam        = isSpam pData
+        isTiny      = fromMaybe "" (ft pData) `elem` tinyIds
 
     -- Get user
     userReply <- query $ Validate (Login username) (Password password)
@@ -115,7 +116,10 @@ post pData = do
              -- get time, id and filepath
              let folder = "pastes"
                  fp     = folder ++ [pathSeparator] ++ unId id
-                 url    = "http://npaste.de/" ++ unId id ++ "/"
+                 url    = "http://npaste.de/" ++ unId id ++ "/" ++
+                     if isTiny && submit
+                        then "plain"
+                        else ""
              now <- liftIO getClockTime
 
              -- write file & add paste
