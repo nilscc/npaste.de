@@ -19,6 +19,7 @@ import Control.Monad                (msum, mzero, liftM)
 import Control.Monad.Trans          (liftIO)
 import Data.Char                    (toLower)
 import Data.Maybe                   (fromMaybe)
+import Data.List                    (find)
 
 import App.View                     (Css (..), htmlToXml)
 import Paste.State
@@ -136,9 +137,10 @@ pasteBody css id content desc =
                       | otherwise               = <option><% l %></option>
         language (Highlighted l _ _) = language' l
         language (PlainText l _)     = language' $ fromMaybe "" l
-        language' s | (map toLower s) `elem` (map (map toLower) languages) = s
-                    | (not . null $ languagesByExtension s) = head $ languagesByExtension s
-                    | otherwise                             = "Text"
+        language' s = case find (\l -> (map toLower s) == (map toLower l)) languages of
+                           Just l -> l
+                           _ | (not . null $ languagesByExtension s) -> head $ languagesByExtension s
+                             | otherwise                             -> "Text"
 
 
 
