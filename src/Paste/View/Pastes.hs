@@ -110,7 +110,7 @@ pasteBody css id content desc =
     <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="de" lang="de">
         <head>
             <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
-            <title>npaste.de - Paste #<% id ++ (maybe "" (": " ++) desc)%></title>
+            <title>npaste.de - Paste #<% id ++ (maybe "" (const $ ": " ++ shortDesc) desc)%></title>
             <% css %>
             <link href="/static/style.css" type="text/css" rel="stylesheet" />
         </head>
@@ -141,6 +141,10 @@ pasteBody css id content desc =
                            Just l -> l
                            _ | (not . null $ languagesByExtension s) -> head $ languagesByExtension s
                              | otherwise                             -> "Text"
+        shortDesc = let sd = take 30 $ fromMaybe "" desc
+                    in if (Just sd) == desc
+                          then sd
+                          else sd ++ "..."
 
 
 
