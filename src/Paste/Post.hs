@@ -93,7 +93,10 @@ post = do
 
     -- get description
     mDescription <- getDataBodyFn $ look "description"
-    unless (null $ drop 300 (fromMaybe "" mDescription)) (throwError $ DescriptionTooBig 300)
+    let desc = case mDescription of
+                    d@(Just a) | not (null a) -> d
+                    _ -> Nothing
+    unless (null $ drop 300 (fromMaybe "" desc)) (throwError $ DescriptionTooBig 300)
 
     -- get and validate user
     mUser       <- getDataBodyFn $ look "user"
@@ -140,7 +143,7 @@ post = do
                                         , filetype = mFiletype
                                         , md5hash = md5content
                                         , postedBy = peer
-                                        , description = mDescription
+                                        , description = desc
                                         }
 
     -- add to known hosts
