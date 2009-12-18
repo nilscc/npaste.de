@@ -38,12 +38,3 @@ getVHosts host =
     in response . last $ case foldr f [] vHosts of
                               [] -> vHosts
                               l  -> l
-
-
-
---------------------------------------------------------------------------------
--- TESTING
---------------------------------------------------------------------------------
-
-testing :: ServerPart Response
-testing = askRq >>= ok . toResponse . show

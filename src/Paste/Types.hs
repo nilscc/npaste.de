@@ -1,9 +1,8 @@
 module Paste.Types
-    ( PasteResponse (..)
-    , PostData (..)
-    , ShowOnIndex (..)
+    ( PostError (..)
     ) where
 
+import Control.Monad.Error.Class (Error (..))
 import System.Time (TimeDiff (..), timeDiffToString)
 
 import Paste.State
@@ -11,40 +10,34 @@ import Paste.State
 type MaxSize = Int
 
 -- | Define post error data
-data PasteResponse = NoError IDType         -- ^ URL of paste
-                   | MD5Exists PasteEntry   -- ^ md5 of a paste entry already exists
-                   | MaxPastes TimeDiff     -- ^ max number of pastes reached, postable in ** minutes again
-                   | EmptyContent           -- ^ no content given
-                   | ContentTooBig MaxSize  -- ^ max size in kb
-                   | WrongUserLogin         -- ^ wrong login name
-                   | WrongUserPassword      -- ^ wrong password
-                   | InvalidID              -- ^ invalid ID
-                   | Other                  -- ^ other
+data PostError = MD5Exists PasteEntry   -- ^ md5 of a paste entry already exists
+               | MaxPastes TimeDiff     -- ^ max number of pastes reached, postable in ** minutes again
+               | ContentTooBig MaxSize  -- ^ max size in kb
+               | DescriptionTooBig Int  -- ^ description is limited too, number of chars
+               -- | NoUser                 -- ^ no user given
+               | NoPassword             -- ^ no password given
+               | NoContent              -- ^ no content given
+               | WrongUserLogin         -- ^ wrong login name
+               | WrongUserPassword      -- ^ wrong password
+               | InvalidID              -- ^ invalid ID
+               | Other String           -- ^ other
+               | IsSpam
+               -- | NoError IDType         -- ^ URL of paste
 
 -- | Show instance
-instance Show PasteResponse where
-    show (NoError id)       = "Paste successful."
+instance Show PostError where
+    -- show (NoError id)       = "Paste successful."
     show (MD5Exists pe)     = "Paste already exists at ID #" ++ (unId . pId $ pe)
     show (MaxPastes tdiff)  = "Max number of pastes reached. Please try again in " ++ timeDiffToString tdiff ++ "."
-    show EmptyContent       = "No content given."
+    show NoContent          = "No content given."
+    show NoPassword         = "No password given."
     show (ContentTooBig ms) = "Content size too big (max " ++ show ms ++ "kb)."
+    show (DescriptionTooBig n) = "Description too big (max " ++ show n ++ " chars)."
     show WrongUserLogin     = "Wrong login name."
     show WrongUserPassword  = "Wrong password."
     show InvalidID          = "Invalid ID."
-    show Other              = "Something went wrong."
+    show IsSpam             = "Something went wrong." -- we don't want to let everybody know :)
+    show (Other s)          = s
 
--- | Define post data
-data PostData = PostData { cont     :: String       -- ^ Necessary content
-                         , un       :: Maybe String -- ^ Username
-                         , pwd      :: Maybe String -- ^ Password
-                         , ft       :: Maybe String -- ^ Filetype
-                         , sub      :: Bool         -- ^ Submit button from form
-                         , idType   :: IDType       -- ^ handle custom IDs request
-                         , idReq    :: Maybe String -- ^ string of the requested ID
-                         , isSpam   :: Bool         -- ^ invisible email field for HTML form which should be *always* empty
-                         }
-
--- | Data definition for index page rendering
-data ShowOnIndex = ShowOnIndex { postData       :: Maybe PostData
-                               , pasteResponse  :: Maybe PasteResponse
-                               }
+instance Error PostError where
+    strMsg = Other

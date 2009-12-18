@@ -1,37 +1,30 @@
--- {-# OPTIONS_GHC -F -pgmFtrhsx #-}
 module Paste.Post
     ( postHandler
-    , PasteResponse(..)
     ) where
 
 import Happstack.Server
 import Happstack.State
 
-import Control.Exception (try)
-import Control.Monad.Trans (liftIO)
-import Control.Monad (msum, mplus, mzero, guard)
+import Control.Monad.Trans                          (liftIO)
+import Control.Monad.Error
 
-import Data.Char (isSpace, toLower)
-import Data.Maybe (fromJust, isJust, fromMaybe)
+import Data.Char                                    (isSpace, toLower)
+import Data.Maybe                                   (fromJust, isJust, fromMaybe)
 
-import System.Directory (createDirectoryIfMissing)
-import System.FilePath (pathSeparator)
+import System.Directory                             (createDirectoryIfMissing)
+import System.FilePath                              (pathSeparator)
 import System.Time
 
 import HSP
-import Text.Highlighting.Kate (languagesByExtension, languages)
+import Text.Highlighting.Kate                       (languagesByExtension, languages)
 
-import Happstack.Crypto.MD5         (md5)
+import Happstack.Crypto.MD5                         (md5)
 import qualified Data.ByteString            as B
 import qualified Data.ByteString.Lazy.Char8 as C
 
 import Paste.View.Index (showIndex')
 import Paste.State
-import Paste.Types
-    ( PasteResponse (..)
-    , PostData (..)
-    , ShowOnIndex (..)
-    )
+import Paste.Types                                  (PostError (..))
 
 import Users.State
     ( Validate' (..)
@@ -53,130 +46,105 @@ stripSpaces = unlines . map (foldr strip "") . lines
 postHandler :: ServerPart Response
 postHandler = do
     methodM POST
-    pData <- getData
-    case pData of
-         Just pd -> post pd
-         _       -> badRequest . toResponse $ "Something went wrong. Contact mail (at) n-sch.de if necessary.\n"
+    errorT <- runErrorT post
 
--- | Add post data to database
-post :: PostData -> ServerPart Response
-post pData = do
+    -- check if we used the html form or a tiny url
+    mSubmit <- getDataBodyFn $ look "submit"
+    mFiletype <- getDataBodyFn $ look "filetype"
+    let submit = not . null $ fromMaybe "" mSubmit
+        isTiny | (fromMaybe "" mFiletype) `elem` tinyIds = True
+               | otherwise = False
 
-    -- get Request
-    rq <- askRq
+    case errorT of
+         Left e | submit    -> showIndex' $ Just (show e)
+                | otherwise -> badRequest . toResponse $ show e ++ "\n"
+         Right url | submit && isTiny -> seeOther ("/" ++ url ++ "/plain") $ toResponse ("http://npaste.de/" ++ url ++ "/plain")
+                   | submit           -> seeOther ("/" ++ url ++ "/")      $ toResponse ("http://npaste.de/" ++ url ++ "/")
+                   | otherwise        -> ok . toResponse $ "http://npaste.de/" ++ url ++ "/\n"
 
-    let content     = stripSpaces  $ cont pData
-        filetype    = ft pData
-        submit      = sub pData
-        username    = fromMaybe "" $ un  pData
-        password    = fromMaybe "" $ pwd pData
-        idT         = idType pData
-        md5content  = md5string content
-        peer        = rqPeer rq
-        spam        = isSpam pData
+type Url = String
 
-    -- Get user
-    userReply <- query $ Validate' username password
-    let user' = case userReply of
-                     OK user -> Just user
-                     _       -> Nothing
+-- | Try to post data, throw PostError if anything goes wrong.
+post :: ErrorT PostError (ServerPartT IO) Url
+post = do
 
-    -- clean known hosts older than 60 minutes
+    -- simple check for spam
+    mSpam <- getDataBodyFn $ look "email" -- email field = spam!
+    unless (null $ fromMaybe "" mSpam) (throwError IsSpam)
+
+    -- check if host is allowed to post
     update $ ClearKnownHosts 60
+    rq      <- askRq
+    let peer = rqPeer rq
+    ctime   <- liftIO getClockTime
+    htime   <- query $ GetClockTimeByHost 10 peer
+    case htime of
+         Just time -> throwError . MaxPastes $ let time' = addToClockTime noTimeDiff { tdHour = 1 } time
+                                               in normalizeTimeDiff $ diffClockTimes time' ctime
+         _ -> return ()
 
-    -- Validate that there is no other paste entry with the same md5
-    peByMd5 <- query $ GetPasteEntryByMd5sum user' md5content
-    -- Generate a new ID
-    id      <- query $ GenerateId user' idT
-    -- Get ClockTimes
-    ctime   <- liftIO $ getClockTime
-    htime   <- query $ GetClockTimeByHost 10 peer -- 10 = maxNum
+    -- get and validate our content
+    mContent <- getDataBodyFn $ look "content"
+    let content     = stripSpaces $ fromMaybe "" mContent
+        maxSize     = 200
+        md5content  = md5string content
+    when (null content)                           (throwError NoContent)
+    unless (null $ drop (maxSize * 1000) content) (throwError $ ContentTooBig maxSize)
 
-    let maxSize = 50 -- max size in kb
-        response | null content || spam =
-                     EmptyContent
-                 | not (null $ drop (maxSize * 1000) content) =
-                     ContentTooBig maxSize
-                 | not (null username) =
-                     case userReply of
-                          OK _             -> NoError idT
-                          WrongLogin       -> WrongUserLogin
-                          WrongPassword    -> WrongUserPassword
-                          _                -> Other
-                 | id == NoID =
-                     InvalidID
-                 | otherwise =
-                     case (peByMd5,htime) of
-                          (Just pe,_)   | user' == user pe -> MD5Exists pe
-                          (_,Just time) -> MaxPastes $ let time'   = addToClockTime noTimeDiff { tdHour = 1 } time
-                                                       in  normalizeTimeDiff $ diffClockTimes time' ctime
-                          _ -> NoError idT
+    -- get description
+    mDescription <- getDataBodyFn $ look "description"
+    unless (null $ drop 300 (fromMaybe "" mDescription)) (throwError $ DescriptionTooBig 300)
 
-    case response of
-         MD5Exists pe -> let url = "http://npaste.de/" ++ unId (pId pe) ++ "/"
-                         in  showUrl submit url
-         NoError _ -> do
-             -- get time, id and filepath
-             let folder = "pastes"
-                 fp     = folder ++ [pathSeparator] ++ unId id
-                 url    = "http://npaste.de/" ++ unId id ++ "/"
-             now <- liftIO getClockTime
+    -- get and validate user
+    mUser       <- getDataBodyFn $ look "user"
+    mPassword   <- getDataBodyFn $ look "password"
+    let user'   = fromMaybe "" mUser
+        passwd' = fromMaybe "" mPassword
+    userReply <- query $ Validate' user' passwd'
+    validUser <- case userReply of
+                      OK user                        -> return $ Just user
+                      _ | null user' && null passwd' -> return Nothing
+                      WrongLogin                     -> throwError WrongUserLogin
+                      WrongPassword                  -> throwError WrongUserPassword
+                      _                              -> throwError $ Other "User validation failed."
 
-             -- write file & add paste
-             idR <- update $ AddPaste PasteEntry { date     = now
-                                                 , content  = File fp
-                                                 , user     = user'
-                                                 , pId      = id
-                                                 , filetype = filetype
-                                                 , md5hash  = md5content
-                                                 , postedBy = peer
-                                                 }
+    -- check if the content is already posted by our user
+    peByMd5 <- query $ GetPasteEntryByMd5sum validUser md5content
+    case peByMd5 of
+         Just pe -> throwError $ MD5Exists pe
+         _       -> return ()
 
-             case idR of
-                  NoID -> badRequest . toResponse . show $ Other
-                  ID _ -> do -- save paste to file
-                             liftIO $ do createDirectoryIfMissing True folder
-                                         writeFile fp content
-                             -- add peer to known hosts
-                             update $ AddKnownHost peer
-                             showUrl submit url
+    -- get id
+    mId       <- getDataBodyFn $ look "id"
+    mIdType   <- getDataBodyFn $ look "id-type"
+    let idT' | null (fromMaybe "" mIdType) = map toLower $ fromMaybe "" mId
+             | otherwise = map toLower $ fromMaybe "" mIdType
+        idT | idT' `elem` defaultIds = DefaultID
+            | idT' `elem` randomIds  = RandomID 10
+            | otherwise              = CustomID . ID $ fromMaybe "" mId
+    id <- query $ GenerateId validUser idT
+    when (NoID == id) (throwError InvalidID)
 
+    -- get filetype
+    mFiletype <- getDataBodyFn $ look "filetype"
 
-         _ -> if submit
-                 then showIndex' $ ShowOnIndex (Just pData) (Just response)
-                 else badRequest . toResponse $ show response ++ "\n"
+    -- save to file
+    let dir      = "pastes" ++ (maybe "" ([pathSeparator] ++) $ liftM userLogin validUser)
+        filepath = dir ++ [pathSeparator] ++ unId id
+    liftIO $ do createDirectoryIfMissing True dir
+                writeFile filepath content
+    idR <- update $ AddPaste PasteEntry { date = ctime
+                                        , content = File filepath
+                                        , user = validUser
+                                        , pId = id
+                                        , filetype = mFiletype
+                                        , md5hash = md5content
+                                        , postedBy = peer
+                                        , description = mDescription
+                                        }
 
--- handle http post form / curl post
-showUrl :: Bool -> String -> ServerPart Response
-showUrl submit url = if submit
-                        then seeOther url . toResponse $ url
-                        else ok           . toResponse $ url ++ "\n"
+    -- add to known hosts
+    update $ AddKnownHost peer
 
--- | Read post data
-instance FromData PostData where
-    fromData = do
-        content <- look "content"
-        submit  <- look "submit"   `mplus` return ""
-        user    <- look "user"     `mplus` return ""
-        passwd  <- look "password" `mplus` return ""
-        ft      <- look "filetype" `mplus` return ""
-        id      <- look "id"       `mplus` return ""
-        idT     <- look "id-type"  `mplus` return ""
-        spamSchutz <- look "email" `mplus` return ""
-        let makeOpt "" = Nothing
-            makeOpt s  = Just s
-            id' | idT' `elem` defaultIds = DefaultID
-                | idT' `elem` randomIds  = RandomID 10
-                | otherwise              = CustomID $ ID id
-              where idT' | null idT  = map toLower id
-                         | otherwise = map toLower idT
-
-        return $ PostData { cont    = content
-                          , un      = makeOpt user
-                          , pwd     = makeOpt passwd
-                          , ft      = makeOpt ft
-                          , idReq   = makeOpt id
-                          , idType  = id'
-                          , sub     = not $ null submit
-                          , isSpam  = not $ null spamSchutz
-                          }
+    -- return url
+    return $ unId id

@@ -13,8 +13,8 @@ import Paste.Post           (postHandler)
 pasteHandler :: ServerPartT IO Response
 pasteHandler = msum
     [ postHandler
-    , dir "login" showLogin
-    , dir "register" showRegister
+    -- , dir "login"       showLogin
+    -- , dir "register"    showRegister
     , dir "static" $ fileServe ["index.html"] "npaste.de"
     , dir "client" $ fileServe ["index.html"] "npaste.de/client"
     , path showPaste

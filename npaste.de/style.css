@@ -36,18 +36,30 @@ div#topmenu
     background-color: #666;
     color: #fff;
     font-size: 12px;
-    text-align: right;
-    padding: 0;
+    text-align: left;
+    padding: 2px;
     margin: 0;
 }
 
-    div#topmenu form,
-    div#topmenu p#view_plain,
-    div#topmenu p#available_languages
+    div#topmenu div#right
     {
-        display: inline;
+        float: right;
+        text-align: right;
+    }
+    div#topmenu p#description
+    {
+        padding: 5px;
+    }
+    div#topmenu p#description,
+    div#topmenu div#right p#view_plain,
+    div#topmenu div#right p#available_languages
+    {
+        display: inline-block;
+        margin-top: 0;
+        margin-bottom: 0;
     }
 
+    div#topmenu div#clear            { clear: both; }
     div#topmenu p#view_plain         { margin-right: 10px; }
     div#topmenu p#view_plain :before { content: "["; }
     div#topmenu p#view_plain :after  { content: "]"; }
@@ -71,6 +83,10 @@ div#main
         font-weight: bold;
     }
 
+    div#main form#paste input#description
+    {
+        width: 400px;
+    }
     div#main form#paste p
     {
         text-align: left;

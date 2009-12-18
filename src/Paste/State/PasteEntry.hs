@@ -21,13 +21,14 @@ $(deriveAll [''Show, ''Eq, ''Ord, ''Default]
 
         -- | PasteEntry: Simple paste entry
         data PasteEntry = PasteEntry
-                    { user      :: Maybe User
-                    , pId       :: ID
-                    , date      :: ClockTime
-                    , content   :: Content
-                    , md5hash   :: BS.ByteString
-                    , filetype  :: Maybe String
-                    , postedBy  :: Host
+                    { user        :: Maybe User
+                    , pId         :: ID
+                    , date        :: ClockTime
+                    , content     :: Content
+                    , md5hash     :: BS.ByteString
+                    , filetype    :: Maybe String
+                    , postedBy    :: Host
+                    , description :: Maybe String
                     }
     |])
 
@@ -37,4 +38,4 @@ instance Version PasteEntry where
     mode = extension 3 (Proxy :: Proxy Old.PasteEntry)
 
 instance Migrate Old.PasteEntry PasteEntry where
-    migrate (Old.PasteEntry u i d c md f) = PasteEntry u i d c md f ("", 0)
+    migrate (Old.PasteEntry u i d c md f) = PasteEntry u i d c md f ("", 0) Nothing

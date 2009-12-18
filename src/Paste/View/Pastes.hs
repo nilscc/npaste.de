@@ -62,20 +62,20 @@ showWithSyntax p ext
         seeOther (HSP.escape . head $ lines url) $ toResponse url
 
     | otherwise = do
-    cont <- liftIO $ getContent p
+        cont <- liftIO $ getContent p
 
-    let paste = case highlightAs ext cont of
-                     Left _   -> PlainText   { lang'       = filetype p
-                                             , plainText   = cont
-                                             }
-                     Right sl -> Highlighted { lang        = ext
-                                             , plainText   = cont
-                                             , highlighted = formatAsXHtml [] ext sl
-                                             }
+        let paste = case highlightAs ext cont of
+                         Left _   -> PlainText   { lang'       = filetype p
+                                                 , plainText   = cont
+                                                 }
+                         Right sl -> Highlighted { lang        = ext
+                                                 , plainText   = cont
+                                                 , highlighted = formatAsXHtml [] ext sl
+                                                 }
 
-    webHSP $ pasteBody (CssString defaultHighlightingCss) (unId $ pId p) paste
+        webHSP $ pasteBody (CssString defaultHighlightingCss) (unId $ pId p) paste (description p)
 
-  where ext' = map toLower ext
+      where ext' = map toLower ext
 
 
 
@@ -101,37 +101,44 @@ data PasteContent = PlainText   { lang'       :: Maybe String
 -- VIEW part
 --------------------------------------------------------------------------------
 
+type Description = Maybe String
+
 -- | Main paste body
-pasteBody :: Css -> String -> PasteContent -> HSP XML
-pasteBody css id content =
+pasteBody :: Css -> String -> PasteContent -> Description -> HSP XML
+pasteBody css id content desc =
     <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="de" lang="de">
         <head>
             <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
-            <title>npaste.de - Paste #<% id %></title>
+            <title>npaste.de - Paste #<% id ++ (maybe "" (": " ++) desc)%></title>
             <% css %>
             <link href="/static/style.css" type="text/css" rel="stylesheet" />
         </head>
         <body>
             <div id="topmenu">
-                <p id="view_plain"><a href=("/" ++ id)>View plain</a></p>
-                <p id="available_languages">Available languages:
-                <select size="1" id="languages" 
-                  onChange="menu = document.getElementById('languages'); window.location = menu.options[menu.selectedIndex].text">
-                    <%
-                        map option (("Current: " ++ (language content)) : languages)
-                    %>
-                </select>
-                </p>
+                <p id="description"><% maybe "No description." ("Description: " ++) desc %></p>
+                <div id="right">
+                    <p id="view_plain"><a href=("/" ++ id)>View plain</a></p>
+                    <p id="available_languages">Available languages:
+                    <select size="1" id="languages" 
+                      onChange="menu = document.getElementById('languages'); window.location = menu.options[menu.selectedIndex].text">
+                        <%
+                            map langOptions ("Text" : languages)
+                        %>
+                    </select>
+                    </p>
+                </div>
+                <div id="clear"></div>
             </div>
             <% content %>
         </body>
     </html>
-  where option l = <option><% l %></option>
+  where langOptions l | l == (language content) = <option selected="selected"><% l ++ " (current)" %></option>
+                      | otherwise               = <option><% l %></option>
         language (Highlighted l _ _) = language' l
         language (PlainText l _)     = language' $ fromMaybe "" l
-        language' s | (not . null $ languagesByExtension s) = head $ languagesByExtension s
-                    | s `elem` languages                    = s
-                    | otherwise                             = "Plain text"
+        language' s | (map toLower s) `elem` (map (map toLower) languages) = s
+                    | (not . null $ languagesByExtension s) = head $ languagesByExtension s
+                    | otherwise                             = "Text"
 
 
 
