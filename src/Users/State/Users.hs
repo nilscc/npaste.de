@@ -36,7 +36,7 @@ instance Version Users where
     mode = extension 1 (Proxy :: Proxy Old.Users)
 
 instance Migrate Old.Users Users where
-    migrate (Old.Users [userList]) = Users [userList] M.empty
+    migrate (Old.Users userList) = Users userList M.empty
 
 
 -- | MD5 generation
