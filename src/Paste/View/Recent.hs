@@ -24,7 +24,7 @@ import Paste.State              (GetPastesByUser (..), GetAllEntries (..), Paste
 showRecent = do
     loggedInAs  <- getLogin
     pastes      <- query $ GetAllEntries
-    recent      <- mapM makeRecent $ take 20 pastes
+    recent      <- mapM makeRecent . take 20 . filter (not . hide) $ pastes
     xmlResponse $ HtmlBody htmlOpts [menuHsp loggedInAs, recentHsp recent Nothing]
 
 
@@ -69,13 +69,12 @@ instance (XMLGenerator m, EmbedAsChild m XML) => (EmbedAsChild m RecentPaste) wh
     asChild pe =
         <%
             <div class="recentpaste">
-                <p class="paste-date">Pasted at: <% calendarTimeToString . toUTCTime $ rDate pe %></p>
                 <p class="paste-info"><%
-                    let desc = rDesc pe
-                    in case desc of
-                            Just d  -> "Description: " ++ d
-                            Nothing -> "No description."
+                    case rDesc pe of
+                         Just d  -> "Description: " ++ d
+                         Nothing -> "No description."
                 %></p>
+                <p class="paste-date">Pasted at: <% calendarTimeToString . toUTCTime $ rDate pe %></p>
                 <pre><% ("\n" ++) . unlines . take 8 . lines $ rCont pe %></pre>
             </div>
         %>

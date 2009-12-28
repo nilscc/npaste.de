@@ -80,11 +80,11 @@ indexHsp err content description filetype idtype id =
                            then [<p class="error">Error: <% err %></p>]
                            else []
                     %>
+                    Description: <input type="text" name="description" id="description" value=(fromMaybe "" description)/>
                     <textarea name="content" rows="20" cols="80">
                         <% content %>
                     </textarea>
                     <p>
-                        Description: <input type="text" name="description" id="description" value=(fromMaybe "" description)/>
                         <select size="1" name="filetype">
                             <% map langSelect langOptions %>
                         </select>
@@ -92,6 +92,7 @@ indexHsp err content description filetype idtype id =
                             <% map idSelect idTypeOptions %>
                         </select>
                         <input type="text" name="id" id="id" value=(fromMaybe "" id) />
+                        <input type="checkbox" name="hide" id="hide" value="hide" /> Hide from recent pastes
                         <input type="submit" name="submit" id="submit"/>
                         <input type="text" style="display: none;" name="email" id="email"/> -- invisible anti-spam input
                     </p>

@@ -17,11 +17,12 @@ entries :: [Entry]
 entries =
     [ Always        <a href="/">New paste</a>
     , Always        <a href="/?view=recent">View recent pastes</a>
-    , WithLogin     <a href="/?view=my">View my pastes</a>
-    , WithLogin     <a href="/?view=logout">Logout</a>
-    , WithoutLogin  <p><a href="/?view=login">Login</a> or <a href="/?view=register">Register</a></p>
+    -- , WithLogin     <a href="/?view=my">View my pastes</a>
+    -- , WithLogin     <a href="/?view=logout">Logout</a>
+    -- , WithoutLogin  <p><a href="/?view=login">Login</a> or <a href="/?view=register">Register</a></p>
     , Always        <a href="/?view=download">Download clients</a>
-    , Always        <p><a href="/?view=news">News</a>, <a href="/?view=info">Info</a> and <a href="/?view=faq">FAQ</a></p>
+    -- , Always        <p><a href="/?view=news">News</a>, <a href="/?view=info">Info</a> and <a href="/?view=faq">FAQ</a></p>
+    , Always        <a href="/?view=faq">FAQ</a>
     ]
 
 

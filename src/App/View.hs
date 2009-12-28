@@ -152,7 +152,7 @@ xmlResponse :: (MonadIO m)
             => HtmlBody -> ServerPartT m Response
 xmlResponse = webHSP' (Just xmlMetaData) . renderBody
 
-xmlMetaData = XMLMetaData { doctype = (True, "<!DOCTYPE html PUBLIC \"-//W3C//DTD XHTML 1.0 Transitional//EN\" \"http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd\">")
-                          , contentType = "text/html"
-                          , preferredRenderer = renderXML
+xmlMetaData = XMLMetaData { doctype = (True, "<!DOCTYPE html PUBLIC \"-//W3C//DTD XHTML 1.0 Strict//EN\" \"http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd\">")
+                          , contentType = "text/html;charset=utf-8"
+                          , preferredRenderer = renderAsHTML
                           }

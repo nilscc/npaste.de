@@ -120,14 +120,18 @@ post = do
          Just pe -> throwError $ MD5Exists pe
          _       -> return ()
 
+    -- see if this is supposed to be a non public paste
+    mHide <- getDataBodyFn $ look "hide"
+    let hide = isJust mHide
+
     -- get id
     mId       <- getDataBodyFn $ look "id"
     mIdType   <- getDataBodyFn $ look "id-type"
     let idT' | null (fromMaybe "" mIdType) = map toLower $ fromMaybe "" mId
              | otherwise = map toLower $ fromMaybe "" mIdType
-        idT | idT' `elem` defaultIds = DefaultID
-            | idT' `elem` randomIds  = RandomID 10
-            | otherwise              = CustomID . ID $ fromMaybe "" mId
+        idT | idT' `elem` defaultIds && not hide                        = DefaultID
+            | (idT' `elem` defaultIds && hide) || idT' `elem` randomIds = RandomID 10
+            | otherwise                                                 = CustomID . ID $ fromMaybe "" mId
     id <- query $ GenerateId validUser idT
     when (NoID == id) (throwError InvalidID)
 
@@ -139,14 +143,15 @@ post = do
         filepath = dir ++ [pathSeparator] ++ unId id
     liftIO $ do createDirectoryIfMissing True dir
                 writeFile filepath content
-    idR <- update $ AddPaste PasteEntry { date = ctime
-                                        , content = File filepath
-                                        , user = validUser
-                                        , pId = id
-                                        , filetype = mFiletype
-                                        , md5hash = md5content
-                                        , postedBy = peer
-                                        , description = desc
+    idR <- update $ AddPaste PasteEntry { date          = ctime
+                                        , content       = File filepath
+                                        , user          = validUser
+                                        , pId           = id
+                                        , filetype      = mFiletype
+                                        , md5hash       = md5content
+                                        , postedBy      = peer
+                                        , description   = desc
+                                        , hide          = hide
                                         }
 
     -- add to known hosts

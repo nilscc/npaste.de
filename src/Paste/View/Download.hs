@@ -25,12 +25,13 @@ downloadHsp =
         <ul>
             <li><a href="/client/x86_64/np">64bit version</a></li>
             <li><a href="/client/i686/np">32bit version</a></li>
+            <li><a href="/clientsrc/">Source code</a></li>
         </ul>
         <p>Useage:</p>
-        <pre><%     "np <file>                  # upload a file\n"
-                ++  "np                         # read from stdin\n"
-                ++  "np -f haskell <file>       # define a custom filetype (default: look for file extension or use \"plaintext\"\n"
-                ++  "np -i <customid> <file>    # define a custom id\n"
-                ++  "np -h                      # show help\n"
+        <pre><%     "$ np <file>                  # upload a file\n"
+                ++  "$ np                         # read from stdin\n"
+                ++  "$ np -f haskell <file>       # define a custom filetype (default: look for file extension or use \"plaintext\"\n"
+                ++  "$ np -i <customid> <file>    # define a custom id\n"
+                ++  "$ np -h                      # show help\n"
         %></pre>
     </div>

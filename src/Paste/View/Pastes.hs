@@ -125,11 +125,11 @@ pasteBody css id content desc =
 
                         <p id="view_plain"><a href=("/" ++ id)>Plain</a></p>
 
-                        <form id="reply-form" method="post" action="/">
-                            <input type="hidden" name="reply" value=id />
-                            <input type="hidden" name="description" value=("Reply to #" ++ id) />
-                            <p id="reply"><a href="javascript:document.getElementById('reply-form').submit();">Reply</a></p>
-                        </form>
+                        -- <form id="reply-form" method="post" action="/">
+                            -- <input type="hidden" name="reply" value=id />
+                            -- <input type="hidden" name="description" value=("Reply to #" ++ id) />
+                            -- <p id="reply"><a href="javascript:document.getElementById('reply-form').submit();">Reply</a></p>
+                        -- </form>
 
                         <p id="available_languages">Available languages:</p>
                         <select size="1" id="languages" 
@@ -140,7 +140,6 @@ pasteBody css id content desc =
                         </select>
 
                     </div>
-                    <div id="clear"></div>
                 </div>
                 <% content %>
             </body>

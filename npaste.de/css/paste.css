@@ -24,27 +24,36 @@ div#topmenu
     background-color: #666;
     color: #fff;
     font-size: 12px;
-    text-align: left;
     padding: 2px;
-    margin: 0;
+    margin: 0 0 10px;
+    text-align: right;
 }
 
-    div#topmenu *
+    div#topmenu p#description
     {
-        display: inline-block;
+        float: left;
+        display: inline;
     }
 
-    div#topmenu div#right
+    div#topmenu div#right *
     {
-        float: right;
+        display: inline-block;
         margin: 0;
         padding: 0;
     }
 
+    div#topmenu p#description,
     div#topmenu div#right p#reply,
+    div#topmenu div#right p#view_plain,
+    div#topmenu div#right p#available_languages
+    {
+        margin-top: 3px;
+        margin-right: 5px;
+    }
+
     div#topmenu div#right p#view_plain
     {
-        margin-right: 5px;
+        margin-left: 20px;
     }
 
     div#topmenu div#right p#reply :before,
@@ -65,7 +74,10 @@ div#topmenu
         color: #ccc;
     }
 
-    div#topmenu div#clear { clear: both; }
+    table.sourceCode
+    {
+        clear: both;
+    }
 
 /* }}} */
 

@@ -202,7 +202,7 @@ div#main
 
         div#main form#paste input#description
         {
-            width: 200px;
+            width: 500px;
         }
         div#main form#paste p
         {
@@ -224,6 +224,7 @@ div#main
         background-color: #eee;
         margin: 10px 0 10px;
         padding: 5px;
+        text-align: right;
     }
 
         div#main div.recentpaste p.paste-info,
@@ -234,7 +235,12 @@ div#main
 
         div#main div.recentpaste p.paste-date
         {
-            float: right;
+        }
+
+        div#main div.recentpaste p.paste-info
+        {
+            float: left;
+            text-align: left;
             margin: 0;
             padding: 0;
         }
@@ -242,6 +248,7 @@ div#main
         div#main div.recentpaste pre
         {
             clear: both;
+            text-align: left;
         }
 
 /* }}} */
