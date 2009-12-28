@@ -249,6 +249,7 @@ div#main
         {
             clear: both;
             text-align: left;
+            overflow: hidden;
         }
 
 /* }}} */
