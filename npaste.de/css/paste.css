@@ -1,0 +1,98 @@
+body
+{
+    margin: 0;
+    padding: 0;
+    background: #fff;
+    color: #666;
+    /* font-family: Georgia, times, serif; */
+    font-size: 9pt;
+}
+
+a
+{
+    color: #088;
+    text-decoration: none;
+}
+
+a:hover
+{
+    text-decoration: underline;
+}
+
+div#topmenu
+{
+    background-color: #666;
+    color: #fff;
+    font-size: 12px;
+    text-align: left;
+    padding: 2px;
+    margin: 0;
+}
+
+    div#topmenu *
+    {
+        display: inline-block;
+    }
+
+    div#topmenu div#right
+    {
+        float: right;
+        margin: 0;
+        padding: 0;
+    }
+
+    div#topmenu div#right p#reply,
+    div#topmenu div#right p#view_plain
+    {
+        margin-right: 5px;
+    }
+
+    div#topmenu div#right p#reply :before,
+    div#topmenu div#right p#view_plain :before
+    {
+        content: "[";
+    }
+
+    div#topmenu div#right p#reply :after,
+    div#topmenu div#right p#view_plain :after
+    {
+        content: "]";
+    }
+
+    div#topmenu div#right p#reply a,
+    div#topmenu div#right p#view_plain a
+    {
+        color: #ccc;
+    }
+
+    div#topmenu div#clear { clear: both; }
+
+/* }}} */
+
+/*
+
+    div#topmenu div#right p#reply,
+    div#topmenu div#right p#view_plain
+    {
+        margin-right: 10px;
+    }
+
+    div#topmenu div#right p#reply :before,
+    div#topmenu div#right p#view_plain :before
+    {
+        content: "[";
+    }
+
+    div#topmenu div#right p#reply :after,
+    div#topmenu div#right p#view_plain :after
+    {
+        content: "]";
+    }
+
+    div#topmenu div#right p#reply a,
+    div#topmenu div#right p#view_plain a
+    {
+        color: #ccc;
+    }
+
+*/

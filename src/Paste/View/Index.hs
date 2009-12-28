@@ -3,33 +3,33 @@
 module Paste.View.Index
     ( showIndex
     , showIndex'
-    , indexBody
+    , indexHsp
     ) where
 
-import Data.List  (elemIndex)
-import Data.Maybe (fromMaybe, isJust)
+import Data.List                        (elemIndex)
+import Data.Maybe                       (fromMaybe, isJust)
 
 import HSP
-import Happstack.Server
-import Happstack.Server.HSP.HTML (webHSP)
 
-import Text.Highlighting.Kate (languages)
+import Happstack.Server
+import Happstack.Server.HSP.HTML        (webHSP)
+import Happstack.State                  (query)
+
+import Text.Highlighting.Kate           (languages)
 
 import App.View
-import Paste.Types              ( PostError (..) )
-import Paste.State
-    ( IDType (..)
-    )
+import Paste.Types                      (PostError (..), LoggedIn (..))
+import Paste.State                      (IDType (..))
+import Paste.View                       (htmlOpts, getLogin)
+import Paste.View.Menu                  (menuHsp)
+
+import Users.State                      (UserOfSessionId (..))
+import Users.State.SessionID            (SessionID (..))
 
 
 -- little helper :)
 a +?+ "" = ""
 a +?+ b  = a ++ b
-
--- options
-htmlOpts = [ WithCss    $ CssFile "/static/style.css"
-           , WithTitle  $ "npaste.de"
-           ]
 
 --------------------------------------------------------------------------------
 -- ServerPartT stuff
@@ -38,6 +38,9 @@ htmlOpts = [ WithCss    $ CssFile "/static/style.css"
 -- | show index
 showIndex :: ServerPartT IO Response
 showIndex = showIndex' Nothing
+
+-- | showIndex with error message
+showIndex' :: Maybe String -> ServerPartT IO Response
 showIndex' err = do
 
     content     <- getDataBodyFn $ look "content"
@@ -46,7 +49,9 @@ showIndex' err = do
     id          <- getDataBodyFn $ look "id"
     filetype    <- getDataBodyFn $ look "filetype"
 
-    xmlResponse $ indexBody err content description filetype idT id
+    loggedInAs  <- getLogin
+
+    xmlResponse $ HtmlBody htmlOpts [menuHsp loggedInAs, indexHsp err content description filetype idT id]
 
 
 
@@ -62,39 +67,24 @@ type IdType = Maybe String
 type Id = Maybe String
 
 -- body
-indexBody :: ErrorMsg -> Content -> Description -> Filetype -> IdType -> Id -> HtmlBody
-indexBody err content description filetype idtype id = do
-
-    HtmlBody htmlOpts $
-        [
+indexHsp :: ErrorMsg -> Content -> Description -> Filetype -> IdType -> Id -> HSP XML
+indexHsp err content description filetype idtype id =
             <div id="main">
-                <h1>npaste.de - Pastebin on <a href="http://www.n-sch.de">n-sch.de</a></h1>
-
-                <p>This pastebin is running on happstack. You can use it with a simple curl command:</p>
-
-                <pre><% "cat <file>| curl -F \"content=<-\" -F \"filetype=<filetype>\" npaste.de" %></pre>
-
-                <p>Where <% "\"<filetype>\"" %> specifies your default highlighting language (optional).</p>
-                <p>
-                    You can also get one of the linux clients
-                    (<a href="http://npaste.de/client/32bit/np">32bit</a> and <a href="http://npaste.de/client/64bit/np">64bit</a>,
-                    compiled on Arch Linux).
-                    The source code is available at <a href="http://npaste.de/clientsrc/">#clientsrc</a>.
-                </p>
-
-                <p>Or simply enter your paste below:</p>
-
+                <h1>New Paste</h1>
+                <p>To add a new paste you can either get the <a href="/?view=download">client</a>, use curl with...
+                    <pre><% "cat <file> | curl -F \"content=<-\" npaste.de" %></pre>
+                    ...or enter your text below to add a new paste.</p>
                 <form id="paste" action="/" method="post">
                     <%
                         if isJust err
                            then [<p class="error">Error: <% err %></p>]
                            else []
                     %>
-                    <p>Description: <input type="text" name="description" id="description" value=(fromMaybe "" description)/></p>
                     <textarea name="content" rows="20" cols="80">
                         <% content %>
                     </textarea>
                     <p>
+                        Description: <input type="text" name="description" id="description" value=(fromMaybe "" description)/>
                         <select size="1" name="filetype">
                             <% map langSelect langOptions %>
                         </select>
@@ -107,7 +97,6 @@ indexBody err content description filetype idtype id = do
                     </p>
                 </form>
             </div>
-        ]
 
   where idTypeOptions = ["Default ID", "Random ID", "Custom ID"]
         idSelect l | l == (fromMaybe "" idtype) = <option selected="selected"><% l %></option>

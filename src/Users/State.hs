@@ -14,6 +14,9 @@ module Users.State
 
     , LoginUser (..)
     , LogoutUser (..)
+    , UserOfSessionId (..)
+
+    , GetAllUsers (..)
 
     , Login
     , Password
@@ -62,7 +65,7 @@ type Email          = String
 passwordFromString :: String -> Password
 passwordFromString = B.concat . C.toChunks . md5 . C.pack
 
-
+-- moep
 third (a,b,c) = c
 
 
@@ -132,7 +135,6 @@ removeUser' :: Login
 removeUser' name pw email = removeUser $ User name (passwordFromString pw) email
 
 
-
 --------------------------------------------------------------------------------
 -- Login/logout users
 --------------------------------------------------------------------------------
@@ -145,6 +147,16 @@ generateSessionID = do
     case sid `M.lookupIndex` sessionIDs users of
          Nothing -> return sid
          Just _  -> generateSessionID
+
+-- | Get user of a session ID
+userOfSessionId :: SessionID
+                -> Host
+                -> Query Users (Maybe User)
+userOfSessionId sid host = do
+    users <- ask
+    case sid `M.lookup` sessionIDs users of
+         Just (u,h,_) | h == host -> return $ Just u
+         _ -> return Nothing
 
 -- | Log in a user
 loginUser :: User   -- ^ user
@@ -162,6 +174,14 @@ logoutUser :: SessionID
 logoutUser sid = modify $ \ users -> users { sessionIDs = M.delete sid $ sessionIDs users }
 
 
+--------------------------------------------------------------------------------
+-- Other stuff
+--------------------------------------------------------------------------------
+
+-- | Get all users
+getAllUsers :: Query Users [User]
+getAllUsers = ask >>= return . allUsers
+
 
 --------------------------------------------------------------------------------
 -- Register methods
@@ -178,4 +198,7 @@ $(mkMethods ''Users [ 'validate
 
                     , 'loginUser
                     , 'logoutUser
+                    , 'userOfSessionId
+
+                    , 'getAllUsers
                     ])

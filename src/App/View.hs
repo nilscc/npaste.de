@@ -11,6 +11,11 @@ module App.View
     , xmlResponse
     , renderBody
     , htmlToXml
+    , pandocToXml
+
+    , xmlMetaData
+
+    , (<-<)
 
     ) where
 
@@ -20,9 +25,10 @@ import Data.List (find)
 
 import HSP
 import Happstack.Server
-import Happstack.Server.HSP.HTML (webHSP)
+import Happstack.Server.HSP.HTML (webHSP')
 
 import Text.XHtml
+import Text.Pandoc               (Pandoc (..), defaultWriterOptions, writeHtml)
 
 --------------------------------------------------------------------------------
 -- Data definitions
@@ -39,6 +45,7 @@ data HtmlBody = HtmlBody [HtmlOptions] [HSP XML]
 data HtmlOptions = WithCss Css
                  | WithTitle String
                  -- | WithJavascript JavaScript
+                 | WithLogo String String String
 
 
 --------------------------------------------------------------------------------
@@ -51,13 +58,28 @@ getCssFromOptions = foldr step []
   where step (WithCss css) r = css : r
         step _ r = r
 
+-- Helper
+unpack (Just (WithTitle str)) = Just $ <title><% str %></title>
+
+unpack (Just (WithLogo left right desc)) = Just $
+    <div id="logo">
+        <p id="left"><% left %></p><p id="center">::</p><p id="right"><% right %></p>
+        <p id="info"><% desc %></p>
+    </div>
+
+unpack _                      = Nothing
+
 -- | Get the first Title element of a list of HtmlOptions
 getTitleFromOptions :: [HtmlOptions] -> Maybe (HSP XML)
 getTitleFromOptions = unpack . find isTitle
   where isTitle (WithTitle _) = True
         isTitle _             = False
-        unpack (Just (WithTitle str)) = Just $ <title><% str %></title>
-        unpack _                      = Nothing
+
+-- | Get the first Logo element of a list of HtmlOptions
+getLogoFromOptions :: [HtmlOptions] -> Maybe (HSP XML)
+getLogoFromOptions = unpack . find isLogo
+  where isLogo (WithLogo _ _ _) = True
+        isLogo _                = False
 
 -- | Html -> HSP XML convertion
 -- Use...
@@ -70,6 +92,15 @@ htmlToXml :: (Monad m, HTML a)
           => a -> XMLGenT m XML
 htmlToXml = XMLGenT . return . cdata . showHtmlFragment
 
+-- | Pandoc -> HSP XML convertion
+pandocToXml :: (Monad m)
+            => Pandoc -> XMLGenT m XML
+pandocToXml = htmlToXml . writeHtml defaultWriterOptions
+
+
+-- | Combine two HtmlBody elements
+(<-<) :: HtmlBody -> HtmlBody -> HtmlBody
+(HtmlBody o1 e1) <-< (HtmlBody o2 e2) = HtmlBody (o1 ++ o2) (e1 ++ e2)
 
 --------------------------------------------------------------------------------
 -- XML instances
@@ -102,11 +133,15 @@ renderBody (HtmlBody options xml) =
             <% css %>
         </head>
         <body>
-            <% xml %>
+            <% logo %>
+            <div id="htmlBody">
+                <% xml %>
+            </div>
         </body>
     </html>
   where css     = getCssFromOptions   options
         title   = getTitleFromOptions options
+        logo    = getLogoFromOptions  options
 
 
 --------------------------------------------------------------------------------
@@ -115,4 +150,9 @@ renderBody (HtmlBody options xml) =
 
 xmlResponse :: (MonadIO m)
             => HtmlBody -> ServerPartT m Response
-xmlResponse = webHSP . renderBody
+xmlResponse = webHSP' (Just xmlMetaData) . renderBody
+
+xmlMetaData = XMLMetaData { doctype = (True, "<!DOCTYPE html PUBLIC \"-//W3C//DTD XHTML 1.0 Transitional//EN\" \"http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd\">")
+                          , contentType = "text/html"
+                          , preferredRenderer = renderXML
+                          }

@@ -7,7 +7,7 @@ module Paste.View.Pastes (showPaste) where
 
 import Happstack.Server
 import Happstack.State
-import Happstack.Server.HSP.HTML    (webHSP)
+import Happstack.Server.HSP.HTML    (webHSP')
 
 import HSP
 import Text.Highlighting.Kate
@@ -74,9 +74,13 @@ showWithSyntax p ext
                                                  , highlighted = formatAsXHtml [] ext sl
                                                  }
 
-        webHSP $ pasteBody (CssString defaultHighlightingCss) (unId $ pId p) paste (description p)
+        webHSP' (Just xmlMetaData) $ pasteBody (CssString defaultHighlightingCss) (unId $ pId p) paste (description p)
 
       where ext' = map toLower ext
+            xmlMetaData = XMLMetaData { doctype = (True, "<!DOCTYPE html PUBLIC \"-//W3C//DTD XHTML 1.0 Transitional//EN\" \"http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd\">")
+                                      , contentType = "text/html"
+                                      , preferredRenderer = renderXML
+                                      }
 
 
 
@@ -107,32 +111,40 @@ type Description = Maybe String
 -- | Main paste body
 pasteBody :: Css -> String -> PasteContent -> Description -> HSP XML
 pasteBody css id content desc =
-    <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="de" lang="de">
-        <head>
-            <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
-            <title>npaste.de - Paste #<% id ++ (maybe "" (const $ ": " ++ shortDesc) desc)%></title>
-            <% css %>
-            <link href="/static/style.css" type="text/css" rel="stylesheet" />
-        </head>
-        <body>
-            <div id="topmenu">
-                <p id="description"><% maybe "No description." ("Description: " ++) desc %></p>
-                <div id="right">
-                    <p id="view_plain"><a href=("/" ++ id)>View plain</a></p>
-                    <p id="available_languages">Available languages:
-                    <select size="1" id="languages" 
-                      onChange="menu = document.getElementById('languages'); window.location = menu.options[menu.selectedIndex].text">
-                        <%
-                            map langOptions ("Text" : languages)
-                        %>
-                    </select>
-                    </p>
+        <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="de" lang="de">
+            <head>
+                <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+                <title>npaste.de - Paste #<% id ++ (maybe "" (const $ ": " ++ shortDesc) desc)%></title>
+                <% css %>
+                <link href="/static/css/paste.css" type="text/css" rel="stylesheet" />
+            </head>
+            <body>
+                <div id="topmenu">
+                    <p id="description"><% maybe "No description." ("Description: " ++) desc %></p>
+                    <div id="right">
+
+                        <p id="view_plain"><a href=("/" ++ id)>Plain</a></p>
+
+                        <form id="reply-form" method="post" action="/">
+                            <input type="hidden" name="reply" value=id />
+                            <input type="hidden" name="description" value=("Reply to #" ++ id) />
+                            <p id="reply"><a href="javascript:document.getElementById('reply-form').submit();">Reply</a></p>
+                        </form>
+
+                        <p id="available_languages">Available languages:</p>
+                        <select size="1" id="languages" 
+                          onchange="menu = document.getElementById('languages'); window.location = menu.options[menu.selectedIndex].text">
+                            <%
+                                map langOptions ("Text" : languages)
+                            %>
+                        </select>
+
+                    </div>
+                    <div id="clear"></div>
                 </div>
-                <div id="clear"></div>
-            </div>
-            <% content %>
-        </body>
-    </html>
+                <% content %>
+            </body>
+        </html>
   where langOptions l | l == (language content) = <option selected="selected"><% l ++ " (current)" %></option>
                       | otherwise               = <option><% l %></option>
         language (Highlighted l _ _) = language' l
@@ -165,9 +177,7 @@ instance (XMLGenerator m, EmbedAsChild m XML, HSX.XML m ~ XML) => (EmbedAsChild 
         <%
           <table class="sourceCode">
             <tr>
-              <td class="lineNumbers" title="Click to toggle line numbers"
-                  onClick="with (this.firstChild.style) { display = (display == '') ? 'none' : '' }"
-                  >
+              <td class="lineNumbers">
                 <pre><%
                     let clickable n = <a href=("#n" ++ n) class="no" name=("n" ++ n) id=("n" ++ n)><% n ++ "\n" %></a>
                     in map clickable . map (fst) $ zip (map show [1..]) (lines text)

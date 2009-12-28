@@ -2,10 +2,14 @@
 module Users.Auth
     ( registerH
     , loginH
+    , getSessionId
+    , setSessionCookie
+    , clearSessionCookie
     ) where
 
 import Happstack.Server
 import Happstack.State      (update, query)
+import Happstack.Util.Common       (Seconds)
 
 import Control.Monad        (liftM, mplus)
 import Data.Maybe           (fromMaybe)
@@ -60,13 +64,18 @@ instance FromData (Login,Password) where
 
 sessionCookie = "SessionID"
 
--- Set session cookie
+-- | Set session cookie
+setSessionCookie :: (FilterMonad Response m)
+                 => Seconds
+                 -> SessionID
+                 -> m ()
 setSessionCookie timeout = addCookie timeout . mkCookie sessionCookie . show
 
--- Clear session cookie
+-- | Clear session cookie
+clearSessionCookie :: (FilterMonad Response m) => m ()
 clearSessionCookie = addCookie 0 $ mkCookie sessionCookie "0"
 
--- Get session ID from cookie
+-- | Get session ID from cookie
 getSessionId :: RqData SessionID
 getSessionId = readCookieValue sessionCookie
 

@@ -1,5 +1,5 @@
-module Paste.Post
-    ( postHandler
+module Paste.Post.NewPaste
+    ( newPasteHandler
     ) where
 
 import Happstack.Server
@@ -9,7 +9,7 @@ import Control.Monad.Trans                          (liftIO)
 import Control.Monad.Error
 
 import Data.Char                                    (isSpace, toLower)
-import Data.Maybe                                   (fromJust, isJust, fromMaybe)
+import Data.Maybe                                   (fromJust, isJust, isNothing, fromMaybe)
 
 import System.Directory                             (createDirectoryIfMissing)
 import System.FilePath                              (pathSeparator)
@@ -43,9 +43,12 @@ stripSpaces = unlines . map (foldr strip "") . lines
 
 
 -- | Handle incoming post data
-postHandler :: ServerPart Response
-postHandler = do
+newPasteHandler :: ServerPart Response
+newPasteHandler = do
     methodM POST
+    -- check if we want to reply
+    reply  <- getDataBodyFn $ look "reply"
+    guard $ isNothing reply
     errorT <- runErrorT post
 
     -- check if we used the html form or a tiny url
@@ -109,7 +112,7 @@ post = do
                       _ | null user' && null passwd' -> return Nothing
                       WrongLogin                     -> throwError WrongUserLogin
                       WrongPassword                  -> throwError WrongUserPassword
-                      _                              -> throwError $ Other "User validation failed."
+                      _                              -> throwError $ OtherPostError "User validation failed."
 
     -- check if the content is already posted by our user
     peByMd5 <- query $ GetPasteEntryByMd5sum validUser md5content
