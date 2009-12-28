@@ -24,7 +24,7 @@ import Paste.State              (GetPastesByUser (..), GetAllEntries (..), Paste
 showRecent = do
     loggedInAs  <- getLogin
     pastes      <- query $ GetAllEntries
-    recent      <- mapM makeRecent . take 20 . filter (not . hide) $ pastes
+    recent      <- mapM makeRecent . take 5 . filter (not . hide) $ pastes
     xmlResponse $ HtmlBody htmlOpts [menuHsp loggedInAs, recentHsp recent Nothing]
 
 
