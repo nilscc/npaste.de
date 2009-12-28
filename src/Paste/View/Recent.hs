@@ -69,12 +69,13 @@ instance (XMLGenerator m, EmbedAsChild m XML) => (EmbedAsChild m RecentPaste) wh
     asChild pe =
         <%
             <div class="recentpaste">
-                <p class="paste-info"><%
-                    case rDesc pe of
-                         Just d  -> "Description: " ++ d
-                         Nothing -> "No description."
+                <p class="paste-info"><a href=("/" ++ id ++ "/")><% "#" ++ id %></a> - <%
+                        case rDesc pe of
+                             Just d  -> "Description: " ++ d
+                             Nothing -> "No description."
                 %></p>
                 <p class="paste-date">Pasted at: <% calendarTimeToString . toUTCTime $ rDate pe %></p>
                 <pre><% ("\n" ++) . unlines . take 8 . lines $ rCont pe %></pre>
             </div>
         %>
+      where id = unId $ rId pe
