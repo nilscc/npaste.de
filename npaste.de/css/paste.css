@@ -42,6 +42,11 @@ div#topmenu
         padding: 0;
     }
 
+    div#topmenu div#right select#languages option
+    {
+        display: block;
+    }
+
     div#topmenu p#description,
     div#topmenu div#right p#reply,
     div#topmenu div#right p#view_plain,
