@@ -32,6 +32,8 @@ downloadHsp =
                 ++  "$ np                         # read from stdin\n"
                 ++  "$ np -f haskell <file>       # define a custom filetype (default: look for file extension or use \"plaintext\"\n"
                 ++  "$ np -i <customid> <file>    # define a custom id\n"
+                ++  "$ np -d <description> <file> # add a description to your paste\n"
                 ++  "$ np -h                      # show help\n"
         %></pre>
+        <p>Of course it is also possible to combine these options (filetype, id and description).</p>
     </div>
