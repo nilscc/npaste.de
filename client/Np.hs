@@ -23,7 +23,7 @@ main = do
 
     -- run getOpt
     let (actions, nonOptions, error) = getOpt RequireOrder options args
-    opts <- foldl' (>>=) (return $ Options Nothing Nothing) actions
+    opts <- foldl' (>>=) (return $ Options Nothing Nothing Nothing) actions
 
     let id = pId opts
         file = case nonOptions of
@@ -42,18 +42,19 @@ main = do
                else getContents
 
     -- post it!
-    post ft id text
+    post ft id text (description opts)
     return ()
 
 -- | Post data with curl
-post :: String -> Maybe String -> String -> IO CurlCode
-post filetype id text = do
+post :: String -> Maybe String -> String -> Maybe String -> IO CurlCode
+post filetype id text desc = do
     curl <- initialize
     mapM_ (setopt curl) [ CurlURL "http://npaste.de"
                         , CurlPost True 
-                        , CurlPostFields $ [ "content="  ++ escape text
-                                           , "filetype=" ++ escape filetype
-                                           , "id="       ++ escape (fromMaybe "" id)
+                        , CurlPostFields $ [ "content="     ++ escape text
+                                           , "filetype="    ++ escape filetype
+                                           , "id="          ++ escape (fromMaybe "" id)
+                                           , "description=" ++ escape (fromMaybe "" desc)
                                            ]
                         ]
     perform curl
@@ -64,6 +65,7 @@ post filetype id text = do
 -- | Options
 data Options = Options { filetype :: Maybe String
                        , pId :: Maybe String
+                       , description :: Maybe String
                        }
 
 -- | Define options
@@ -75,6 +77,9 @@ options = [ Option "f" ["filetype"]
                 (ReqArg (\arg opt -> return opt { pId = Just arg })
                         "ID")
                 "Define random or custom IDs. Use 'random' or 'rand' for random ID, anything else for custom ID."
+          , Option "d" ["description"]
+                (ReqArg (\arg opt -> return opt { description = Just arg }) "description")
+                "Add a description to your paste."
           , Option "h" ["help"]
                 (NoArg (const $ do hPutStrLn stderr $ usageInfo "npaste.de client\n\nUseage:" options
                                    exitWith ExitSuccess))
