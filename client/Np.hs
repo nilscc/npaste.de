@@ -71,14 +71,14 @@ data Options = Options { filetype :: Maybe String
 -- | Define options
 options = [ Option "f" ["filetype"]
                 (ReqArg (\arg opt -> return opt { filetype = Just arg })
-                        "filetype")
+                        "FILETYPE")
                 "Default highlighting filetype/language"
           , Option "i" ["id"]
                 (ReqArg (\arg opt -> return opt { pId = Just arg })
                         "ID")
                 "Define random or custom IDs. Use 'random' or 'rand' for random ID, anything else for custom ID."
           , Option "d" ["description"]
-                (ReqArg (\arg opt -> return opt { description = Just arg }) "description")
+                (ReqArg (\arg opt -> return opt { description = Just arg }) "DESCRIPTION")
                 "Add a description to your paste."
           , Option "h" ["help"]
                 (NoArg (const $ do hPutStrLn stderr $ usageInfo "npaste.de client\n\nUseage:" options
