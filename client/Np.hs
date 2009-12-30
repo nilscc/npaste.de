@@ -45,8 +45,8 @@ main = do
     post ft id text $ case replies opts of
                            []   -> description opts
                            list -> Just $ "Reply to "
-                                        ++ (foldr (\id rest -> "/" ++ id ++ "/" ++ rest) "" list) ++ ". "
-                                        ++ (fromMaybe "" $ description opts)
+                                        ++ (foldr (\id rest -> "/" ++ id ++ "/" ++ rest) "" list)
+                                        ++ (maybe "" (". " ++) $ description opts)
     return ()
 
 -- | Post data with curl
