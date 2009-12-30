@@ -2,7 +2,7 @@ module Main where
 
 import Control.Monad (when, liftM2)
 
-import Data.List (foldl')
+import Data.List (foldl', insert)
 import Data.Maybe (fromMaybe)
 
 import Network.URI (escapeURIString, isAllowedInURI)
@@ -23,7 +23,7 @@ main = do
 
     -- run getOpt
     let (actions, nonOptions, error) = getOpt RequireOrder options args
-    opts <- foldl' (>>=) (return $ Options Nothing Nothing Nothing) actions
+    opts <- foldl' (>>=) (return $ Options Nothing Nothing Nothing []) actions
 
     let id = pId opts
         file = case nonOptions of
@@ -41,8 +41,12 @@ main = do
                then readFile file
                else getContents
 
-    -- post it!
-    post ft id text (description opts)
+    -- post it! combine replies + description
+    post ft id text $ case replies opts of
+                           []   -> description opts
+                           list -> Just $ "Reply to "
+                                        ++ (foldr (\id rest -> "/" ++ id ++ "/" ++ rest) "" list) ++ ". "
+                                        ++ (fromMaybe "" $ description opts)
     return ()
 
 -- | Post data with curl
@@ -66,6 +70,7 @@ post filetype id text desc = do
 data Options = Options { filetype :: Maybe String
                        , pId :: Maybe String
                        , description :: Maybe String
+                       , replies :: [String]
                        }
 
 -- | Define options
@@ -78,8 +83,11 @@ options = [ Option "f" ["filetype"]
                         "ID")
                 "Define random or custom IDs. Use 'random' or 'rand' for random ID, anything else for custom ID."
           , Option "d" ["description"]
-                (ReqArg (\arg opt -> return opt { description = Just arg }) "DESCRIPTION")
+                (ReqArg (\arg opt -> return opt { description = Just arg}) "DESCRIPTION")
                 "Add a description to your paste."
+          , Option "r" ["reply"]
+                (ReqArg (\arg opt -> return opt { replies = insert arg $ replies opt }) "ID")
+                "Reply to a paste with ID."
           , Option "h" ["help"]
                 (NoArg (const $ do hPutStrLn stderr $ usageInfo "npaste.de client\n\nUseage:" options
                                    exitWith ExitSuccess))
