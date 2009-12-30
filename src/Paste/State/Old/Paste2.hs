@@ -3,9 +3,8 @@
     TypeSynonymInstances, UndecidableInstances
     #-}
 
-module Paste.State.Paste ( Paste(..) ) where
+module Paste.State.Old.Paste2 ( Paste(..) ) where
 
-import qualified Data.Map as M
 
 import Happstack.Data
 import Happstack.Server.HTTP.Types  (Host)
@@ -16,14 +15,15 @@ import Paste.State.ID               (ID (..))
 import Paste.State.PasteEntry       (PasteEntry (..))
 
 -- For migration:
-import qualified Paste.State.Old.Paste2 as Old
+import qualified Paste.State.Old.Paste1 as Old
 
 $(deriveAll [''Show, ''Eq, ''Ord, ''Default]
     [d|
 
         -- | Paste: A list of all PasteEntry with the last used ID
-        data Paste = Paste { pasteEntries       :: M.Map ID PasteEntry
-                           , knownHosts         :: M.Map Host [ClockTime]
+        data Paste = Paste { pasteEntries  :: [PasteEntry]
+                           , pasteIDs      :: [ID]
+                           , knownHosts    :: [(ClockTime,Host)]
                            }
 
     |])
@@ -31,14 +31,13 @@ $(deriveAll [''Show, ''Eq, ''Ord, ''Default]
 
 $(deriveSerialize ''Paste)
 instance Version Paste where
-    mode = extension 3 (Proxy :: Proxy Old.Paste)
+    mode = extension 2 (Proxy :: Proxy Old.Paste)
 
 -- Make Paste its own Component
 instance Component Paste where
   type Dependencies Paste = End
-  initialValue = Paste M.empty M.empty
+  initialValue = Paste [] [] []
 
 
 instance Migrate Old.Paste Paste where
-    migrate (Old.Paste entries ids hosts) = Paste (M.fromList $ map (\entry -> (pId entry, entry)) entries)
-                                                  (M.fromListWith (++) $ map (\(ct,h) -> (h,[ct])) hosts)
+    migrate (Old.Paste entries ids) = Paste entries ids []

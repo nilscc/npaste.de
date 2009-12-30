@@ -3,7 +3,7 @@
     TypeSynonymInstances, UndecidableInstances
     #-}
 
-module Paste.State.PasteEntry ( PasteEntry (..) ) where
+module Paste.State.Old.PasteEntry5 ( PasteEntry (..) ) where
 
 import Happstack.Data
 import Happstack.Server.HTTP.Types      (Host)
@@ -14,7 +14,7 @@ import Paste.State.ID                   (ID (..))
 import Paste.State.Content              (Content (..))
 
 import qualified Data.ByteString as BS
-import qualified Paste.State.Old.PasteEntry5 as Old
+import qualified Paste.State.Old.PasteEntry4 as Old
 
 $(deriveAll [''Show, ''Eq, ''Ord, ''Default]
     [d|
@@ -30,14 +30,12 @@ $(deriveAll [''Show, ''Eq, ''Ord, ''Default]
                     , postedBy    :: Host
                     , description :: Maybe String
                     , hide        :: Bool
-                    , tags        :: [String]
-                    , responses   :: [ID]
                     }
     |])
 
 $(deriveSerialize ''PasteEntry)
 instance Version PasteEntry where
-    mode = extension 6 (Proxy :: Proxy Old.PasteEntry)
+    mode = extension 5 (Proxy :: Proxy Old.PasteEntry)
 
 instance Migrate Old.PasteEntry PasteEntry where
-    migrate (Old.PasteEntry u i d c md f h desc hide) = PasteEntry u i d c md f h desc hide [] []
+    migrate (Old.PasteEntry u i d c md f h desc) = PasteEntry u i d c md f h desc False

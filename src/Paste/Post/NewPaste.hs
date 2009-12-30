@@ -9,7 +9,7 @@ import Control.Monad.Trans                          (liftIO)
 import Control.Monad.Error
 
 import Data.Char                                    (isSpace, toLower)
-import Data.Maybe                                   (fromJust, isJust, isNothing, fromMaybe)
+import Data.Maybe                                   (fromJust, isJust, isNothing, fromMaybe, catMaybes)
 
 import System.Directory                             (createDirectoryIfMissing)
 import System.FilePath                              (pathSeparator)
@@ -22,6 +22,7 @@ import Happstack.Crypto.MD5                         (md5)
 import qualified Data.ByteString            as B
 import qualified Data.ByteString.Lazy.Char8 as C
 
+import qualified Paste.Parser.Description as PPD
 import Paste.View.Index (showIndex')
 import Paste.State
 import Paste.Types                                  (PostError (..))
@@ -143,6 +144,23 @@ post = do
         filepath = dir ++ [pathSeparator] ++ unId id
     liftIO $ do createDirectoryIfMissing True dir
                 writeFile filepath content
+
+    -- description stuff, tags, responses, TODO: notify users
+    let unpackTag (PPD.Tag t) = Just t
+        unpackTag _           = Nothing
+        unpackId (PPD.ID i) = Just $ ID i
+        unpackId _          = Nothing
+        -- get tags
+        tagList = case desc of
+                       Just desc -> catMaybes . map unpackTag $ PPD.parseDesc desc
+                       _ -> []
+        -- see if we have any links to other pastes
+        linkList = case desc of
+                        Just desc -> catMaybes . map unpackId $ PPD.parseDesc desc
+                        _ -> []
+
+    mapM_ (update . AddResponse id) linkList
+
     idR <- update $ AddPaste PasteEntry { date          = ctime
                                         , content       = File filepath
                                         , user          = validUser
@@ -152,6 +170,8 @@ post = do
                                         , postedBy      = peer
                                         , description   = desc
                                         , hide          = hide
+                                        , tags          = tagList
+                                        , responses     = []
                                         }
 
     -- add to known hosts

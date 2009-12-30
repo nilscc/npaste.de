@@ -9,10 +9,13 @@ module Paste.State
     , ClearKnownHosts (..)
     , GetClockTimeByHost (..)
     , GetAllEntries (..)
+    , GetAllIds (..)
     , GetPasteById (..)
     , GenerateId (..)
     , GetPastesByUser (..)
     , GetPasteEntryByMd5sum (..)
+    , AddResponse (..)
+
     , defaultId
     , defaultIds
     , randomId
@@ -39,8 +42,6 @@ import Paste.State.Paste
 import Paste.State.PasteEntry
 
 
-
-
 import Happstack.Data
 import Happstack.Server.HTTP.Types  (Host)
 import Happstack.State
@@ -58,6 +59,7 @@ import Control.Monad.Trans          (liftIO)
 import Data.Typeable                (Typeable)
 import Data.List                    (find, (\\), null, group)
 import Data.Maybe                   (fromJust, fromMaybe)
+import qualified Data.Map as M
 
 import qualified Data.ByteString as BS
 import qualified Data.ByteString.Lazy.Char8 as BS8
@@ -86,23 +88,26 @@ tinyIds     = [ "tiny", "tiny url", "tinyurl" ]
 
 -- | Get a paste by ID
 getPasteById :: ID -> Query Paste (Maybe PasteEntry)
-getPasteById id = ask >>= return . find ((== id) . pId) . pasteEntries
+getPasteById id = ask >>= return . M.lookup id . pasteEntries
 
 -- | Get all pastes of a user
 getPastesByUser :: User -> Query Paste [PasteEntry]
-getPastesByUser u = ask >>= return . filter ((== Just u) . user) . pasteEntries
+getPastesByUser u = getAllEntries >>= return . filter ((== Just u) . user)
 
 -- | Get all entries
 getAllEntries :: Query Paste [PasteEntry]
-getAllEntries = ask >>= return . pasteEntries
+getAllEntries = ask >>= return . M.elems . pasteEntries
 
 -- | Return ID of an MD5 sum
 getPasteEntryByMd5sum :: Maybe User -> Password -> Query Paste (Maybe PasteEntry)
-getPasteEntryByMd5sum user' bs = ask >>= return . find userAndMd5 . pasteEntries
+getPasteEntryByMd5sum user' bs = getAllEntries >>= return . find userAndMd5
   where userAndMd5 pe = let peUser = user pe
                             peMd5  = md5hash pe
                         in user' == peUser && bs == peMd5
 
+-- | Return all IDs
+getAllIds :: Query Paste [ID]
+getAllIds = ask >>= return . M.keys . pasteEntries
 
 
 
@@ -129,18 +134,13 @@ generateId' (CustomID i) = flip customId i
 -- | Generate a new default ID
 defaultId :: Maybe User -> Query Paste ID
 defaultId u = do
-    (Paste _ ids _) <- ask
-    let ids' = map unId $ filter isId ids
-    return . ID $ defaultId' ids'
+    paste <- ask
+    let entries = pasteEntries paste
+    return . ID . head $ dropWhile (\id -> id `elem` reservedIds || M.member (ID id) entries) everything
 
   where isId (ID _) = True
         isId NoID   = False
-
--- Helper for defaultId
-defaultId' :: [String] -> String
-defaultId' ids = head $ dropWhile (`elem` ids ++ reservedIds) everything
-
-  where everything = concat $ iterate func chars
+        everything = concat $ iterate func chars
         func list  = concatMap (\char -> map (char ++) list) chars
         chars      = map (:[]) validChars
 
@@ -157,7 +157,7 @@ randomId us r@(min,max) = do
 
     let randId = ID $ map (validChars !!) iList
 
-    if randId `elem` pasteIDs paste
+    if (M.member randId $ pasteEntries paste)
        then randomId us (min,max+1) -- increase max number to make sure we don't run out of IDs
        else return randId
 
@@ -169,8 +169,7 @@ randomId us r@(min,max) = do
 customId :: Maybe User -> ID -> Query Paste ID
 customId us id@(ID id') = do
     paste <- ask
-    let ids = reservedIds ++ (map unId $ pasteIDs paste)
-    if not (id' `elem` ids) && all (`elem` validChars) id'
+    if not (id' `elem` reservedIds) && not (M.member id $ pasteEntries paste) && all (`elem` validChars) id'
        then return id
        else return NoID
 
@@ -188,7 +187,7 @@ addKnownHost host = do
     paste <- ask
     ctime <- getEventClockTime
 
-    modify $ \paste -> paste { knownHosts = (ctime,host) : knownHosts paste }
+    modify $ \paste -> paste { knownHosts = M.insertWith (++) host [ctime] $ knownHosts paste }
 
 -- | Remove all known hosts older than X minutes
 clearKnownHosts :: Int              -- ^ age in minutes (one month = 30 days)
@@ -197,9 +196,12 @@ clearKnownHosts min = do
     paste <- ask
     ctime <- getEventClockTime
     let maxTime = normalizeTimeDiff $ noTimeDiff { tdMin = min }
-        timeDiff (time,_) = let tdiff = normalizeTimeDiff $ diffClockTimes ctime time
-                            in tdiff <= maxTime
-    modify $ \paste -> paste { knownHosts = filter timeDiff $ knownHosts paste }
+        timeDiff time = let tdiff = normalizeTimeDiff $ diffClockTimes ctime time
+                        in tdiff <= maxTime
+        clear times = case filter timeDiff times of
+                           [] -> Nothing
+                           l  -> Just l
+    modify $ \paste -> paste { knownHosts = M.mapMaybe clear $ knownHosts paste }
 
 -- | Get ClockTime if pasteNo >= maxNum
 getClockTimeByHost :: Int                            -- ^ max number of pastes
@@ -211,11 +213,11 @@ getClockTimeByHost maxNum host = do
     ctime <- getEventClockTime
 
     -- get oldest paste time
-    let ctimes = filter ((== host) . snd) (knownHosts paste)
+    let ctimes = fromMaybe [] . M.lookup host $ knownHosts paste
 
-    if length ctimes >= maxNum
-       then return . Just . minimum $ map fst ctimes
-       else return Nothing
+    return $ if length ctimes >= maxNum
+                then Just $ minimum ctimes
+                else Nothing
 
 -- | Add a PasteEntry, returns the ID of the new paste
 addPaste :: PasteEntry -> Update Paste ID
@@ -227,15 +229,26 @@ addPaste entry = do
     ctime <- getEventClockTime
 
     let id      = pId entry
-        ids     = pasteIDs paste
         entries = pasteEntries paste
     case id of
-         ID _ | not (id `elem` ids) -> do
-             modify $ \paste -> paste { pasteEntries = entry { date = ctime } : entries
-                                      , pasteIDs     = id : ids
-                                      }
+         ID _ | not (M.member id entries) -> do
+             modify $ \paste -> paste { pasteEntries = M.insert id entry entries }
              return id
          _ -> return NoID
+
+
+--------------------------------------------------------------------------------
+-- Description stuff (Twitter style yay!)
+--------------------------------------------------------------------------------
+
+-- | Add a response from ID to the paste with ID
+addResponse :: ID               -- ^ ID of the response
+            -> ID               -- ^ ID of the paste that gets the response
+            -> Update Paste ()
+addResponse from to = modify $ \paste ->
+    paste { pasteEntries = M.alter addFrom to $ pasteEntries paste }
+  where addFrom (Just pe) = Just $ pe { responses = responses pe ++ [from] }
+        addFrom _         = Nothing
 
 
 
@@ -251,4 +264,6 @@ $(mkMethods ''Paste
     , 'getPasteEntryByMd5sum
     , 'generateId
     , 'getAllEntries
+    , 'getAllIds
+    , 'addResponse
     ])

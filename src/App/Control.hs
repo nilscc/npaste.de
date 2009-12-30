@@ -20,7 +20,7 @@ data VHost = VHost { toMatch :: String
 
 -- | vHosts for appHandler. Regex should work fine... Go from top to bottom and
 -- run the first match.
-vHosts = [ VHost "localhost"    $ pasteHandler -- testing
+vHosts = [ VHost ""             $ pasteHandler -- testing
          , VHost "npaste.de"    $ pasteHandler
          , VHost "n-sch.de"     $ fileServe ["index.html"] "n-sch.de"
          , VHost "wsw.n-sch.de" $ fileServe [] "/home/nils/.warsow-0.5"

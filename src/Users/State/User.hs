@@ -6,11 +6,14 @@
 module Users.State.User ( User (..) ) where
 
 import Happstack.Data
+import Happstack.State.ClockTime        (ClockTime (..))
+
 import qualified Data.ByteString       as B
 import qualified Data.ByteString.Char8 as C
+import Data.Maybe                               (fromMaybe)
 
 import qualified Users.State.Old.Login as Login ( Login (..), Password (..) )
-import qualified Users.State.Old.User0 as Old
+import qualified Users.State.Old.User1 as Old
 
 $(deriveAll [''Show, ''Eq, ''Ord, ''Default]
   [d|
@@ -18,8 +21,13 @@ $(deriveAll [''Show, ''Eq, ''Ord, ''Default]
       -- | User data
       data User = User { userLogin    :: String         -- ^ login name
                        , userPassword :: B.ByteString   -- ^ login password as md5 bytestring
-                       , userEmail    :: Maybe String   -- ^ (optional) Email
+                       , userEmail    :: String         -- ^ Email
                        }
+                | InactiveUser { userLogin'         :: String -- ^ login name
+                               , userEmail'         :: String -- ^ email
+                               , activationkey      :: String -- ^ activation key
+                               , registrationDate   :: ClockTime -- ^ time of their registration, inactive users get removed after 48 hours
+                               }
 
   |])
 
@@ -28,8 +36,7 @@ $(deriveAll [''Show, ''Eq, ''Ord, ''Default]
 
 $(deriveSerialize ''User)
 instance Version User where
-    mode = extension 1 (Proxy :: Proxy Old.User)
+    mode = extension 2 (Proxy :: Proxy Old.User)
 
 instance Migrate Old.User User where
-    migrate (Old.User li pw email) =
-        User (Login.login li) (C.pack . Login.password $ pw) email
+    migrate (Old.User li pw email) = User li pw (fromMaybe "" email)

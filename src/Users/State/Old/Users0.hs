@@ -7,7 +7,7 @@ module Users.State.Old.Users0 ( Users (..) ) where
 
 import Happstack.Data
 import Happstack.State
-import Users.State.User ( User (..) )
+import Users.State.Old.User1 ( User (..) )
 
 import Happstack.Crypto.MD5 (md5)
 import qualified Data.ByteString            as B

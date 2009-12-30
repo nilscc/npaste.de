@@ -1,6 +1,7 @@
 {-# LANGUAGE TemplateHaskell, TypeFamilies, DeriveDataTypeable,
     FlexibleInstances, MultiParamTypeClasses, FlexibleContexts,
-    UndecidableInstances, TypeOperators, ScopedTypeVariables
+    UndecidableInstances, TypeOperators, ScopedTypeVariables,
+    TypeSynonymInstances
     #-}
 module Users.State
     ( Validate (..)
@@ -11,12 +12,20 @@ module Users.State
     , AddUser' (..)
     , RemoveUser (..)
     , RemoveUser' (..)
+    , RemoveInactiveUsers (..)
+
+    , AddInactiveUser (..)
+    , ActivateUser (..)
 
     , LoginUser (..)
     , LogoutUser (..)
     , UserOfSessionId (..)
+    , UserOfLogin (..)
 
     , GetAllUsers (..)
+
+    , AddRegisteredHost (..)
+    , ClearRegisteredHosts (..)
 
     , Login
     , Password
@@ -40,6 +49,10 @@ import Happstack.Data
 import Happstack.State
 import Happstack.Crypto.MD5         (md5)
 import Happstack.Server.HTTP.Types  (Host)
+import Happstack.Util.Mail          (NameAddr (..))
+import Happstack.State.ClockTime    (ClockTime (..))
+
+import System.Time                  (diffClockTimes, noTimeDiff, TimeDiff (..), normalizeTimeDiff)
 
 import Data.List                    (find, delete)
 import Control.Monad                (liftM)
@@ -60,6 +73,7 @@ type Login          = String
 type PasswordPlain  = String
 type Password       = B.ByteString
 type Email          = String
+type ActivationKey  = String
 
 -- | MD5 generation
 passwordFromString :: String -> Password
@@ -67,6 +81,12 @@ passwordFromString = B.concat . C.toChunks . md5 . C.pack
 
 -- moep
 third (a,b,c) = c
+
+-- Alpha num
+alphaNum = ['A' .. 'Z'] ++ ['a' .. 'z'] ++ ['0' .. '9']
+
+ulogin (User login _ _)           = login
+ulogin (InactiveUser login _ _ _) = login
 
 
 --------------------------------------------------------------------------------
@@ -79,11 +99,13 @@ validate :: Login
          -> Query Users UserReply
 validate login pw = do
     users' <- ask
-    case find ((== login) . userLogin) (allUsers users') of
+    case find f (allUsers users') of
          Nothing -> return WrongLogin
          Just us -> return $ if userPassword us == pw
                                 then OK us
                                 else WrongPassword
+  where f (User name _ _) = login == name
+        f (InactiveUser _ _ _ _) = False
 
 -- | Validate a user, plain password version
 validate' :: Login
@@ -95,7 +117,56 @@ validate' name pw = validate name (passwordFromString pw)
 -- | Check if a login already exists
 userExists :: Login
            -> Query Users Bool
-userExists name = ask >>= return . elem name . map userLogin . allUsers
+userExists name = ask >>= return . or . map step . allUsers
+  where step (User login _ _)         = login == name
+        step (InactiveUser login _ _ _) = login == name
+
+
+--------------------------------------------------------------------------------
+-- Registration / Activation
+--------------------------------------------------------------------------------
+
+-- Helper :)
+randomString :: Int -> AnyEv String
+randomString l
+    | l >= 1 = do
+        ints <- mapM (const $ getRandomR (0,length alphaNum)) [1..l]
+        return $ map ((!!) (cycle alphaNum) . abs) ints
+    | otherwise   = return ""
+
+-- | Add inactive user, return activation key on success or the UserReply on failure
+addInactiveUser :: Login
+                -> Email
+                -> Update Users UserReply
+addInactiveUser login email = do
+    users   <- ask
+    let allActivationKeys k (InactiveUser _ _ akey _) rest | akey == k = akey : rest
+        allActivationKeys _ _ rest = rest
+        genkey = do k <- randomString 30
+                    case foldr (allActivationKeys k) [] (allUsers users) of
+                         [] -> return k
+                         _  -> genkey
+    akey    <- genkey
+    now     <- getEventClockTime
+    addUser $ InactiveUser login email akey now
+
+-- | Activate an inactive user, return a random password as plain text.
+-- Warning: No validation whether the inactive user is too old.
+activateUser :: User
+             -> ActivationKey
+             -> Update Users (Maybe PasswordPlain)
+activateUser iu@(InactiveUser login email akey ctime) akey' | akey == akey' = do
+    -- remove inactive user
+    removeUser iu
+    -- add active user
+    pwd    <- randomString 8
+    ureply <- addUser $ User login (passwordFromString pwd) email
+    -- return plaintext
+    return $ case ureply of
+                  OK _ -> Just pwd
+                  _    -> Nothing
+
+activateUser _ _ = return Nothing
 
 
 
@@ -106,8 +177,11 @@ userExists name = ask >>= return . elem name . map userLogin . allUsers
 -- | Add new user
 addUser :: User
         -> Update Users UserReply
-addUser user = do
-    exists <- runQuery . userExists $ userLogin user
+addUser u@(User login _ _)               | all (`elem` alphaNum) login = addUserHelper u
+addUser u@(InactiveUser login email _ _) | all (`elem` alphaNum) login = addUserHelper u
+addUser _ = return WrongLogin
+addUserHelper user = do
+    exists <- runQuery . userExists $ ulogin user
     if exists
        then return $ AlreadyExists
        else do modify  $ \users -> users { allUsers = user : allUsers users }
@@ -116,7 +190,7 @@ addUser user = do
 -- | Plaintext version of addUser
 addUser' :: Login
          -> PasswordPlain
-         -> Maybe Email
+         -> Email
          -> Update Users UserReply
 addUser' name pw email = addUser $ User name (passwordFromString pw) email
 
@@ -130,10 +204,21 @@ removeUser user = modify $ \userList -> userList { allUsers = delete user $ allU
 -- | Plaintext version of removeUser
 removeUser' :: Login
             -> PasswordPlain
-            -> Maybe Email
+            -> Email
             -> Update Users ()
 removeUser' name pw email = removeUser $ User name (passwordFromString pw) email
 
+
+-- | Remove all inactive users older than two days
+removeInactiveUsers :: Update Users ()
+removeInactiveUsers = do
+    users <- ask
+    now   <- getEventClockTime
+
+    let notTooOld (User _ _ _) = True
+        notTooOld (InactiveUser _ _ _ ctime) = diffClockTimes now ctime <= noTimeDiff { tdDay = 2 }
+
+    modify $ \users -> users { allUsers = filter notTooOld $ allUsers users }
 
 --------------------------------------------------------------------------------
 -- Login/logout users
@@ -158,6 +243,15 @@ userOfSessionId sid host = do
          Just (u,h,_) | h == host -> return $ Just u
          _ -> return Nothing
 
+-- | Get a user by his login name
+userOfLogin :: Login -> Query Users (Maybe User)
+userOfLogin login = do
+    users <- ask
+    return $ case find ((login ==) . ulogin) (allUsers users) of
+                  Just user -> Just user
+                  _ -> Nothing
+
+
 -- | Log in a user
 loginUser :: User   -- ^ user
           -> Host   -- ^ (IP :: String, Port :: Integer) pair
@@ -172,6 +266,30 @@ loginUser user host = do
 logoutUser :: SessionID
            -> Update Users ()
 logoutUser sid = modify $ \ users -> users { sessionIDs = M.delete sid $ sessionIDs users }
+
+
+--------------------------------------------------------------------------------
+-- Remembering & anti spam protection
+--------------------------------------------------------------------------------
+
+-- | Add a registered host, overwrite current ClockTime if host is already known
+addRegisteredHost :: Host
+                  -> Update Users ()
+addRegisteredHost host = do
+    users <- ask
+    now   <- getEventClockTime
+    modify $ \users -> users { registeredHosts = M.insert host now $ registeredHosts users }
+
+-- | Remove all registered hosts older than X hours
+clearRegisteredHosts :: Int -- ^ age in hours
+                     -> Update Users ()
+clearRegisteredHosts hour = do
+    paste <- ask
+    ctime <- getEventClockTime
+    let maxTime = normalizeTimeDiff $ noTimeDiff { tdHour = hour }
+        timeDiff _ time = let tdiff = normalizeTimeDiff $ diffClockTimes ctime time
+                          in tdiff <= maxTime
+    modify $ \paste -> paste { registeredHosts = M.filterWithKey timeDiff $ registeredHosts paste }
 
 
 --------------------------------------------------------------------------------
@@ -195,10 +313,18 @@ $(mkMethods ''Users [ 'validate
                     , 'addUser'
                     , 'removeUser
                     , 'removeUser'
+                    , 'removeInactiveUsers
+
+                    , 'addInactiveUser
+                    , 'activateUser
 
                     , 'loginUser
                     , 'logoutUser
                     , 'userOfSessionId
+                    , 'userOfLogin
 
                     , 'getAllUsers
+
+                    , 'addRegisteredHost
+                    , 'clearRegisteredHosts
                     ])

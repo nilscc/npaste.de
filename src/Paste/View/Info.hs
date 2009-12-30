@@ -9,28 +9,35 @@ import Control.Monad.Trans      (liftIO)
 
 import HSP
 import Happstack.Server
-import Happstack.State          (query)
+import Happstack.State          (query, update)
 
 import System.Time              (ClockTime (..), toUTCTime, calendarTimeToString, getClockTime)
 
 import Paste.View               (htmlBody, getLogin, xmlResponse)
 import Paste.State              (GetAllEntries (..))
 
-import Users.State              (GetAllUsers (..), User (..))
+import Users.State              (GetAllUsers (..), User (..), RemoveInactiveUsers (..))
 
 showInfo :: ServerPart Response
 showInfo = do
     login       <- getLogin
     now         <- liftIO getClockTime
+    update $ RemoveInactiveUsers
     pentries    <- query $ GetAllEntries
     users       <- query $ GetAllUsers
 
     let info = [ Info "Total number of pastes"  $ show (length pentries)
                , Info "Registered users"        $ show (length users)
-               , Info "All user names"          $ foldr (\user rest -> (show $ userLogin user) ++ if null rest then rest else (", " ++ rest)) "" users
+               , Info "Active users"            $ show (length $ filter isActive users)
+               -- , Info "All user names"          $ foldr (\user rest -> (ulogin user) ++ if null rest then rest else (", " ++ rest)) "" users
                ]
 
     xmlResponse $ htmlBody login [infoHsp now info]
+
+  where ulogin (User login _ _)           = "\"" ++ login ++ "\""
+        ulogin (InactiveUser login _ _ _) = "\"" ++ login ++ "\" (inactive)"
+        isActive (User _ _ _) = True
+        isActive _            = False
 
 
 data Info = Info { infoKey :: String

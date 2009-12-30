@@ -3,7 +3,10 @@
     NoMonomorphismRestriction #-}
 {-# OPTIONS_GHC -F -pgmFtrhsx #-}
 
-module Paste.View.Pastes (showPaste) where
+module Paste.View.Pastes
+    ( showPaste
+    , parsedDesc
+    ) where
 
 import Happstack.Server
 import Happstack.State
@@ -24,6 +27,7 @@ import Data.List                    (find)
 import App.View                     (Css (..), htmlToXml)
 import Paste.State
 import Users.State                  (Validate (..), UserReply (..))
+import qualified Paste.Parser.Description as PPD (parseDesc, DescVal(..))
 
 
 
@@ -58,9 +62,9 @@ showPlain p = liftIO (getContent p) >>= ok . setHeader "Content-Type" "text/plai
 -- | Syntax highlighting
 showWithSyntax :: PasteEntry -> String -> ServerPartT IO Response
 showWithSyntax p ext
-    | ext' `elem` tinyIds = do
-        url <- liftIO $ getContent p
-        seeOther (HSP.escape . head $ lines url) $ toResponse url
+    -- | ext' `elem` tinyIds = do
+        -- url <- liftIO $ getContent p
+        -- seeOther (HSP.escape . head $ lines url) $ toResponse url
 
     | otherwise = do
         cont <- liftIO $ getContent p
@@ -74,7 +78,8 @@ showWithSyntax p ext
                                                  , highlighted = formatAsXHtml [] ext sl
                                                  }
 
-        webHSP' (Just xmlMetaData) $ pasteBody (CssString defaultHighlightingCss) (unId $ pId p) paste (description p)
+        ids <- query $ GetAllIds
+        webHSP' (Just xmlMetaData) $ pasteBody (CssString defaultHighlightingCss) (unId $ pId p) ids paste (description p) (responses p)
 
       where ext' = map toLower ext
             xmlMetaData = XMLMetaData { doctype = (True, "<!DOCTYPE html PUBLIC \"-//W3C//DTD XHTML 1.0 Transitional//EN\" \"http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd\">")
@@ -101,7 +106,6 @@ data PasteContent = PlainText   { lang'       :: Maybe String
                                 , highlighted :: X.Html
                                 }
 
-
 --------------------------------------------------------------------------------
 -- VIEW part
 --------------------------------------------------------------------------------
@@ -109,8 +113,8 @@ data PasteContent = PlainText   { lang'       :: Maybe String
 type Description = Maybe String
 
 -- | Main paste body
-pasteBody :: Css -> String -> PasteContent -> Description -> HSP XML
-pasteBody css id content desc =
+pasteBody :: Css -> String -> [ID] -> PasteContent -> Description -> [ID] -> HSP XML
+pasteBody css id ids content desc resp =
         <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="de" lang="de">
             <head>
                 <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
@@ -120,16 +124,19 @@ pasteBody css id content desc =
             </head>
             <body>
                 <div id="topmenu">
-                    <p id="description"><% maybe "No description." ("Description: " ++) desc %></p>
+                    <div id="left">
+                        <% if null resp then [] else resp %>
+                        <p id="description"><% maybe (<% "No description." %>) (parsedDesc ids) desc %></p>
+                    </div>
                     <div id="right">
 
                         <p id="view_plain"><a href=("/" ++ id)>Plain</a></p>
 
-                        -- <form id="reply-form" method="post" action="/">
-                            -- <input type="hidden" name="reply" value=id />
-                            -- <input type="hidden" name="description" value=("Reply to #" ++ id) />
-                            -- <p id="reply"><a href="javascript:document.getElementById('reply-form').submit();">Reply</a></p>
-                        -- </form>
+                        <form id="reply-form" method="post" action="/">
+                            <input type="hidden" name="reply" value=id />
+                            <input type="hidden" name="description" value=("Reply to /" ++ id ++ "/") />
+                            <p id="reply"><a href="javascript:document.getElementById('reply-form').submit();">Reply</a></p>
+                        </form>
 
                         <p id="available_languages">Available languages:</p>
                         <select size="1" id="languages" 
@@ -156,6 +163,19 @@ pasteBody css id content desc =
                     in if (Just sd) == desc
                           then sd
                           else sd ++ "..."
+
+-- | Parse a description and generate its EmbedAsChild list
+parsedDesc :: (EmbedAsChild m String, EmbedAsAttr m (Attr [Char] [Char]))
+           => [ID]
+           -> String
+           -> GenChildList m
+parsedDesc ids desc = let descVals = PPD.parseDesc desc
+                          unpack (PPD.Text t)                   = <% t %>
+                          unpack (PPD.Username u)               = <% u %>
+                          unpack (PPD.Tag t)                    = <% t %>
+                          unpack (PPD.ID i) | (ID i) `elem` ids = <% let id' = "/" ++ i ++ "/" in <a class="link-to-id" href=id'><% id' %></a> %>
+                                            | otherwise         = <% "/" ++ i ++ "/" %>
+                      in <% [<% "Description: " %>] ++ map unpack descVals %>
 
 
 
@@ -195,3 +215,9 @@ instance (XMLGenerator m, EmbedAsChild m XML, HSX.XML m ~ XML) => (EmbedAsChild 
                         PlainText   _ str   -> str
                         Highlighted _ str _ -> str
 
+instance (XMLGenerator m, EmbedAsChild m XML) => (EmbedAsChild m [ID]) where
+    asChild []  = <% <p id="responses">No responses.</p> %>
+    asChild ids =
+        <%
+            <p id="responses">Responses: <% map (\(ID i) -> let id = "/" ++ i ++ "/" in <a href=id><% id %></a>) ids %></p>
+        %>

@@ -5,6 +5,9 @@ module Paste.View.Recent
     ( showRecent
     ) where
 
+import Control.Monad            (liftM2)
+import Data.List                (sortBy)
+
 import HSP
 import Control.Monad.Trans      (liftIO)
 import System.Time              (ClockTime (..), toUTCTime, calendarTimeToString)
@@ -17,15 +20,23 @@ import App.View
 import Users.State
 import Paste.View               (htmlOpts, getLogin)
 import Paste.View.Menu          (menuHsp)
+import Paste.View.Pastes        (parsedDesc)
 import Paste.Types              (LoggedIn (..))
-import Paste.State              (GetPastesByUser (..), GetAllEntries (..), PasteEntry (..), Content (..), ID (..))
+import Paste.State              ( GetPastesByUser (..)
+                                , GetAllEntries (..)
+                                , GetAllIds (..)
+                                , PasteEntry (..)
+                                , Content (..)
+                                , ID (..)
+                                )
 
 
 showRecent = do
     loggedInAs  <- getLogin
     pastes      <- query $ GetAllEntries
-    recent      <- mapM makeRecent . take 5 . filter (not . hide) $ pastes
+    recent      <- mapM makeRecent . take 5 . sortDesc . filter (not . hide) $ pastes
     xmlResponse $ HtmlBody htmlOpts [menuHsp loggedInAs, recentHsp recent Nothing]
+  where sortDesc = sortBy $ \c1 c2 -> (date c2) `compare` (date c1)
 
 
 --------------------------------------------------------------------------------
@@ -36,16 +47,20 @@ data RecentPaste = RecentPaste { rDate      :: ClockTime
                                , rCont      :: String
                                , rDesc      :: Maybe String
                                , rId        :: ID
+                               , allIds     :: [ID]
                                }
 
-makeRecent pe = liftIO $ do
-    content <- case content pe of
-                    Plain str -> return str
-                    File fp   -> readFile fp
-    return $ RecentPaste { rDate = date pe
-                         , rCont = content
-                         , rDesc = description pe
-                         , rId   = pId pe
+makeRecent :: PasteEntry -> ServerPart RecentPaste
+makeRecent pe = do
+    ids <- query $ GetAllIds
+    content <- liftIO $ case content pe of
+                             Plain str -> return str
+                             File fp   -> readFile fp
+    return $ RecentPaste { rDate  = date pe
+                         , rCont  = content
+                         , rDesc  = description pe
+                         , rId    = pId pe
+                         , allIds = ids
                          }
 
 
@@ -57,7 +72,11 @@ recentHsp :: [RecentPaste] -> Maybe String -> HSP XML
 recentHsp entries user =
     <div id="main">
         <h1>Recent pastes<% maybe "" (" of " ++) user %>:</h1>
-        <% entries %>
+        <%
+            if null entries
+               then <% <p>Nothing pasted yet. Be the <a href="/">first</a>!</p> %>
+               else <% entries %>
+        %>
     </div>
 
 
@@ -71,11 +90,12 @@ instance (XMLGenerator m, EmbedAsChild m XML) => (EmbedAsChild m RecentPaste) wh
             <div class="recentpaste">
                 <p class="paste-info"><a href=("/" ++ id ++ "/")><% "#" ++ id %></a> - <%
                         case rDesc pe of
-                             Just d  -> "Description: " ++ d
-                             Nothing -> "No description."
+                             Just d  -> parsedDesc ids d
+                             Nothing -> <% "No description." %>
                 %></p>
                 <p class="paste-date">Pasted at: <% calendarTimeToString . toUTCTime $ rDate pe %></p>
                 <pre><% ("\n" ++) . unlines . take 8 . lines $ rCont pe %></pre>
             </div>
         %>
-      where id = unId $ rId pe
+      where id  = unId $ rId pe
+            ids = allIds pe

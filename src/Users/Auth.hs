@@ -37,17 +37,14 @@ instance FromData PostUser where
         pass    <- optLook "pass"
         email   <- optLook "email"
 
-        let email' = if null email
-                        then Nothing
-                        else Just email
-            response | null name
+        let response | null name
                        || length name >= 20
                        || not (all (`elem` validChars) name) = InvalidName
                      | null pass
                        || length pass >= 20 = InvalidPassword
                      | otherwise = JustUser $ User name
                                                    (passwordFromString pass)
-                                                   email'
+                                                   email
         return response
 
 instance FromData (Login,Password) where

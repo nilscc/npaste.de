@@ -9,6 +9,7 @@ import Control.Monad        (msum, mzero, MonadPlus)
 import Paste.View.Download  (showDownload)
 import Paste.View.Pastes    (showPaste)
 import Paste.View.Index     (showIndex)
+import Paste.View.News      (showNews)
 import Paste.View.Recent    (showRecent)
 import Paste.View.Faq       (showFaq)
 import Paste.View.Register  (showRegister)
@@ -29,11 +30,12 @@ pasteHandler = msum
 
 viewHandler s
     | view == "recent"      = showRecent
-    | view == "register"    = showRegister
-    -- | view == "login"       = showLogin
     | view == "download"    = showDownload
     | view == "faq"         = showFaq
     | view == "info"        = showInfo
+    -- | view == "register"    = showRegister
+    -- | view == "login"       = showLogin
+    -- | view == "news"        = showNews
     | otherwise             = showIndex
   where view = map toLower s
 
@@ -44,4 +46,4 @@ hQuery q f = do
     val <- getDataQueryFn $ look q
     case val of
          Just v | not (null v) -> f v
-         Nothing -> mzero
+         _ -> mzero
