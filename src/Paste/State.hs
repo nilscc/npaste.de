@@ -57,7 +57,7 @@ import Control.Monad.State          (modify)
 import Control.Monad.Trans          (liftIO)
 
 import Data.Typeable                (Typeable)
-import Data.List                    (find, (\\), null, group)
+import Data.List                    (find, (\\), null, group, insert, nub)
 import Data.Maybe                   (fromJust, fromMaybe)
 import qualified Data.Map as M
 
@@ -247,7 +247,7 @@ addResponse :: ID               -- ^ ID of the response
             -> Update Paste ()
 addResponse from to = modify $ \paste ->
     paste { pasteEntries = M.alter addFrom to $ pasteEntries paste }
-  where addFrom (Just pe) = Just $ pe { responses = responses pe ++ [from] }
+  where addFrom (Just pe) = Just $ pe { responses = nub . insert from $ responses pe }
         addFrom _         = Nothing
 
 
