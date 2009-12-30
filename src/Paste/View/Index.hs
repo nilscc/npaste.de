@@ -80,7 +80,7 @@ indexHsp err content description filetype idtype id =
                            then [<p class="error">Error: <% err %></p>]
                            else []
                     %>
-                    Description: <input type="text" name="description" id="description" value=(fromMaybe "" description)/>
+                    <p>Description: <input type="text" name="description" id="description" value=(fromMaybe "" description)/></p>
                     <textarea name="content" rows="20" cols="80">
                         <% content %>
                     </textarea>
