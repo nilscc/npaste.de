@@ -10,7 +10,7 @@ body
 
 a
 {
-    color: #088;
+    color: #ccc;
     text-decoration: none;
 }
 
@@ -29,10 +29,23 @@ div#topmenu
     text-align: right;
 }
 
-    div#topmenu p#description
+    div#topmenu div#left
     {
         float: left;
-        display: inline;
+        display: inline-block;
+        margin-top: 3px;
+    }
+
+    div#topmenu div#left *
+    {
+        display: inline-block;
+        margin: 0 25px 0 0;
+        padding: 0;
+    }
+    
+    div#topmenu div#left p a
+    {
+        margin: 0 2px 0;
     }
 
     div#topmenu div#right *
@@ -47,7 +60,6 @@ div#topmenu
         display: block;
     }
 
-    div#topmenu p#description,
     div#topmenu div#right p#reply,
     div#topmenu div#right p#view_plain,
     div#topmenu div#right p#available_languages
@@ -71,12 +83,6 @@ div#topmenu
     div#topmenu div#right p#view_plain :after
     {
         content: "]";
-    }
-
-    div#topmenu div#right p#reply a,
-    div#topmenu div#right p#view_plain a
-    {
-        color: #ccc;
     }
 
     table.sourceCode
