@@ -103,7 +103,7 @@ indexHsp err content description filetype idtype id =
         idSelect l | l == (fromMaybe "" idtype) = <option selected="selected"><% l %></option>
                    | otherwise = <option><% l %></option>
 
-        langOptions   = ("Plain text" : "Tiny Url" : optSeparator : languages ++ [optSeparator])
+        langOptions   = ("Plain text" : {- "Tiny Url" : -} optSeparator : languages ++ [optSeparator])
         langSelect l | l == (fromMaybe "" filetype) = <option selected="selected"><% l %></option>
                      | otherwise     = <option><% l %></option>
 
