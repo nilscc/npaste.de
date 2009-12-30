@@ -79,7 +79,14 @@ showWithSyntax p ext
                                                  }
 
         ids <- query $ GetAllIds
-        webHSP' (Just xmlMetaData) $ pasteBody (CssString defaultHighlightingCss) (unId $ pId p) ids paste (description p) (responses p)
+        show_all <- getDataQueryFn $ look "replies"
+        webHSP' (Just xmlMetaData) $ pasteBody (CssString defaultHighlightingCss)
+                                               (unId $ pId p)
+                                               ids
+                                               paste
+                                               (description p)
+                                               (show_all == Just "all")
+                                               (responses p)
 
       where ext' = map toLower ext
             xmlMetaData = XMLMetaData { doctype = (True, "<!DOCTYPE html PUBLIC \"-//W3C//DTD XHTML 1.0 Transitional//EN\" \"http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd\">")
@@ -113,8 +120,15 @@ data PasteContent = PlainText   { lang'       :: Maybe String
 type Description = Maybe String
 
 -- | Main paste body
-pasteBody :: Css -> String -> [ID] -> PasteContent -> Description -> [ID] -> HSP XML
-pasteBody css id ids content desc resp =
+pasteBody :: Css            -- ^ css stuff
+          -> String         -- ^ current ID
+          -> [ID]           -- ^ all IDs
+          -> PasteContent   -- ^ content
+          -> Description    -- ^ description
+          -> Bool           -- ^ show all replies?
+          -> [ID]           -- ^ all replies
+          -> HSP XML
+pasteBody css id ids content desc show_all resp =
         <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="de" lang="de">
             <head>
                 <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
@@ -125,7 +139,7 @@ pasteBody css id ids content desc resp =
             <body>
                 <div id="topmenu">
                     <div id="left">
-                        <% if null resp then [] else resp %>
+                        <% if null resp then (show_all,[]) else (show_all,resp) %>
                         <p id="description"><% maybe (<% "No description." %>) (parsedDesc ids) desc %></p>
                     </div>
                     <div id="right">
@@ -215,9 +229,20 @@ instance (XMLGenerator m, EmbedAsChild m XML, HSX.XML m ~ XML) => (EmbedAsChild 
                         PlainText   _ str   -> str
                         Highlighted _ str _ -> str
 
-instance (XMLGenerator m, EmbedAsChild m XML) => (EmbedAsChild m [ID]) where
-    asChild []  = <% <p id="responses">No responses.</p> %>
-    asChild ids =
+-- | EmbedAsChild instance for (Bool,[ID]), where Bool is whether all replies
+-- should be shown or not and [ID] is the list of replies.
+instance (XMLGenerator m, EmbedAsChild m XML) => (EmbedAsChild m (Bool,[ID])) where
+    asChild (_,[])  = <% <p id="responses">No replies.</p> %>
+    asChild (False,ids) | length ids > 10 =
         <%
-            <p id="responses">Responses: <% map (\(ID i) -> let id = "/" ++ i ++ "/" in <a href=id><% id %></a>) ids %></p>
+            <p id="responses">Replies: <%
+                (map (\(ID i) -> let id = "/" ++ i ++ "/" in <a href=id><% id %></a>) $ take 10 ids)
+                ++ [<a href="?replies=all">(more)</a>]
+            %></p>
+        %>
+    asChild (_,ids) =
+        <%
+            <p id="responses">Replies: <%
+                map (\(ID i) -> let id = "/" ++ i ++ "/" in <a href=id><% id %></a>) ids
+            %></p>
         %>

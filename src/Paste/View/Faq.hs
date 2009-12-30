@@ -25,9 +25,10 @@ faqs =
 
  , Faq "How long will my pastes exist?"
    "Currently, npaste.de does not delete any pastes at all. However, this could change in future, depending on the success of npaste.de."
- , Faq "How can I respond to a paste?" $
-   "Just add a \"/id/\" to your pastes description. npaste.de will then automaticly detect "
-   ++ "if there is a valid paste with that ID and add a \"Responses: ...\" link to it."
+
+ , Faq "How can I reply to a paste?" $
+   "Just add an \"/id/\" to your pastes description. npaste.de will then automaticly detect "
+   ++ "if there is a valid paste with that ID and add a \"Replies: ...\" link to it."
  ]
 
 showFaq = do
