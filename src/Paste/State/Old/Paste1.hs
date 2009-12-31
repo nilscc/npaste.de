@@ -12,11 +12,13 @@ import Happstack.State
 import Paste.State.ID           (ID (..))
 import Paste.State.PasteEntry   (PasteEntry (..))
 
+import qualified Paste.State.Old.PasteEntry6 as OldPE (PasteEntry (..))
+
 $(deriveAll [''Show, ''Eq, ''Ord, ''Default]
     [d|
 
         -- | Paste: A list of all PasteEntry with the last used ID
-        data Paste = Paste { pasteEntries  :: [PasteEntry]
+        data Paste = Paste { pasteEntries  :: [OldPE.PasteEntry]
                            , pasteIDs      :: [ID]
                            -- , knownHosts    :: [(ClockTime,Host)]
                            }

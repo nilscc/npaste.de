@@ -14,7 +14,9 @@ module Paste.State
     , GenerateId (..)
     , GetPastesByUser (..)
     , GetPasteEntryByMd5sum (..)
+
     , AddResponse (..)
+    , GetAllReplies (..)
 
     , defaultId
     , defaultIds
@@ -28,6 +30,7 @@ module Paste.State
     , module Paste.State.IDType
     , module Paste.State.Paste
     , module Paste.State.PasteEntry
+    , module Paste.State.NewTypes
     )
     where
 
@@ -40,9 +43,11 @@ import Paste.State.ID
 import Paste.State.IDType
 import Paste.State.Paste
 import Paste.State.PasteEntry
+import Paste.State.NewTypes
 
 
 import Happstack.Data
+import Happstack.Data.IxSet
 import Happstack.Server.HTTP.Types  (Host)
 import Happstack.State
 import Happstack.State.ClockTime
@@ -57,8 +62,8 @@ import Control.Monad.State          (modify)
 import Control.Monad.Trans          (liftIO)
 
 import Data.Typeable                (Typeable)
-import Data.List                    (find, (\\), null, group, insert, nub)
 import Data.Maybe                   (fromJust, fromMaybe)
+import qualified Data.List as L
 import qualified Data.Map as M
 
 import qualified Data.ByteString as BS
@@ -82,32 +87,35 @@ tinyIds     = [ "tiny", "tiny url", "tinyurl" ]
 
 
 --------------------------------------------------------------------------------
--- State functions
+-- Queries
 --------------------------------------------------------------------------------
 
 
 -- | Get a paste by ID
 getPasteById :: ID -> Query Paste (Maybe PasteEntry)
-getPasteById id = ask >>= return . M.lookup id . pasteEntries
+getPasteById id = ask >>= return . getOne . (@= PId id)  . pasteDB
 
 -- | Get all pastes of a user
 getPastesByUser :: User -> Query Paste [PasteEntry]
-getPastesByUser u = getAllEntries >>= return . filter ((== Just u) . user)
+getPastesByUser u = ask >>= return . toList . (@= u) . pasteDB
 
 -- | Get all entries
 getAllEntries :: Query Paste [PasteEntry]
-getAllEntries = ask >>= return . M.elems . pasteEntries
+getAllEntries = ask >>= return . toList . pasteDB
 
 -- | Return ID of an MD5 sum
-getPasteEntryByMd5sum :: Maybe User -> Password -> Query Paste (Maybe PasteEntry)
-getPasteEntryByMd5sum user' bs = getAllEntries >>= return . find userAndMd5
-  where userAndMd5 pe = let peUser = user pe
-                            peMd5  = md5hash pe
-                        in user' == peUser && bs == peMd5
+getPasteEntryByMd5sum :: Maybe User -> BS.ByteString -> Query Paste (Maybe PasteEntry)
+getPasteEntryByMd5sum u md = ask >>= \Paste { pasteDB = ix } ->
+    return . getOne $ ix @= user @= md
+
+  -- where userAndMd5 pe = let peUser = user pe
+                            -- peMd5  = md5hash pe
+                        -- in user' == peUser && bs == peMd5
 
 -- | Return all IDs
 getAllIds :: Query Paste [ID]
-getAllIds = ask >>= return . M.keys . pasteEntries
+getAllIds = getAllEntries >>= return . map (unPId . pId)
+
 
 
 
@@ -134,9 +142,8 @@ generateId' (CustomID i) = flip customId i
 -- | Generate a new default ID
 defaultId :: Maybe User -> Query Paste ID
 defaultId u = do
-    paste <- ask
-    let entries = pasteEntries paste
-    return . ID . head $ dropWhile (\id -> id `elem` reservedIds || M.member (ID id) entries) everything
+    ids <- getAllIds
+    return . ID . head $ dropWhile (\id -> id `elem` reservedIds || (ID id) `elem` ids) everything
 
   where isId (ID _) = True
         isId NoID   = False
@@ -151,13 +158,13 @@ randomId :: Maybe User            -- ^ user posting that paste
          -> (Int,Int)       -- ^ min & max number of chars to start with
          -> Query Paste ID
 randomId us r@(min,max) = do
-    paste <- ask
+    ids   <- getAllIds
     n     <- getRandomR r
     iList <- randomRs n (0,length validChars - 1) []
 
     let randId = ID $ map (validChars !!) iList
 
-    if (M.member randId $ pasteEntries paste)
+    if (randId `elem` ids)
        then randomId us (min,max+1) -- increase max number to make sure we don't run out of IDs
        else return randId
 
@@ -168,8 +175,8 @@ randomId us r@(min,max) = do
 -- | Validate a custom ID
 customId :: Maybe User -> ID -> Query Paste ID
 customId us id@(ID id') = do
-    paste <- ask
-    if not (id' `elem` reservedIds) && not (M.member id $ pasteEntries paste) && all (`elem` validChars) id'
+    ids <- getAllIds
+    if  all (`elem` validChars) id' && not (id' `elem` reservedIds || id `elem` ids)
        then return id
        else return NoID
 
@@ -219,20 +226,24 @@ getClockTimeByHost maxNum host = do
                 then Just $ minimum ctimes
                 else Nothing
 
+
+--------------------------------------------------------------------------------
+-- Add / remove / change pastes
+--------------------------------------------------------------------------------
+
 -- | Add a PasteEntry, returns the ID of the new paste
 addPaste :: PasteEntry -> Update Paste ID
 addPaste entry = do
 
-    -- get paste
-    paste <- ask
+    -- get entries
+    ids <- runQuery $ getAllIds
     -- get time
     ctime <- getEventClockTime
 
-    let id      = pId entry
-        entries = pasteEntries paste
-    case id of
-         ID _ | not (M.member id entries) -> do
-             modify $ \paste -> paste { pasteEntries = M.insert id entry entries }
+    let pid = pId entry
+    case pid of
+         PId id | not (id `elem` ids) -> do
+             modify $ \paste -> paste { pasteDB = insert entry $ pasteDB paste }
              return id
          _ -> return NoID
 
@@ -246,10 +257,16 @@ addResponse :: ID               -- ^ ID of the response
             -> ID               -- ^ ID of the paste that gets the response
             -> Update Paste ()
 addResponse from to = modify $ \paste ->
-    paste { pasteEntries = M.alter addFrom to $ pasteEntries paste }
-  where addFrom (Just pe) = Just $ pe { responses = nub . insert from $ responses pe }
-        addFrom _         = Nothing
+    if Happstack.Data.IxSet.null $ (pasteDB paste) @* [to]
+       then paste
+       else paste { replies = M.alter addFrom to $ replies paste }
 
+  where addFrom (Just list) = Just . L.nub $ L.insert from list
+        addFrom _           = Just [from]
+
+-- | Get all responses of ID
+getAllReplies :: ID -> Query Paste [ID]
+getAllReplies id = ask >>= return . M.findWithDefault [] id . replies
 
 
 
@@ -265,5 +282,6 @@ $(mkMethods ''Paste
     , 'generateId
     , 'getAllEntries
     , 'getAllIds
+    , 'getAllReplies
     , 'addResponse
     ])

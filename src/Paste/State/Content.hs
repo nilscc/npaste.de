@@ -12,7 +12,7 @@ $(deriveAll [''Show, ''Eq, ''Ord, ''Default]
     [d|
 
         -- | Way content is saved: either in a file or plain as a string
-        data Content = File { filepath :: String }
+        data Content = File  { filepath :: String }
                      | Plain { plain   :: String }
 
     |])

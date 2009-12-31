@@ -22,19 +22,12 @@ import Paste.View               (htmlOpts, getLogin)
 import Paste.View.Menu          (menuHsp)
 import Paste.View.Pastes        (parsedDesc)
 import Paste.Types              (LoggedIn (..))
-import Paste.State              ( GetPastesByUser (..)
-                                , GetAllEntries (..)
-                                , GetAllIds (..)
-                                , PasteEntry (..)
-                                , Content (..)
-                                , ID (..)
-                                )
-
+import Paste.State
 
 showRecent = do
     loggedInAs  <- getLogin
     pastes      <- query $ GetAllEntries
-    recent      <- mapM makeRecent . take 5 . sortDesc . filter (not . hide) $ pastes
+    recent      <- mapM makeRecent . take 5 . sortDesc . filter (not . unPHide . hide) $ pastes
     xmlResponse $ HtmlBody htmlOpts [menuHsp loggedInAs, recentHsp recent Nothing]
   where sortDesc = sortBy $ \c1 c2 -> (date c2) `compare` (date c1)
 
@@ -53,13 +46,13 @@ data RecentPaste = RecentPaste { rDate      :: ClockTime
 makeRecent :: PasteEntry -> ServerPart RecentPaste
 makeRecent pe = do
     ids <- query $ GetAllIds
-    content <- liftIO $ case content pe of
+    content <- liftIO $ case unPContent (content pe) of
                              Plain str -> return str
                              File fp   -> readFile fp
-    return $ RecentPaste { rDate  = date pe
+    return $ RecentPaste { rDate  = unPDate $ date pe
                          , rCont  = content
-                         , rDesc  = description pe
-                         , rId    = pId pe
+                         , rDesc  = unPDescription $ description pe
+                         , rId    = unPId $ pId pe
                          , allIds = ids
                          }
 
@@ -88,7 +81,7 @@ instance (XMLGenerator m, EmbedAsChild m XML) => (EmbedAsChild m RecentPaste) wh
     asChild pe =
         <%
             <div class="recentpaste">
-                <p class="paste-info"><a href=("/" ++ id ++ "/")><% "#" ++ id %></a> - <%
+                <p class="paste-info"><a href=id'><% id' %></a> - <%
                         case rDesc pe of
                              Just d  -> parsedDesc ids d
                              Nothing -> <% "No description." %>
@@ -99,3 +92,4 @@ instance (XMLGenerator m, EmbedAsChild m XML) => (EmbedAsChild m RecentPaste) wh
         %>
       where id  = unId $ rId pe
             ids = allIds pe
+            id' = "/" ++ id ++ "/"

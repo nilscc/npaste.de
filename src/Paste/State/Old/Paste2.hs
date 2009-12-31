@@ -16,12 +16,13 @@ import Paste.State.PasteEntry       (PasteEntry (..))
 
 -- For migration:
 import qualified Paste.State.Old.Paste1 as Old
+import qualified Paste.State.Old.PasteEntry6 as OldPE (PasteEntry (..))
 
 $(deriveAll [''Show, ''Eq, ''Ord, ''Default]
     [d|
 
         -- | Paste: A list of all PasteEntry with the last used ID
-        data Paste = Paste { pasteEntries  :: [PasteEntry]
+        data Paste = Paste { pasteEntries  :: [OldPE.PasteEntry]
                            , pasteIDs      :: [ID]
                            , knownHosts    :: [(ClockTime,Host)]
                            }

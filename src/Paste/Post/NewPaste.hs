@@ -161,17 +161,15 @@ post = do
 
     mapM_ (update . AddResponse id) linkList
 
-    idR <- update $ AddPaste PasteEntry { date          = ctime
-                                        , content       = File filepath
-                                        , user          = validUser
-                                        , pId           = id
-                                        , filetype      = mFiletype
-                                        , md5hash       = md5content
-                                        , postedBy      = peer
-                                        , description   = desc
-                                        , hide          = hide
-                                        , tags          = tagList
-                                        , responses     = []
+    idR <- update $ AddPaste PasteEntry { date          = PDate         $ ctime
+                                        , content       = PContent      $ File filepath
+                                        , user          = PUser         $ validUser
+                                        , pId           = PId           $ id
+                                        , filetype      = PFileType     $ mFiletype
+                                        , md5hash       = PHash         $ md5content
+                                        , description   = PDescription  $ desc
+                                        , hide          = PHide         $ hide
+                                        , tags          = PTags         $ tagList
                                         }
 
     -- add to known hosts

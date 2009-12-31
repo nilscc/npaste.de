@@ -45,13 +45,13 @@ showPaste id = do
          Nothing -> notFound . toResponse $ "Paste not found with ID \"" ++ id ++ "\""
          Just p  -> do
              msum [ path $ showWithSyntax p
-                  , trailingSlash >> showWithSyntax p (fromMaybe "" $ filetype p)
+                  , trailingSlash >> showWithSyntax p (fromMaybe "" . unPFileType $ filetype p)
                   , showPlain p
                   ]
 
 -- | Simple method to get the content string of a PasteEntry
 getContent :: PasteEntry -> IO String
-getContent p = case content p of
+getContent p = case unPContent (content p) of
                     Plain text -> return $ text
                     File file  -> readFile file
 
@@ -70,7 +70,7 @@ showWithSyntax p ext
         cont <- liftIO $ getContent p
 
         let paste = case highlightAs ext cont of
-                         Left _   -> PlainText   { lang'       = filetype p
+                         Left _   -> PlainText   { lang'       = unPFileType $ filetype p
                                                  , plainText   = cont
                                                  }
                          Right sl -> Highlighted { lang        = ext
@@ -79,14 +79,16 @@ showWithSyntax p ext
                                                  }
 
         ids <- query $ GetAllIds
+        let id = (unPId $ pId p)
+        responses <- query $ GetAllReplies id
         show_all <- getDataQueryFn $ look "replies"
         webHSP' (Just xmlMetaData) $ pasteBody (CssString defaultHighlightingCss)
-                                               (unId $ pId p)
+                                               (unId id)
                                                ids
                                                paste
-                                               (description p)
+                                               (unPDescription $ description p)
                                                (show_all == Just "all")
-                                               (responses p)
+                                               responses
 
       where ext' = map toLower ext
             xmlMetaData = XMLMetaData { doctype = (True, "<!DOCTYPE html PUBLIC \"-//W3C//DTD XHTML 1.0 Transitional//EN\" \"http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd\">")
