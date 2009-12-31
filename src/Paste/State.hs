@@ -257,7 +257,7 @@ addResponse :: ID               -- ^ ID of the response
             -> ID               -- ^ ID of the paste that gets the response
             -> Update Paste ()
 addResponse from to = modify $ \paste ->
-    if Happstack.Data.IxSet.null $ (pasteDB paste) @* [to]
+    if Happstack.Data.IxSet.null $ (pasteDB paste) @= PId to
        then paste
        else paste { replies = M.alter addFrom to $ replies paste }
 
