@@ -6,6 +6,7 @@ module Paste.View.News
     ) where
 
 import Data.List                        (sortBy)
+import qualified Data.Set as S
 
 import HSP
 import Happstack.Server
@@ -20,11 +21,14 @@ import Users.State                      (UserOfLogin (..))
 
 showNews :: ServerPart Response
 showNews = do
-    login       <- getLogin
-    (Just root) <- query $ UserOfLogin "root" -- root always exists :O
-    pastes      <- query $ GetPastesByUser root
-    xmlResponse $ htmlBody login [newsHsp . sortDesc $ filter (("news" `elem`) . unPTags . tags) pastes]
-  where sortDesc = sortBy $ \c1 c2 -> (date c2) `compare` (date c1)
+
+    login    <- getLogin
+    rootUser <- query $ UserOfLogin "root" -- root always exists :O
+    pastes   <- query $ GetPastesByUser rootUser
+
+    xmlResponse $ htmlBody login [newsHsp . sortDesc . S.toAscList $ S.filter (("news" `elem`) . unPTags . tags) pastes]
+
+  where sortDesc = sortBy $ flip compare
 
 newsHsp :: [PasteEntry] -> HSP XML
 newsHsp news =

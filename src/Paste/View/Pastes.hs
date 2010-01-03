@@ -23,6 +23,7 @@ import Control.Monad.Trans          (liftIO)
 import Data.Char                    (toLower)
 import Data.Maybe
 import Data.List                    (find, nub)
+import qualified Data.Set as S
 
 import App.View
 import Paste.State
@@ -103,12 +104,12 @@ showWithSyntax' (p:ps) = do
 
 -- | Options for the 
 data PasteView = PasteView { showAll :: Bool
-                           , allIds  :: [ID]
+                           , allIds  :: S.Set ID
                            , viewReplies :: [ID]
                            , pasteEntries :: [PasteEntry]
                            }
 
-data Description = Description [ID] String
+data Description = Description (S.Set ID) String
 
 
 --------------------------------------------------------------------------------
@@ -206,8 +207,8 @@ instance (XMLGenerator m) => (EmbedAsChild m Description) where
             unpack (PPD.Text t)                   = <% t %>
             unpack (PPD.Username u)               = <% u %>
             unpack (PPD.Tag t)                    = <% t %>
-            unpack (PPD.ID i) | (ID i) `elem` ids = <% let id' = "/" ++ i ++ "/" in <a class="link-to-id" href=id'><% id' %></a> %>
-                              | otherwise         = <% "/" ++ i ++ "/" %>
+            unpack (PPD.ID i) | (ID i) `S.member` ids = <% let id' = "/" ++ i ++ "/" in <a class="link-to-id" href=id'><% id' %></a> %>
+                              | otherwise             = <% "/" ++ i ++ "/" %>
         in
         <%
             [<% "Description: " %>] ++ map unpack descVals

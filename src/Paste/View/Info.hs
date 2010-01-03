@@ -7,6 +7,8 @@ module Paste.View.Info
 
 import Control.Monad.Trans      (liftIO)
 
+import qualified Data.Set as S
+
 import HSP
 import Happstack.Server
 import Happstack.State          (query, update)
@@ -26,7 +28,7 @@ showInfo = do
     pentries    <- query $ GetAllEntries
     users       <- query $ GetAllUsers
 
-    let info = [ Info "Total number of pastes"  $ show (length pentries)
+    let info = [ Info "Total number of pastes"  $ show (S.size pentries)
                , Info "Registered users"        $ show (length users)
                , Info "Active users"            $ show (length $ filter isActive users)
                -- , Info "All user names"          $ foldr (\user rest -> (ulogin user) ++ if null rest then rest else (", " ++ rest)) "" users

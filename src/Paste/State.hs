@@ -64,7 +64,8 @@ import Control.Monad.Trans          (liftIO)
 import Data.Typeable                (Typeable)
 import Data.Maybe                   (fromJust, fromMaybe)
 import qualified Data.List as L
-import qualified Data.Map as M
+import qualified Data.Set  as S
+import qualified Data.Map  as M
 
 import qualified Data.ByteString as BS
 import qualified Data.ByteString.Lazy.Char8 as BS8
@@ -96,12 +97,12 @@ getPasteById :: ID -> Query Paste (Maybe PasteEntry)
 getPasteById id = ask >>= return . getOne . (@= PId id)  . pasteDB
 
 -- | Get all pastes of a user
-getPastesByUser :: User -> Query Paste [PasteEntry]
-getPastesByUser u = ask >>= return . toList . (@= u) . pasteDB
+getPastesByUser :: Maybe User -> Query Paste (S.Set PasteEntry)
+getPastesByUser u = ask >>= return . toSet . (@= PUser u) . pasteDB
 
 -- | Get all entries
-getAllEntries :: Query Paste [PasteEntry]
-getAllEntries = ask >>= return . toList . pasteDB
+getAllEntries :: Query Paste (S.Set PasteEntry)
+getAllEntries = ask >>= return . toSet . pasteDB
 
 -- | Return ID of an MD5 sum
 getPasteEntryByMd5sum :: Maybe User -> BS.ByteString -> Query Paste (Maybe PasteEntry)
@@ -109,8 +110,8 @@ getPasteEntryByMd5sum u md = ask >>= \Paste { pasteDB = ix } ->
     return . getOne $ ix @= (PUser u) @= (PHash md)
 
 -- | Return all IDs
-getAllIds :: Query Paste [ID]
-getAllIds = getAllEntries >>= return . map (unPId . pId)
+getAllIds :: Query Paste (S.Set ID)
+getAllIds = getAllEntries >>= return . S.map (unPId . pId)
 
 
 
@@ -139,7 +140,7 @@ generateId' (CustomID i) = flip customId i
 defaultId :: Maybe User -> Query Paste ID
 defaultId u = do
     ids <- getAllIds
-    return . ID . head $ dropWhile (\id -> id `elem` reservedIds || (ID id) `elem` ids) everything
+    return . ID . head $ dropWhile (\id -> id `elem` reservedIds || (ID id) `S.member` ids) everything
 
   where isId (ID _) = True
         isId NoID   = False
@@ -160,7 +161,7 @@ randomId us r@(min,max) = do
 
     let randId = ID $ map (validChars !!) iList
 
-    if (randId `elem` ids)
+    if (randId `S.member` ids)
        then randomId us (min,max+1) -- increase max number to make sure we don't run out of IDs
        else return randId
 
@@ -172,7 +173,7 @@ randomId us r@(min,max) = do
 customId :: Maybe User -> ID -> Query Paste ID
 customId us id@(ID id') = do
     ids <- getAllIds
-    if  all (`elem` validChars) id' && not (id' `elem` reservedIds || id `elem` ids)
+    if  all (`elem` validChars) id' && not (id' `elem` reservedIds || id `S.member` ids)
        then return id
        else return NoID
 
@@ -238,7 +239,7 @@ addPaste entry = do
 
     let pid = pId entry
     case pid of
-         PId id | not (id `elem` ids) -> do
+         PId id | not (id `S.member` ids) -> do
              modify $ \paste -> paste { pasteDB = insert entry $ pasteDB paste }
              return id
          _ -> return NoID

@@ -8,6 +8,7 @@ module Paste.View.Recent
 import Control.Monad            (liftM2)
 import Data.List                (sortBy)
 import Data.Maybe
+import qualified Data.Set as S
 
 import HSP
 import Control.Monad.Trans      (liftIO)
@@ -24,12 +25,19 @@ import Paste.View.Pastes
 import Paste.Types              (LoggedIn (..))
 import Paste.State
 
+
 showRecent = do
     loggedInAs  <- getLogin
     pastes      <- query $ GetAllEntries
-    recent      <- mapM makeRecent . take 5 . sortDesc . filter (not . unPHide . hide) $ pastes
+
+    let
+        getLast :: Int -> [a] -> [a]
+        getLast n l = fst . flip (foldr `flip` ([],0)) l $ \ pe rest@(ls, x) -> if x < n then (pe : ls, x+1) else rest
+
+    recent      <- mapM makeRecent . getLast 5 . S.toAscList . S.filter (not . unPHide . hide) $ pastes
+
     xmlResponse $ HtmlBody htmlOpts [menuHsp loggedInAs, recentHsp recent Nothing]
-  where sortDesc = sortBy $ \c1 c2 -> (date c2) `compare` (date c1)
+
 
 
 --------------------------------------------------------------------------------
@@ -40,7 +48,7 @@ data RecentPaste = RecentPaste { rDate      :: ClockTime
                                , rCont      :: String
                                , rDesc      :: Maybe String
                                , rId        :: ID
-                               , allIds     :: [ID]
+                               , allIds     :: S.Set ID
                                }
 
 makeRecent :: PasteEntry -> ServerPart RecentPaste
