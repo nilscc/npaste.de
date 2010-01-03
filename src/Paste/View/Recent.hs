@@ -7,11 +7,11 @@ module Paste.View.Recent
 
 import Control.Monad            (liftM2)
 import Data.List                (sortBy)
+import Data.Maybe
 
 import HSP
 import Control.Monad.Trans      (liftIO)
 import System.Time              (ClockTime (..), toUTCTime, calendarTimeToString)
-
 
 import Happstack.Server
 import Happstack.State          (query)
@@ -20,7 +20,7 @@ import App.View
 import Users.State
 import Paste.View               (htmlOpts, getLogin)
 import Paste.View.Menu          (menuHsp)
-import Paste.View.Pastes        (parsedDesc)
+import Paste.View.Pastes
 import Paste.Types              (LoggedIn (..))
 import Paste.State
 
@@ -82,9 +82,7 @@ instance (XMLGenerator m, EmbedAsChild m XML) => (EmbedAsChild m RecentPaste) wh
         <%
             <div class="recentpaste">
                 <p class="paste-info"><a href=id'><% id' %></a> - <%
-                        case rDesc pe of
-                             Just d  -> parsedDesc ids d
-                             Nothing -> <% "No description." %>
+                    Description ids . fromMaybe "" $ rDesc pe
                 %></p>
                 <p class="paste-date">Pasted at: <% calendarTimeToString . toUTCTime $ rDate pe %></p>
                 <pre><% ("\n" ++) . unlines . take 8 . lines $ rCont pe %></pre>

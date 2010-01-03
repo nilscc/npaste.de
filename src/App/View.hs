@@ -134,9 +134,7 @@ renderBody (HtmlBody options xml) =
         </head>
         <body>
             <% logo %>
-            <div id="htmlBody">
-                <% xml %>
-            </div>
+            <% xml %>
         </body>
     </html>
   where css     = getCssFromOptions   options

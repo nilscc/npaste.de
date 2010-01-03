@@ -19,7 +19,7 @@ a:hover
     text-decoration: underline;
 }
 
-div#topmenu
+div.topmenu
 {
     background-color: #666;
     color: #fff;
@@ -29,58 +29,63 @@ div#topmenu
     text-align: right;
 }
 
-    div#topmenu div#left
+    div.topmenu div.left
     {
         float: left;
         display: inline-block;
         margin-top: 3px;
     }
 
-    div#topmenu div#left *
+    div.topmenu div.left *
     {
         display: inline-block;
         margin: 0 25px 0 0;
         padding: 0;
     }
-    
-    div#topmenu div#left p a
+
+    div.topmenu div.left p.id
+    {
+        margin: 0;
+    }
+
+    div.topmenu div.left p a
     {
         margin: 0 2px 0;
     }
 
-    div#topmenu div#right *
+    div.topmenu div.right *
     {
         display: inline-block;
         margin: 0;
         padding: 0;
     }
 
-    div#topmenu div#right select#languages option
+    div.topmenu div.right select.languages option
     {
         display: block;
     }
 
-    div#topmenu div#right p#reply,
-    div#topmenu div#right p#view_plain,
-    div#topmenu div#right p#available_languages
+    div.topmenu div.right p.reply,
+    div.topmenu div.right p.view_plain,
+    div.topmenu div.right p.available_languages
     {
         margin-top: 3px;
         margin-right: 5px;
     }
 
-    div#topmenu div#right p#view_plain
+    div.topmenu div.right p.view_plain
     {
         margin-left: 20px;
     }
 
-    div#topmenu div#right p#reply :before,
-    div#topmenu div#right p#view_plain :before
+    div.topmenu div.right p.reply :before,
+    div.topmenu div.right p.view_plain :before
     {
         content: "[";
     }
 
-    div#topmenu div#right p#reply :after,
-    div#topmenu div#right p#view_plain :after
+    div.topmenu div.right p.reply :after,
+    div.topmenu div.right p.view_plain :after
     {
         content: "]";
     }
@@ -88,32 +93,33 @@ div#topmenu
     table.sourceCode
     {
         clear: both;
+        margin-bottom: 75px;
     }
 
 /* }}} */
 
 /*
 
-    div#topmenu div#right p#reply,
-    div#topmenu div#right p#view_plain
+    div.topmenu div.right p#reply,
+    div.topmenu div.right p#view_plain
     {
         margin-right: 10px;
     }
 
-    div#topmenu div#right p#reply :before,
-    div#topmenu div#right p#view_plain :before
+    div.topmenu div.right p#reply :before,
+    div.topmenu div.right p#view_plain :before
     {
         content: "[";
     }
 
-    div#topmenu div#right p#reply :after,
-    div#topmenu div#right p#view_plain :after
+    div.topmenu div.right p#reply :after,
+    div.topmenu div.right p#view_plain :after
     {
         content: "]";
     }
 
-    div#topmenu div#right p#reply a,
-    div#topmenu div#right p#view_plain a
+    div.topmenu div.right p#reply a,
+    div.topmenu div.right p#view_plain a
     {
         color: #ccc;
     }

@@ -228,6 +228,7 @@ div#main
     }
 
         div#main div.recentpaste p.paste-info,
+        div#main div.recentpaste p.paste-info *,
         div#main div.recentpaste p.paste-date
         {
             display: inline;

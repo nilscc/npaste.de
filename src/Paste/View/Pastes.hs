@@ -5,7 +5,7 @@
 
 module Paste.View.Pastes
     ( showPaste
-    , parsedDesc
+    , Description (..)
     ) where
 
 import Happstack.Server
@@ -21,230 +21,211 @@ import qualified Text.XHtml         as X
 import Control.Monad                (msum, mzero, liftM)
 import Control.Monad.Trans          (liftIO)
 import Data.Char                    (toLower)
-import Data.Maybe                   (fromMaybe)
-import Data.List                    (find)
+import Data.Maybe
+import Data.List                    (find, nub)
 
-import App.View                     (Css (..), htmlToXml)
+import App.View
 import Paste.State
-import Users.State                  (Validate (..), UserReply (..))
-import qualified Paste.Parser.Description as PPD (parseDesc, DescVal(..))
-
-
-
+import Users.State
+import qualified Paste.Parser.Description as PPD
 
 
 --------------------------------------------------------------------------------
 -- Get data, handle events
 --------------------------------------------------------------------------------
 
--- | Show paste handler
-showPaste :: String -> ServerPartT IO Response
-showPaste id = do
-    mPaste <- query $ GetPasteById (ID id)
-    case mPaste of
-         Nothing -> notFound . toResponse $ "Paste not found with ID \"" ++ id ++ "\""
-         Just p  -> do
-             msum [ path $ showWithSyntax p
-                  , trailingSlash >> showWithSyntax p (fromMaybe "" . unPFileType $ filetype p)
-                  , showPlain p
-                  ]
+-- | Variation of showPaste which accepts multiple IDs
+showPaste :: String -> ServerPart Response
+showPaste ids = do
+    pastes <- mapM (query . GetPasteById . ID) $ words ids
+    case sequence pastes of
+         Nothing   -> notFound . toResponse $ "Paste not found with ID \"" ++ ids ++ "\""
+         Just list -> msum [ path $ \ext -> showWithSyntax $ map (\p -> p { filetype = PFileType $ Just ext }) list
+                           , trailingSlash >> showWithSyntax (nub list)
+                           , showPlain $ head list
+                           ]
+
 
 -- | Simple method to get the content string of a PasteEntry
-getContent :: PasteEntry -> IO String
-getContent p = case unPContent (content p) of
-                    Plain text -> return $ text
-                    File file  -> readFile file
+getContent :: PasteEntry -> IO PContent
+getContent p = case content p of
+                    plain@(PContent (Plain _)) -> return plain
+                    (PContent (File file))     -> readFile file >>= return . PContent . Plain
 
 -- | Show plain text
-showPlain :: PasteEntry -> ServerPartT IO Response
-showPlain p = liftIO (getContent p) >>= ok . setHeader "Content-Type" "text/plain" . toResponse
+showPlain :: PasteEntry -> ServerPart Response
+showPlain p = do
+    (PContent (Plain text)) <- liftIO $ getContent p
+    ok . setHeader "Content-Type" "text/plain" $ toResponse text
 
 -- | Syntax highlighting
-showWithSyntax :: PasteEntry -> String -> ServerPartT IO Response
-showWithSyntax p ext
-    -- | ext' `elem` tinyIds = do
-        -- url <- liftIO $ getContent p
-        -- seeOther (HSP.escape . head $ lines url) $ toResponse url
+showWithSyntax :: [PasteEntry] -> ServerPart Response
+showWithSyntax p = showWithSyntax' p >>= xmlResponse
 
-    | otherwise = do
+showWithSyntax' :: [PasteEntry] -> ServerPart HtmlBody
+showWithSyntax' [] = return $
+    HtmlBody [ WithCss $ CssString defaultHighlightingCss
+             , WithCss $ CssFile "/static/css/paste.css"
+             ]
+             [ ]
+showWithSyntax' (p:ps) = do
+
+        let id = unPId $ pId p
+
+        ids     <- query $ GetAllIds
+        replies <- query $ GetAllReplies id
+
+        showAllReplies <- getDataQueryFn $ look "replies"
+
         cont <- liftIO $ getContent p
 
-        let paste = case highlightAs ext cont of
-                         Left _   -> PlainText   { lang'       = unPFileType $ filetype p
-                                                 , plainText   = cont
-                                                 }
-                         Right sl -> Highlighted { lang        = ext
-                                                 , plainText   = cont
-                                                 , highlighted = formatAsXHtml [] ext sl
-                                                 }
+        let
+            shortDesc = case unPDescription $ description p of
+                             Nothing -> ""
+                             Just d | length d > 30 -> ": " ++ take 30 d ++ "..."
+                                    | otherwise     -> ": " ++ d
 
-        ids <- query $ GetAllIds
-        let id = (unPId $ pId p)
-        responses <- query $ GetAllReplies id
-        show_all <- getDataQueryFn $ look "replies"
-        webHSP' (Just xmlMetaData) $ pasteBody (CssString defaultHighlightingCss)
-                                               (unId id)
-                                               ids
-                                               paste
-                                               (unPDescription $ description p)
-                                               (show_all == Just "all")
-                                               responses
+            htmlOpts = [ WithTitle $ "npaste.de - Paste #" ++ unId id ++ shortDesc ]
 
-      where ext' = map toLower ext
-            xmlMetaData = XMLMetaData { doctype = (True, "<!DOCTYPE html PUBLIC \"-//W3C//DTD XHTML 1.0 Transitional//EN\" \"http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd\">")
-                                      , contentType = "text/html"
-                                      , preferredRenderer = renderXML
-                                      }
+            pview = PasteView { showAll = showAllReplies == Just "all"
+                              , allIds  = ids
+                              , viewReplies = replies
+                              , pasteEntries = [p { content = cont }]
+                              }
 
-
-
-
-
+        (HtmlBody opts xmls) <- showWithSyntax' ps
+        return $ HtmlBody (htmlOpts ++ opts) ([<div><% pview %></div>] ++ xmls)
 
 
 --------------------------------------------------------------------------------
 -- Data stuff
 --------------------------------------------------------------------------------
 
--- | Paste data
-data PasteContent = PlainText   { lang'       :: Maybe String
-                                , plainText   :: String
-                                }
-                  | Highlighted { lang        :: String
-                                , plainText   :: String
-                                , highlighted :: X.Html
-                                }
+-- | Options for the 
+data PasteView = PasteView { showAll :: Bool
+                           , allIds  :: [ID]
+                           , viewReplies :: [ID]
+                           , pasteEntries :: [PasteEntry]
+                           }
 
---------------------------------------------------------------------------------
--- VIEW part
---------------------------------------------------------------------------------
-
-type Description = Maybe String
-
--- | Main paste body
-pasteBody :: Css            -- ^ css stuff
-          -> String         -- ^ current ID
-          -> [ID]           -- ^ all IDs
-          -> PasteContent   -- ^ content
-          -> Description    -- ^ description
-          -> Bool           -- ^ show all replies?
-          -> [ID]           -- ^ all replies
-          -> HSP XML
-pasteBody css id ids content desc show_all resp =
-        <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="de" lang="de">
-            <head>
-                <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
-                <title>npaste.de - Paste #<% id ++ (maybe "" (const $ ": " ++ shortDesc) desc)%></title>
-                <% css %>
-                <link href="/static/css/paste.css" type="text/css" rel="stylesheet" />
-            </head>
-            <body>
-                <div id="topmenu">
-                    <div id="left">
-                        <% if null resp then (show_all,[]) else (show_all,resp) %>
-                        <p id="description"><% maybe (<% "No description." %>) (parsedDesc ids) desc %></p>
-                    </div>
-                    <div id="right">
-
-                        <p id="view_plain"><a href=("/" ++ id)>Plain</a></p>
-
-                        <form id="reply-form" method="post" action="/">
-                            <input type="hidden" name="reply" value=id />
-                            <input type="hidden" name="description" value=("Reply to /" ++ id ++ "/") />
-                            <p id="reply"><a href="javascript:document.getElementById('reply-form').submit();">Reply</a></p>
-                        </form>
-
-                        <p id="available_languages">Available languages:</p>
-                        <select size="1" id="languages" 
-                          onchange="menu = document.getElementById('languages'); window.location = menu.options[menu.selectedIndex].text">
-                            <%
-                                map langOptions ("Text" : languages)
-                            %>
-                        </select>
-
-                    </div>
-                </div>
-                <% content %>
-            </body>
-        </html>
-  where langOptions l | l == (language content) = <option selected="selected"><% l ++ " (current)" %></option>
-                      | otherwise               = <option><% l %></option>
-        language (Highlighted l _ _) = language' l
-        language (PlainText l _)     = language' $ fromMaybe "" l
-        language' s = case find (\l -> (map toLower s) == (map toLower l)) languages of
-                           Just l -> l
-                           _ | (not . null $ languagesByExtension s) -> head $ languagesByExtension s
-                             | otherwise                             -> "Text"
-        shortDesc = let sd = take 30 $ fromMaybe "" desc
-                    in if (Just sd) == desc
-                          then sd
-                          else sd ++ "..."
-
--- | Parse a description and generate its EmbedAsChild list
-parsedDesc :: (EmbedAsChild m String, EmbedAsAttr m (Attr [Char] [Char]))
-           => [ID]
-           -> String
-           -> GenChildList m
-parsedDesc ids desc = let descVals = PPD.parseDesc desc
-                          unpack (PPD.Text t)                   = <% t %>
-                          unpack (PPD.Username u)               = <% u %>
-                          unpack (PPD.Tag t)                    = <% t %>
-                          unpack (PPD.ID i) | (ID i) `elem` ids = <% let id' = "/" ++ i ++ "/" in <a class="link-to-id" href=id'><% id' %></a> %>
-                                            | otherwise         = <% "/" ++ i ++ "/" %>
-                      in <% [<% "Description: " %>] ++ map unpack descVals %>
-
-
-
-
--- | <pre> tag for source code (with maybe language extension)
-sourcePre Nothing code = <pre class="sourceCode"><% code %></pre>
-sourcePre (Just ext) code = <pre class="sourceCode"><% code %></pre>
-
+data Description = Description [ID] String
 
 
 --------------------------------------------------------------------------------
 -- XML instances
 --------------------------------------------------------------------------------
 
--- | XML generator for PasteContent
-instance (XMLGenerator m, EmbedAsChild m XML, HSX.XML m ~ XML) => (EmbedAsChild m PasteContent) where
-    asChild content =
-        <%
-          <table class="sourceCode">
-            <tr>
-              <td class="lineNumbers">
-                <pre><%
-                    let clickable n = <a href=("#n" ++ n) class="no" name=("n" ++ n) id=("n" ++ n)><% n ++ "\n" %></a>
-                    in map clickable . map (fst) $ zip (map show [1..]) (lines text)
-                %></pre>
-              </td>
-              <td class="sourceCode">
-                <% case content of
-                        PlainText   _ _      -> <pre><% "\n" ++ text %></pre>
-                        Highlighted _ _ html -> htmlToXml html
-                %>
-              </td>
-            </tr>
-          </table>
+-- | XML generator for PasteEntry
+instance (XMLGenerator m, EmbedAsChild m XML, HSX.XML m ~ XML) => (EmbedAsChild m PasteView) where
+    asChild pview@(PasteView { pasteEntries = pes }) =
+        <% map `flip` pes $ \ PasteEntry { content = content'
+                                      , filetype = filetype'
+                                      , description = description'
+                                      , pId = pId'
+                                      } ->
+            let
+                content     = case unPContent content' of
+                                   Plain text -> text
+                                   _ -> ""
+                description = unPDescription description'
+                filetype    = unPFileType filetype'
+                pId         = unPId pId'
+                id          = unId pId
+                parsedDesc  = PPD.parseDesc $ fromMaybe "" description
+                langOptions l
+                    | l == language = <option selected="selected"><% l ++ " (current)" %></option>
+                    | otherwise     = <option><% l %></option>
+                language = language' . fromMaybe "" $ unPFileType filetype'
+                language' s =
+                    case find ((map toLower s ==) . map toLower) languages of
+                         Just l -> l
+                         _ | not (null $ languagesByExtension s) -> head $ languagesByExtension s
+                           | otherwise                           -> "Text"
+            in
+            <%
+                [
+                    <div class=("topmenu")>
+                        <div class="left">
+                            <p class="replies"><a href=("/" ++ id ++ "/")>/<% id %>/</a> - <% (showAll pview, viewReplies pview) %></p>
+                            <p class="description"><% Description (allIds  pview) $ fromMaybe "" description %></p>
+                        </div>
+                        <div class="right">
+
+                            -- View plain button
+                            <p class="view_plain"><a href=("/" ++ id)>Plain</a></p>
+
+                            -- Reply button
+                            <form id=("reply-form-" ++ id) class="reply-form" method="post" action="/">
+                                <input type="hidden" name="reply" value=id />
+                                <input type="hidden" name="description" value=("Reply to /" ++ id ++ "/") />
+                                <p class="reply"><a href=("javascript:document.getElementById('reply-form-" ++ unId pId ++ "').submit();")>Reply</a></p>
+                            </form>
+
+                            -- Language selection
+                            <p class="available_languages">Available languages:</p>
+                            <select size="1" id=("languages-" ++ id)
+                              onchange=("menu = document.getElementById('languages-" ++ id ++ "'); window.location = menu.options[menu.selectedIndex].text")>
+                                <%
+                                    map langOptions ("Text" : languages)
+                                %>
+                            </select>
+
+                        </div>
+                    </div>
+                ,   -- Source code
+                    <table class="sourceCode">
+                        <tr>
+                            <td class="lineNumbers">
+                                <pre><%
+                                    let clickable n = <a href=("#n" ++ n) class="no" name=("n" ++ n) id=("n" ++ n)><% n ++ "\n" %></a>
+                                    in map clickable . map (fst) $ zip (map show [1..]) (lines content)
+                                %></pre>
+                            </td>
+                            <td class="sourceCode">
+                                <%
+                                    case highlightAs language content of
+                                         Left _   -> <pre><% "\n" ++ content %></pre>
+                                         Right sl -> htmlToXml $ formatAsXHtml [] language sl
+                                %>
+                            </td>
+                        </tr>
+                    </table>
+                ]
+            %>
         %>
-      where text = case content of
-                        PlainText   _ str   -> str
-                        Highlighted _ str _ -> str
+
+
+instance (XMLGenerator m) => (EmbedAsChild m Description) where
+    asChild (Description ids "") =
+        <%
+            [<% "No description." %>]
+        %>
+    asChild (Description ids desc) =
+        let
+            descVals = PPD.parseDesc desc
+            unpack (PPD.Text t)                   = <% t %>
+            unpack (PPD.Username u)               = <% u %>
+            unpack (PPD.Tag t)                    = <% t %>
+            unpack (PPD.ID i) | (ID i) `elem` ids = <% let id' = "/" ++ i ++ "/" in <a class="link-to-id" href=id'><% id' %></a> %>
+                              | otherwise         = <% "/" ++ i ++ "/" %>
+        in
+        <%
+            [<% "Description: " %>] ++ map unpack descVals
+        %>
+
+
 
 -- | EmbedAsChild instance for (Bool,[ID]), where Bool is whether all replies
 -- should be shown or not and [ID] is the list of replies.
-instance (XMLGenerator m, EmbedAsChild m XML) => (EmbedAsChild m (Bool,[ID])) where
-    asChild (_,[])  = <% <p id="responses">No replies.</p> %>
+instance (XMLGenerator m) => (EmbedAsChild m (Bool,[ID])) where
+    asChild (_,[])  = <% "No replies." %>
     asChild (False,ids) | length ids > 10 =
         <%
-            <p id="responses">Replies: <%
-                (map (\(ID i) -> let id = "/" ++ i ++ "/" in <a href=id><% id %></a>) $ take 10 ids)
-                ++ [<a href="?replies=all">(more)</a>]
-            %></p>
+            [<% "Replies: " %>]
+            ++ map (\(ID i) -> let id = "/" ++ i ++ "/" in <% <a href=id><% id %></a> %>) (take 10 ids)
+            ++ [<% <a href="?replies=all">(more)</a> %>]
         %>
     asChild (_,ids) =
         <%
-            <p id="responses">Replies: <%
-                map (\(ID i) -> let id = "/" ++ i ++ "/" in <a href=id><% id %></a>) ids
-            %></p>
+            [<% "Replies: " %>] ++ map (\(ID i) -> let id = "/" ++ i ++ "/" in <% <a href=id><% id %></a> %>) ids
         %>
