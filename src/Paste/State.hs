@@ -106,11 +106,7 @@ getAllEntries = ask >>= return . toList . pasteDB
 -- | Return ID of an MD5 sum
 getPasteEntryByMd5sum :: Maybe User -> BS.ByteString -> Query Paste (Maybe PasteEntry)
 getPasteEntryByMd5sum u md = ask >>= \Paste { pasteDB = ix } ->
-    return . getOne $ ix @= user @= md
-
-  -- where userAndMd5 pe = let peUser = user pe
-                            -- peMd5  = md5hash pe
-                        -- in user' == peUser && bs == peMd5
+    return . getOne $ ix @= (PUser u) @= (PHash md)
 
 -- | Return all IDs
 getAllIds :: Query Paste [ID]

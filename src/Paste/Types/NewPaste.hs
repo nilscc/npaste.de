@@ -28,7 +28,7 @@ data PostError = MD5Exists PasteEntry   -- ^ md5 of a paste entry already exists
 -- | Show instance
 instance Show PostError where
     -- show (NoError id)       = "Paste successful."
-    show (MD5Exists pe)     = "Paste already exists at ID #" ++ (unId . unPId . pId $ pe)
+    show (MD5Exists pe)     = "Paste already exists at /" ++ (unId . unPId . pId $ pe) ++ "/"
     show (MaxPastes tdiff)  = "Max number of pastes reached. Please try again in " ++ timeDiffToString tdiff ++ "."
     show NoContent          = "No content given."
     show NoPassword         = "No password given."
