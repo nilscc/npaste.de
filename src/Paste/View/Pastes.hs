@@ -163,7 +163,7 @@ instance (XMLGenerator m, EmbedAsChild m XML, HSX.XML m ~ XML) => (EmbedAsChild 
 
                             -- Language selection
                             <p class="available_languages">Available languages:</p>
-                            <select size="1" id=("languages-" ++ id)
+                            <select size="1" class="languages" id=("languages-" ++ id)
                               onchange=("menu = document.getElementById('languages-" ++ id ++ "'); window.location = menu.options[menu.selectedIndex].text")>
                                 <%
                                     map langOptions ("Text" : languages)
