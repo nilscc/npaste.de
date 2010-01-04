@@ -1,6 +1,7 @@
 n-sch.de/*
 pastes/*
 _local/*
+client/np
 access.log
 app.log
 lighttpd/*
