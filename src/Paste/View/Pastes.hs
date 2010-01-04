@@ -60,7 +60,7 @@ getContent p = case content p of
 showPlain :: PasteEntry -> ServerPart Response
 showPlain p = do
     (PContent (Plain text)) <- liftIO $ getContent p
-    ok . setHeader "Content-Type" "text/plain" $ toResponse text
+    ok . setHeader "Content-Type" "text/plain" . toResponse $ (decode text :: String)
 
 -- | Syntax highlighting
 showWithSyntax :: [PasteEntry] -> ServerPart Response
