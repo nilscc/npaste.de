@@ -81,10 +81,12 @@ import Users.State
 -- | Reserved IDs
 validChars  = ['0'..'9'] ++ ['A'..'Z'] ++ ['a'..'z']
 
-reservedIds = [ "static", "client" ] ++ defaultIds ++ randomIds ++ tinyIds
+reservedIds = [ "static", "client" ] ++ defaultIds ++ randomIds ++ tinyIds ++ restrictedIds
 defaultIds  = [ "", "default", "default id", "defaultid" ]
 randomIds   = [ "rand", "random", "random id", "randomid" ]
 tinyIds     = [ "tiny", "tiny url", "tinyurl" ]
+
+restrictedIds = [ "nazi", "hitler" ]
 
 
 --------------------------------------------------------------------------------
