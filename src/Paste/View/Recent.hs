@@ -10,6 +10,7 @@ import Data.List                (sortBy)
 import Data.Maybe
 import qualified Data.Set as S
 
+import Codec.Binary.UTF8.Light
 import HSP
 import Control.Monad.Trans      (liftIO)
 import System.Time              (ClockTime (..), toUTCTime, calendarTimeToString)
@@ -56,9 +57,9 @@ makeRecent pe = do
     ids <- query $ GetAllIds
     content <- liftIO $ case unPContent (content pe) of
                              Plain str -> return str
-                             File fp   -> readFile fp
+                             File fp   -> readUTF8File fp
     return $ RecentPaste { rDate  = unPDate $ date pe
-                         , rCont  = content
+                         , rCont  = decode $ content
                          , rDesc  = unPDescription $ description pe
                          , rId    = unPId $ pId pe
                          , allIds = ids

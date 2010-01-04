@@ -8,6 +8,8 @@ import Happstack.State
 import Control.Monad.Trans                          (liftIO)
 import Control.Monad.Error
 
+import Codec.Binary.UTF8.Light
+
 import Data.Char                                    (isSpace, toLower)
 import Data.Maybe                                   (fromJust, isJust, isNothing, fromMaybe, catMaybes)
 
@@ -143,7 +145,7 @@ post = do
     let dir      = "pastes" ++ (maybe "" ([pathSeparator] ++) $ liftM userLogin validUser)
         filepath = dir ++ [pathSeparator] ++ unId id
     liftIO $ do createDirectoryIfMissing True dir
-                writeFile filepath content
+                writeUTF8File filepath $ encode content
 
     -- description stuff, tags, responses, TODO: notify users
     let unpackTag (PPD.Tag t) = Just t
