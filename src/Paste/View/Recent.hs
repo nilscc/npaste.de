@@ -33,7 +33,7 @@ showRecent = do
 
     let
         getLast :: Int -> [a] -> [a]
-        getLast n l = fst . flip (foldr `flip` ([],0)) l $ \ pe rest@(ls, x) -> if x < n then (pe : ls, x+1) else rest
+        getLast n l = fst . flip (foldr `flip` ([],0)) l $ \ pe rest@(ls, x) -> if x < n then (ls ++ [pe], x+1) else rest
 
     recent      <- mapM makeRecent . getLast 5 . S.toAscList . S.filter (not . unPHide . hide) $ pastes
 
