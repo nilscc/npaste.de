@@ -20,10 +20,6 @@ import System.Time
 import HSP
 import Text.Highlighting.Kate                       (languagesByExtension, languages)
 
-import Happstack.Crypto.MD5                         (md5)
-import qualified Data.ByteString            as B
-import qualified Data.ByteString.Lazy.Char8 as C
-
 import qualified Paste.Parser.Description as PPD
 import Paste.View.Index (showIndex')
 import Paste.State
@@ -35,12 +31,9 @@ import Users.State
     , User (..)
     )
 
-md5string :: String -> B.ByteString
-md5string = B.concat . C.toChunks . md5 . C.pack
-
 -- | Remove any trailing white space characters
 stripSpaces :: String -> String
-stripSpaces = unlines . map (foldr strip "") . lines
+stripSpaces = init . unlines . map (foldr strip "") . lines . (++ " ")
   where strip s "" = if isSpace s then "" else [s]
         strip s r  = s : r
 
@@ -94,7 +87,7 @@ post = do
     let content     = stripSpaces $ fromMaybe "" mContent
         maxSize     = 200
         md5content  = md5string content
-    when (null content)                           (throwError NoContent)
+    when   (null content || all isSpace content)  (throwError NoContent)
     unless (null $ drop (maxSize * 1000) content) (throwError $ ContentTooBig maxSize)
 
     -- get description

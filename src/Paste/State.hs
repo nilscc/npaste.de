@@ -24,6 +24,7 @@ module Paste.State
     , randomIds
     , tinyIds
     , customId
+    , md5string
 
     , module Paste.State.Content
     , module Paste.State.ID
@@ -88,6 +89,9 @@ tinyIds     = [ "tiny", "tiny url", "tinyurl" ]
 
 restrictedIds = [ "nazi", "hitler" ]
 
+
+md5string :: String -> BS.ByteString
+md5string = BS.concat . BS8.toChunks . md5 . BS8.pack
 
 --------------------------------------------------------------------------------
 -- Queries
