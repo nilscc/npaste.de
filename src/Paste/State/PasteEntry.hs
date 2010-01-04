@@ -10,7 +10,7 @@ import Happstack.Data
 import Paste.State.NewTypes
 import qualified Paste.State.Old.PasteEntry6 as Old
 
-$(deriveAll [''Show, ''Eq, ''Default]
+$(deriveAll [''Show, ''Eq, ''Ord, ''Default]
     [d|
 
         -- | PasteEntry: Simple paste entry
@@ -27,9 +27,6 @@ $(deriveAll [''Show, ''Eq, ''Default]
             }
 
     |])
-
-instance Ord PasteEntry where
-    c1 `compare` c2 = (unPDate $ date c1) `compare` (unPDate $ date c2)
 
 $(deriveSerialize ''PasteEntry)
 instance Version PasteEntry where
