@@ -1,0 +1,17 @@
+# Contributor: Nils Schweinsberg <mail@n-sch.de>
+pkgname=npaste-client
+pkgver=0.1
+pkgrel=1
+pkgdesc="client for the npaste.de pastebin"
+arch=('i686' 'x86_64')
+url="http://npaste.de"
+license=('NONE')
+depends=('curl')
+source=(http://npaste.de/client/${CARCH}/np)
+[ "${CARCH}" == 'i686'   ] && md5sums=('f4afcedcd50598f6704fac5df35bf57a')
+[ "${CARCH}" == 'x86_64' ] && md5sums=('b4fa5aebaff89214d78dc0322d69f54a')
+
+build() {
+  cd "$srcdir"
+  install -D -m755 np $pkgdir/usr/bin/npaste
+}
