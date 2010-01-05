@@ -13,6 +13,8 @@ import Codec.Binary.UTF8.Light
 import Data.Char                                    (isSpace, toLower)
 import Data.Maybe                                   (fromJust, isJust, isNothing, fromMaybe, catMaybes)
 
+import Text.ParserCombinators.Parsec
+
 import System.Directory                             (createDirectoryIfMissing)
 import System.FilePath                              (pathSeparator)
 import System.Time
@@ -90,6 +92,17 @@ post = do
     when   (null content || all isSpace content)  (throwError NoContent)
     unless (null $ drop (maxSize * 1000) content) (throwError $ ContentTooBig maxSize)
 
+    -- get filetype
+    mFiletype <- getDataBodyFn $ look "filetype"
+
+    let validFiletype f = map toLower f `elem` map (map toLower) languages || not (null $ languagesByExtension f)
+        filetype' = case mFiletype of
+                         Just f | validFiletype f -> Just f
+                         _ -> case parse (string "#!/bin/" >> many letter) "filetype" (head $ lines content) of
+                                   Right e | validFiletype e -> Just e
+                                   _ -> Nothing
+            
+
     -- get description
     mDescription <- getDataBodyFn $ look "description"
     let desc = case mDescription of
@@ -131,9 +144,6 @@ post = do
     id <- query $ GenerateId validUser idT
     when (NoID == id) (throwError InvalidID)
 
-    -- get filetype
-    mFiletype <- getDataBodyFn $ look "filetype"
-
     -- save to file
     let dir      = "pastes" ++ (maybe "" ([pathSeparator] ++) $ liftM userLogin validUser)
         filepath = dir ++ [pathSeparator] ++ unId id
@@ -160,7 +170,7 @@ post = do
                                         , content       = PContent      $ File filepath
                                         , user          = PUser         $ validUser
                                         , pId           = PId           $ id
-                                        , filetype      = PFileType     $ mFiletype
+                                        , filetype      = PFileType     $ filetype'
                                         , md5hash       = PHash         $ md5content
                                         , description   = PDescription  $ desc
                                         , hide          = PHide         $ hide
