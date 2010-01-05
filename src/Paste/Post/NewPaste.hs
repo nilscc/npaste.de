@@ -96,11 +96,11 @@ post = do
     mFiletype <- getDataBodyFn $ look "filetype"
 
     let validFiletype f = map toLower f `elem` map (map toLower) languages || not (null $ languagesByExtension f)
-        filetype' = case mFiletype of
-                         Just f | validFiletype f -> Just f
-                         _ -> case parse (string "#!/bin/" >> many letter) "filetype" (head $ lines content) of
-                                   Right e | validFiletype e -> Just e
-                                   _ -> Nothing
+        filetype' = msum [ mFiletype
+                         , case parse bangParser "filetype" (head $ lines content) of
+                                Right e | validFiletype e -> Just e
+                                _ -> Nothing
+                         ]
             
 
     -- get description
@@ -182,3 +182,14 @@ post = do
 
     -- return url
     return $ unId id
+
+-- | Parse a \"#!/usr/bin...\" string
+bangParser :: Parser String
+bangParser = do
+    string "#!"
+    try' $ string "/usr"
+    string "/bin/"
+    try' $ string "env" >> many1 space
+    many letter
+
+  where try' p = try p <|> return ""
