@@ -96,7 +96,7 @@ post = do
     mFiletype <- getDataBodyFn $ look "filetype"
 
     let validFiletype f = map toLower f `elem` map (map toLower) languages || not (null $ languagesByExtension f)
-        filetype' = msum [ mFiletype
+        filetype' = msum [ mFiletype >>= \f -> if null f then Nothing else Just f
                          , case parse bangParser "filetype" (head $ lines content) of
                                 Right e | validFiletype e -> Just e
                                 _ -> Nothing
