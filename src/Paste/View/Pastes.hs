@@ -21,8 +21,6 @@ import qualified Text.XHtml         as X
 import Control.Monad                (msum, mzero, liftM)
 import Control.Monad.Trans          (liftIO)
 
-import Codec.Binary.UTF8.Light
-
 import Data.Char                    (toLower)
 import Data.Maybe
 import Data.List                    (find, nub)
@@ -54,13 +52,13 @@ showPaste ids = do
 getContent :: PasteEntry -> IO PContent
 getContent p = case content p of
                     plain@(PContent (Plain _)) -> return plain
-                    (PContent (File file))     -> readUTF8File file >>= return . PContent . Plain
+                    (PContent (File file))     -> readFile file >>= return . PContent . Plain
 
 -- | Show plain text
 showPlain :: PasteEntry -> ServerPart Response
 showPlain p = do
     (PContent (Plain text)) <- liftIO $ getContent p
-    ok . setHeader "Content-Type" "text/plain" . toResponse $ (decode text :: String)
+    ok . setHeader "Content-Type" "text/plain" . toResponse $ text
 
 -- | Syntax highlighting
 showWithSyntax :: [PasteEntry] -> ServerPart Response
@@ -129,7 +127,7 @@ instance (XMLGenerator m, EmbedAsChild m XML, HSX.XML m ~ XML) => (EmbedAsChild 
                                       } ->
             let
                 content     = case unPContent content' of
-                                   Plain text -> decode text
+                                   Plain text -> text
                                    _ -> ""
                 description = unPDescription description'
                 filetype    = unPFileType filetype'
