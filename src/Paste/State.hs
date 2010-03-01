@@ -60,7 +60,6 @@ import System.Time
 import Control.Monad                (liftM2, forM)
 import Control.Monad.Reader         (ask)
 import Control.Monad.State          (modify)
-import Control.Monad.Trans          (liftIO)
 
 import Data.Typeable                (Typeable)
 import Data.Maybe                   (fromJust, fromMaybe)
@@ -77,6 +76,8 @@ import Users.State
     , PasswordPlain
     , Login
     )
+
+import NumWithBase
 
 
 -- | Reserved IDs
@@ -146,13 +147,19 @@ generateId' (CustomID i) = flip customId i
 defaultId :: Maybe User -> Query Paste ID
 defaultId u = do
     ids <- getAllIds
-    return . ID . head $ dropWhile (\id -> id `elem` reservedIds || (ID id) `S.member` ids) everything
 
-  where isId (ID _) = True
-        isId NoID   = False
-        everything = concat $ iterate func chars
-        func list  = concatMap (\char -> map (char ++) list) chars
-        chars      = map (:[]) validChars
+    let
+        stringToNWB s = NumWithBase (length chars) . L.reverse $ map (M.fromJust . (`L.elemIndex` validChars)) s
+        nWBToString (NumWithBase n l)
+            | n /= length chars = error "Invalid base"
+            | otherwise         = L.reverse $ map (validChars !!) l
+
+        -- Increment a string
+        incStr s = nWBToString $ stringToNWB s + (toBase (length validChars) 1)
+        -- Increment while the predicate evals to true
+        incWhile p id = if p id then incWhile p (incStr id) else id
+
+    return . ID $ incWhile (\id -> id `elem` reservedIds || (ID id) `S.member` ids) ""
 
 
 -- | Random ID generation. Increases maximum ID length everytime it fails to
