@@ -1,3 +1,0 @@
-#!/bin/sh
-
-ghc --make src/Main.hs -isrc -o happstack -O2 # -v
