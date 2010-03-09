@@ -155,6 +155,8 @@ ul#menu
     left: 20px;
     vertical-align: middle;
     background-color: #666;
+    -moz-border-radius: 5px;
+    -webkit-border-radius: 5px;
 }
     ul#menu li
     {
@@ -176,6 +178,15 @@ ul#menu
     }
 
     ul#menu li a      { color: #fff; }
+
+    ul#menu hr
+    {
+        width: 80%;
+        border: 0;
+        height: 2px;
+        color: #555;
+        background-color: #555;
+    }
 
 
 /* }}} */
