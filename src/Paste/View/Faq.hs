@@ -19,9 +19,7 @@ faqs =
  [ Faq "What features are planed for npaste.de?"
  "Current goal is to implement users, so you can delete and change your pastes. Other planed features are:
 
- * Users
- * Private pastes
- * Reply function"
+ * Users"
 
  , Faq "How long will my pastes exist?"
    "Currently, npaste.de does not delete any pastes at all. However, this could change in future, depending on the success of npaste.de."

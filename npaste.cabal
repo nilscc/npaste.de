@@ -22,6 +22,7 @@ executable npaste
         old-time == 1.*,
         random == 1.*,
         utf8-light == 0.4,
+        utf8-string == 0.3.*,
         hsp == 0.4.*,
         pandoc == 1.*,
         xhtml == 3000.2.*,
@@ -38,6 +39,8 @@ executable npaste
         happstack-state == 0.4.*,
         happstack-data == 0.4.*,
         happstack-util == 0.4.*
+
+    ghc-options: -Wall
 
 executable npaste-client
     main-is: Np.hs

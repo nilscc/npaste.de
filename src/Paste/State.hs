@@ -149,9 +149,9 @@ defaultId u = do
     ids <- getAllIds
 
     let
-        stringToNWB s = NumWithBase (length chars) . L.reverse $ map (M.fromJust . (`L.elemIndex` validChars)) s
+        stringToNWB s = NumWithBase (length validChars) . L.reverse $ map (fromJust . (`L.elemIndex` validChars)) s
         nWBToString (NumWithBase n l)
-            | n /= length chars = error "Invalid base"
+            | n /= length validChars = error "Invalid base"
             | otherwise         = L.reverse $ map (validChars !!) l
 
         -- Increment a string
@@ -197,8 +197,10 @@ customId us id@(ID id') = do
 -- Paste operations
 --------------------------------------------------------------------------------
 
+type Hostname = String
+
 -- | Add a host to the knownHosts field of our Paste
-addKnownHost :: Host -> Update Paste ()
+addKnownHost :: Hostname -> Update Paste ()
 addKnownHost host = do
 
     paste <- ask
@@ -222,7 +224,7 @@ clearKnownHosts min = do
 
 -- | Get ClockTime if pasteNo >= maxNum
 getClockTimeByHost :: Int                            -- ^ max number of pastes
-                   -> Host                           -- ^ host
+                   -> Hostname                       -- ^ host
                    -> Query Paste (Maybe ClockTime)
 getClockTimeByHost maxNum host = do
     -- get paste & current time

@@ -8,37 +8,28 @@ import Happstack.Server
   , validator
   , wdgHTMLValidator
   )
+
 import Happstack.State
-  ( Component
-  , Proxy(..)
-  , Methods
-  , TxControl
-  , Saver(Queue, FileSaver)
-  -- , runTxSystem
-  , shutdownSystem
-  , createCheckpoint
-  , startSystemState
-  , waitForTermination
-  )
-import Happstack.Util.Cron (cron)
+import Happstack.Util.Cron
 
 import App.Conf
-import App.Logger   (setupLogger)
-import App.State    (AppState(..))
-import App.Control  (appHandler)
+import App.Logger
+import App.State
+import App.Control
 
-import Control.Concurrent   (MVar, forkIO, killThread)
-import System.Environment   (getArgs)
-import System.Log.Logger    (Priority(..), logM)
-import System.Exit          (exitFailure)
+import Control.Concurrent
+import System.Environment
+import System.Log.Logger
+import System.Exit
 import System.Console.GetOpt 
-import System.Posix.User    (setUserID, UserEntry(..), getUserEntryForName)
+import System.Posix.User
 
+main :: IO ()
 main = do
     let progName   = "n-sch"
         logPath    = rootPath $ defaultConf progName
         stateProxy = Proxy :: Proxy AppState
-        user       = "nils"
+        -- user       = "nils"
 
     -- read arguments
     args  <- getArgs
@@ -57,11 +48,12 @@ main = do
     socket <- bindPort (httpConf appConf)
 
     -- Switch to user, enable logging
-    getUserEntryForName "nils" >>= setUserID . userID
+    -- getUserEntryForName "nils" >>= setUserID . userID
     setupLogger logPath
 
     -- start the state system
-    control <- startSystemState stateProxy
+    -- control <- startSystemState stateProxy
+    control <- runTxSystem (Queue (FileSaver "_state/npaste.de")) stateProxy
 
     -- start the http server
     httpTid <- forkIO $ simpleHTTPWithSocket socket (httpConf appConf) (appHandler appConf)

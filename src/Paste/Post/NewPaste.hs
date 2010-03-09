@@ -9,9 +9,11 @@ import Control.Monad.Trans                          (liftIO)
 import Control.Monad.Error
 
 import Codec.Binary.UTF8.Light
+import qualified Data.ByteString.UTF8 as BU
 
 import Data.Char                                    (isSpace, toLower)
 import Data.Maybe                                   (fromJust, isJust, isNothing, fromMaybe, catMaybes)
+import qualified Data.Map as M
 
 import Text.ParserCombinators.Parsec
 
@@ -49,17 +51,17 @@ newPasteHandler = do
     guard $ isNothing reply
     errorT <- runErrorT post
 
-    -- check if we used the html form or a tiny url
+    -- check if we used the html form
     mSubmit <- getDataBodyFn $ look "submit"
     mFiletype <- getDataBodyFn $ look "filetype"
     let submit = not . null $ fromMaybe "" mSubmit
-        isTiny | (fromMaybe "" mFiletype) `elem` tinyIds = True
-               | otherwise = False
+        -- isTiny | (fromMaybe "" mFiletype) `elem` tinyIds = True
+               -- | otherwise = False
 
     case errorT of
          Left e | submit    -> showIndex' $ Just (show e)
                 | otherwise -> badRequest . toResponse $ show e ++ "\n"
-         Right url | submit && isTiny -> seeOther ("/" ++ url ++ "/plain") $ toResponse ("http://npaste.de/" ++ url ++ "/plain")
+         Right url -- | submit && isTiny -> seeOther ("/" ++ url ++ "/plain") $ toResponse ("http://npaste.de/" ++ url ++ "/plain")
                    | submit           -> seeOther ("/" ++ url ++ "/")      $ toResponse ("http://npaste.de/" ++ url ++ "/")
                    | otherwise        -> ok . toResponse $ "http://npaste.de/" ++ url ++ "/\n"
 
@@ -76,7 +78,8 @@ post = do
     -- check if host is allowed to post
     update $ ClearKnownHosts 60
     rq      <- askRq
-    let peer = rqPeer rq
+    let peer = fromMaybe (fst $ rqPeer rq) $
+            (\HeaderPair { hValue = (ip:_) } -> BU.toString ip) `fmap` M.lookup (BU.fromString "x-forwarded-for") (rqHeaders rq)
     ctime   <- liftIO getClockTime
     htime   <- query $ GetClockTimeByHost 10 peer
     case htime of
