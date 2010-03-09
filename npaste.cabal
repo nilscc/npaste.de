@@ -31,7 +31,7 @@ executable npaste
         filepath == 1.1.*,
         directory == 1.*,
         hsemail == 1.3,
-        hsx == 0.5.*,
+        hsx == 0.*,
         regex-compat == 0.92,
         happstack == 0.4.*,
         happstack-ixset == 0.4.*,
