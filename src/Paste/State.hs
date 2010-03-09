@@ -147,7 +147,15 @@ generateId' (CustomID i) = flip customId i
 defaultId :: Maybe User -> Query Paste ID
 defaultId u = do
     ids <- getAllIds
+    return . ID . head $ dropWhile (\id -> id `elem` reservedIds || (ID id) `S.member` ids) everything
 
+  where isId (ID _) = True
+        isId NoID   = False
+        everything  = concat $ iterate func chars
+        func list   = concatMap (\char -> map (char ++) list) chars
+        chars       = map (:[]) validChars
+
+    {-
     let
         stringToNWB s = NumWithBase (length validChars) . L.reverse $ map (fromJust . (`L.elemIndex` validChars)) s
         nWBToString (NumWithBase n l)
@@ -160,6 +168,7 @@ defaultId u = do
         incWhile p id = if p id then incWhile p (incStr id) else id
 
     return . ID $ incWhile (\id -> id `elem` reservedIds || (ID id) `S.member` ids) ""
+    -}
 
 
 -- | Random ID generation. Increases maximum ID length everytime it fails to
