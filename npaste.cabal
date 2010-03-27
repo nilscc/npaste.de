@@ -40,7 +40,7 @@ executable npaste
         happstack-data == 0.4.*,
         happstack-util == 0.4.*
 
-    ghc-options: -Wall
+    ghc-options: -Wall -fno-warn-unused-do-bind
 
 executable npaste-client
     main-is: Np.hs
