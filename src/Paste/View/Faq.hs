@@ -27,6 +27,13 @@ faqs =
  , Faq "How can I reply to a paste?" $
    "Just add an \"/id/\" to your pastes description. npaste.de will then automaticly detect "
    ++ "if there is a valid paste with that ID and add a \"Replies: ...\" link to it."
+
+ , Faq "Missing highlight?" $
+   "This pastebin is using the kate highlighting engine. If you think that npaste.de is missing "
+   ++ "some highlight which is available at [kate-editor.org]"
+   ++ "(http://kate-editor.org/downloads/syntax_highlighting?kateversion=3.2) feel free to "
+   ++ "email me: <mail@n-sch.de>"
+
  ]
 
 showFaq = do

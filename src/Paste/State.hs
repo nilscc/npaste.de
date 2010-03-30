@@ -84,7 +84,7 @@ import NumWithBase
 validChars  = ['0'..'9'] ++ ['A'..'Z'] ++ ['a'..'z']
 
 reservedIds = [ "static", "client" ] ++ defaultIds ++ randomIds ++ tinyIds ++ restrictedIds
-defaultIds  = [ "", "default", "default id", "defaultid" ]
+defaultIds  = [ "", "def", "default", "default id", "defaultid" ]
 randomIds   = [ "rand", "random", "random id", "randomid" ]
 tinyIds     = [ "tiny", "tiny url", "tinyurl" ]
 
