@@ -59,6 +59,7 @@ getCssFromOptions = foldr step []
         step _ r = r
 
 -- Helper
+unpack :: Maybe HtmlOptions -> Maybe (HSP XML)
 unpack (Just (WithTitle str)) = Just $ <title><% str %></title>
 
 unpack (Just (WithLogo left right desc)) = Just $
@@ -129,7 +130,7 @@ renderBody (HtmlBody options xml) =
     <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="de" lang="de">
         <head>
             <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
-            <% title %>
+            <% title' %>
             <% css %>
         </head>
         <body>
@@ -138,7 +139,7 @@ renderBody (HtmlBody options xml) =
         </body>
     </html>
   where css     = getCssFromOptions   options
-        title   = getTitleFromOptions options
+        title'  = getTitleFromOptions options
         logo    = getLogoFromOptions  options
 
 
@@ -150,6 +151,7 @@ xmlResponse :: (MonadIO m)
             => HtmlBody -> ServerPartT m Response
 xmlResponse = webHSP' (Just xmlMetaData) . renderBody
 
+xmlMetaData :: XMLMetaData
 xmlMetaData = XMLMetaData { doctype = (True, "<!DOCTYPE html PUBLIC \"-//W3C//DTD XHTML 1.0 Strict//EN\" \"http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd\">")
                           , contentType = "text/html;charset=utf-8"
                           , preferredRenderer = renderAsHTML

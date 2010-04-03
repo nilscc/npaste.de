@@ -7,13 +7,12 @@ module Paste.State.NewTypes where
 
 import Happstack.Data
 import Happstack.State.ClockTime        (ClockTime (..))
-import Happstack.Server.HTTP.Types      (Host)
 
 import qualified Data.ByteString as BS
 
 import Paste.State.Content
 import Paste.State.ID
-import Users.State
+import Users.State.Old.User2            (User (..))
 
 $(deriveAll [''Show, ''Eq, ''Ord, ''Default]
     [d|

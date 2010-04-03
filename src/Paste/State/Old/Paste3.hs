@@ -40,5 +40,5 @@ instance Component Paste where
 
 
 instance Migrate Old.Paste Paste where
-    migrate (Old.Paste entries ids hosts) = Paste (M.fromList $ map (\entry -> (OldPE.pId entry, entry)) entries)
-                                                  (M.fromListWith (++) $ map (\(ct,h) -> (h,[ct])) hosts)
+    migrate (Old.Paste entries _ hosts) = Paste (M.fromList $ map (\entry -> (OldPE.pId entry, entry)) entries)
+                                                (M.fromListWith (++) $ map (\(ct,h) -> (h,[ct])) hosts)

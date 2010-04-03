@@ -16,7 +16,7 @@ import System.IO
     )
 
 setupLogger :: String -> IO ()
-setupLogger fp = do
+setupLogger _ = do
 
     appLog    <- fileHandler "app.log" INFO
     accessLog <- fileHandler "access.log" INFO

@@ -8,7 +8,7 @@ module Paste.State.Old.PasteEntry2 ( PasteEntry (..) ) where
 import Happstack.Data
 import Happstack.State.ClockTime (ClockTime (..))
 
-import Users.State          (User (..))
+import Users.State.Old.User2          (User (..))
 import Paste.State.ID       (ID (..))
 import Paste.State.Content  (Content (..))
 

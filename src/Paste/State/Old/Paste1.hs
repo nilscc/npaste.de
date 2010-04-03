@@ -10,7 +10,6 @@ import Happstack.Data
 import Happstack.State
 
 import Paste.State.ID           (ID (..))
-import Paste.State.PasteEntry   (PasteEntry (..))
 
 import qualified Paste.State.Old.PasteEntry6 as OldPE (PasteEntry (..))
 

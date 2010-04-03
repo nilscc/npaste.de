@@ -14,7 +14,6 @@ import Happstack.State.ClockTime    (ClockTime (..))
 import Happstack.Data.IxSet
 
 import Paste.State.ID               (ID (..))
-import Paste.State.PasteEntry       (PasteEntry (..))
 import Paste.State.PasteDB
 
 -- For migration:

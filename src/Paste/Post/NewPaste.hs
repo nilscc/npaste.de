@@ -5,14 +5,13 @@ module Paste.Post.NewPaste
 import Happstack.Server
 import Happstack.State
 
-import Control.Monad.Trans                          (liftIO)
 import Control.Monad.Error
 
 import Codec.Binary.UTF8.Light
 import qualified Data.ByteString.UTF8 as BU
 
 import Data.Char                                    (isSpace, toLower)
-import Data.Maybe                                   (fromJust, isJust, isNothing, fromMaybe, catMaybes)
+import Data.Maybe                                   (isJust, isNothing, fromMaybe, catMaybes)
 import qualified Data.Map as M
 
 import Text.ParserCombinators.Parsec
@@ -21,19 +20,12 @@ import System.Directory                             (createDirectoryIfMissing)
 import System.FilePath                              (pathSeparator)
 import System.Time
 
-import HSP
 import Text.Highlighting.Kate                       (languagesByExtension, languages)
 
 import qualified Paste.Parser.Description as PPD
 import Paste.View.Index (showIndex')
 import Paste.State
 import Paste.Types                                  (PostError (..))
-
-import Users.State
-    ( Validate' (..)
-    , UserReply (..)
-    , User (..)
-    )
 
 -- | Remove any trailing white space characters
 stripSpaces :: String -> String
@@ -53,7 +45,7 @@ newPasteHandler = do
 
     -- check if we used the html form
     mSubmit <- getDataBodyFn $ look "submit"
-    mFiletype <- getDataBodyFn $ look "filetype"
+    -- mFiletype <- getDataBodyFn $ look "filetype"
     let submit = not . null $ fromMaybe "" mSubmit
         -- isTiny | (fromMaybe "" mFiletype) `elem` tinyIds = True
                -- | otherwise = False
@@ -113,6 +105,7 @@ post = do
                     _ -> Nothing
     unless (null $ drop 300 (fromMaybe "" desc)) (throwError $ DescriptionTooBig 300)
 
+    {-
     -- get and validate user
     mUser       <- getDataBodyFn $ look "user"
     mPassword   <- getDataBodyFn $ look "password"
@@ -125,9 +118,10 @@ post = do
                       WrongLogin                     -> throwError WrongUserLogin
                       WrongPassword                  -> throwError WrongUserPassword
                       _                              -> throwError $ OtherPostError "User validation failed."
+    -}
 
     -- check if the content is already posted by our user
-    peByMd5 <- query $ GetPasteEntryByMd5sum validUser md5content
+    peByMd5 <- query $ GetPasteEntryByMd5sum {- validUser -} md5content
     case peByMd5 of
          Just pe -> throwError $ MD5Exists pe
          _       -> return ()
@@ -144,11 +138,11 @@ post = do
         idT | idT' `elem` defaultIds && not hide                        = DefaultID
             | (idT' `elem` defaultIds && hide) || idT' `elem` randomIds = RandomID 10
             | otherwise                                                 = CustomID . ID $ fromMaybe "" mId
-    id <- query $ GenerateId validUser idT
+    id <- query $ GenerateId {- validUser -} idT
     when (NoID == id) (throwError InvalidID)
 
     -- save to file
-    let dir      = "pastes" ++ (maybe "" ([pathSeparator] ++) $ liftM userLogin validUser)
+    let dir      = "pastes" {- ++ (maybe "" ([pathSeparator] ++) $ liftM userLogin validUser) -}
         filepath = dir ++ [pathSeparator] ++ unId id
     liftIO $ do createDirectoryIfMissing True dir
                 writeUTF8File filepath $ encode content
@@ -169,16 +163,16 @@ post = do
 
     mapM_ (update . AddResponse id) linkList
 
-    idR <- update $ AddPaste PasteEntry { date          = PDate         $ ctime
-                                        , content       = PContent      $ File filepath
-                                        , user          = PUser         $ validUser
-                                        , pId           = PId           $ id
-                                        , filetype      = PFileType     $ filetype'
-                                        , md5hash       = PHash         $ md5content
-                                        , description   = PDescription  $ desc
-                                        , hide          = PHide         $ hide
-                                        , tags          = PTags         $ tagList
-                                        }
+    update $ AddPaste PasteEntry { date          = PDate         $ ctime
+                                 , content       = PContent      $ File filepath
+                                 , user          = PUser         $ Nothing
+                                 , pId           = PId           $ id
+                                 , filetype      = PFileType     $ filetype'
+                                 , md5hash       = PHash         $ md5content
+                                 , description   = PDescription  $ desc
+                                 , hide          = PHide         $ hide
+                                 , tags          = PTags         $ tagList
+                                 }
 
     -- add to known hosts
     update $ AddKnownHost peer

@@ -19,7 +19,7 @@ import Users.State                  (User (..))
 
 showRegister :: ServerPart Response
 showRegister = do
-    login <- getLogin
+    login   <- getLogin
     nick    <- getDataBodyFn $ look "nick"
     email   <- getDataBodyFn $ look "email"
     msum
@@ -27,8 +27,9 @@ showRegister = do
             methodM POST
             reg <- runErrorT $ register (fromMaybe "" nick) (fromMaybe "" email)
             case reg of
-                 Left  e    -> xmlResponse $ htmlBody login [registerHsp (Just $ show e) nick email]
+                 Left  e                         -> xmlResponse $ htmlBody login [registerHsp (Just $ show e) nick email]
                  Right (InactiveUser _ _ akey _) -> xmlResponse $ htmlBody login [successHsp akey]
+
         , do -- activate inactive user
             uname    <- getDataQueryFn $ look "user"
             activate <- getDataQueryFn $ look "activate"
@@ -37,10 +38,12 @@ showRegister = do
             case pwd of
                  Nothing -> xmlResponse $ htmlBody login [invalidActivationKey]
                  Just pw -> xmlResponse $ htmlBody login [activationComplete pw]
+
         , do -- show html forms
             case login of
                  NotLoggedIn -> xmlResponse $ htmlBody login [registerHsp Nothing nick email]
                  _           -> xmlResponse $ htmlBody login [alreadyLoggedInHsp]
+
         ]
 
 type Nick          = String

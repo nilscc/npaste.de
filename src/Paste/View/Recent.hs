@@ -5,7 +5,6 @@ module Paste.View.Recent
     ( showRecent
     ) where
 
-import Control.Monad            (liftM2)
 import Data.List                (sortBy)
 import Data.Maybe
 import qualified Data.Set as S
@@ -18,21 +17,20 @@ import Happstack.Server
 import Happstack.State          (query)
 
 import App.View
-import Users.State
 import Paste.View               (htmlOpts, getLogin)
 import Paste.View.Menu          (menuHsp)
 import Paste.View.Pastes
-import Paste.Types              (LoggedIn (..))
 import Paste.State
 
 
+showRecent :: ServerPart Response
 showRecent = do
     loggedInAs  <- getLogin
     pastes      <- query $ GetAllEntries
 
     let
-        getLast :: Int -> [a] -> [a]
-        getLast n l = fst . flip (foldr `flip` ([],0)) l $ \ pe rest@(ls, x) -> if x < n then (ls ++ [pe], x+1) else rest
+        -- getLast :: Int -> [a] -> [a]
+        -- getLast n l = fst . flip (foldr `flip` ([],0)) l $ \ pe rest@(ls, x) -> if x < n then (ls ++ [pe], x+1) else rest
 
         sortByDate = sortBy $ \p1 p2 -> (date p2) `compare` (date p1)
 

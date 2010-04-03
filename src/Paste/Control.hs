@@ -1,6 +1,5 @@
 module Paste.Control (pasteHandler) where
 
-import Happstack.State
 import Happstack.Server
 
 import Data.Char            (toLower)
@@ -9,11 +8,12 @@ import Control.Monad        (msum, mzero, MonadPlus)
 import Paste.View.Download  (showDownload)
 import Paste.View.Pastes    (showPaste)
 import Paste.View.Index     (showIndex)
-import Paste.View.News      (showNews)
 import Paste.View.Recent    (showRecent)
 import Paste.View.Faq       (showFaq)
-import Paste.View.Register  (showRegister)
 import Paste.View.Info      (showInfo)
+
+import Paste.Login.Control
+import Paste.Register.Control
 
 import Paste.Post.NewPaste  (newPasteHandler)
 
@@ -28,14 +28,15 @@ pasteHandler = msum
     ]
 
 
+viewHandler :: String -> ServerPart Response
 viewHandler s
     | view == "recent"      = showRecent
     | view == "download"    = showDownload
     | view == "faq"         = showFaq
     | view == "info"        = showInfo
-    -- | view == "register"    = showRegister
-    -- | view == "login"       = showLogin
-    -- | view == "news"        = showNews
+    | view == "register"    = registerControl
+    | view == "login"       = loginControl
+    | view == "logout"      = logoutControl
     | otherwise             = showIndex
   where view = map toLower s
 

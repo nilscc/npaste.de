@@ -6,30 +6,25 @@ module Paste.View.Index
     , indexHsp
     ) where
 
-import Data.List                        (elemIndex)
 import Data.Maybe                       (fromMaybe, isJust)
 
 import HSP
 
 import Happstack.Server
-import Happstack.Server.HSP.HTML        (webHSP)
-import Happstack.State                  (query)
 
 import Text.Highlighting.Kate           (languages)
 
 import App.View
-import Paste.Types                      (PostError (..), LoggedIn (..))
-import Paste.State                      (IDType (..))
 import Paste.View                       (htmlOpts, getLogin)
 import Paste.View.Menu                  (menuHsp)
 
-import Users.State                      (UserOfSessionId (..))
-import Users.State.SessionID            (SessionID (..))
+-- import Users.State                      (UserOfSessionId (..))
+-- import Users.State.SessionID            (SessionID (..))
 
 
 -- little helper :)
-a +?+ "" = ""
-a +?+ b  = a ++ b
+-- a +?+ "" = ""
+-- a +?+ b  = a ++ b
 
 --------------------------------------------------------------------------------
 -- ServerPartT stuff

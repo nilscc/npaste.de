@@ -3,48 +3,51 @@
     UndecidableInstances, TypeOperators
     #-}
 
-module Users.State.Users ( Users (..) ) where
+module Users.State.Users
+    ( Users (..)
+    ) where
 
 import Happstack.Data
 import Happstack.State
-import Happstack.Server.HTTP.Types      (Host)
-import Happstack.State.ClockTime        (ClockTime (..))
+import Happstack.Server.HTTP.Types hiding (Version (..))
+import Happstack.State.ClockTime
 
-import Users.State.User                 (User (..))
-import Users.State.SessionID            (SessionID (..))
+import Users.State.UserData
 
-import qualified Data.Map as M
+import qualified Happstack.Auth             as Auth
+import qualified Data.Map                   as M
 
-import Happstack.Crypto.MD5             (md5)
-import qualified Data.ByteString            as B
-import qualified Data.ByteString.Lazy.Char8 as C
+-- Migration stuff
+import qualified Users.State.Old.Users2 as Old
 
-import qualified Users.State.Old.Users1 as Old
+type ActivationKey  = String
 
-$(deriveAll [''Show, ''Eq, ''Ord, ''Default]
+-- | (user name, email)
+type Login          = String
+type Email          = String
+type InactiveUser   = (Login, Email, ClockTime)
+
+$(deriveAll [''Show, ''Eq, ''Ord]
   [d|
 
       -- | Just a list of users + their session IDs
-      data Users = Users { allUsers         :: [User]
-                         , sessionIDs       :: M.Map SessionID (User, Host, ClockTime)
+      data Users = Users { userData         :: M.Map Auth.UserId UserData
+                         , sessionData      :: M.Map Auth.SessionKey (Host, ClockTime)
                          , registeredHosts  :: M.Map Host ClockTime
+                         , inactiveUsers    :: M.Map ActivationKey InactiveUser
                          }
 
   |])
 
 $(deriveSerialize ''Users)
 instance Version Users where
-    mode = extension 2 (Proxy :: Proxy Old.Users)
+    mode = extension 3 (Proxy :: Proxy Old.Users)
 
 instance Migrate Old.Users Users where
-    migrate (Old.Users userList sessionIds) = Users userList sessionIds M.empty
-
-
--- | MD5 generation
-passwordFromString :: String -> B.ByteString
-passwordFromString = B.concat . C.toChunks . md5 . C.pack
+    -- We have to start all over anyway, so we can "forget" all users/sessions
+    migrate (Old.Users _ _ hosts) = Users M.empty M.empty hosts M.empty
 
 -- | Dependencies
 instance Component Users where
   type Dependencies Users = End
-  initialValue = Users [User "root" (passwordFromString "admin") "npaste@n-sch.de"] M.empty M.empty
+  initialValue = Users M.empty M.empty M.empty M.empty

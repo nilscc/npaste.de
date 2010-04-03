@@ -33,7 +33,7 @@ instance Version PasteEntry where
     mode = extension 7 (Proxy :: Proxy Old.PasteEntry)
 
 instance Migrate Old.PasteEntry PasteEntry where
-    migrate (Old.PasteEntry u i d c md f _ desc hide tags responses) =
+    migrate (Old.PasteEntry u i d c md f _ desc hi ta _) =
         PasteEntry (PUser u)
                    (PId i)
                    (PDate d)
@@ -41,5 +41,5 @@ instance Migrate Old.PasteEntry PasteEntry where
                    (PHash md)
                    (PFileType f)
                    (PDescription desc)
-                   (PHide hide)
-                   (PTags tags)
+                   (PHide hi)
+                   (PTags ta)

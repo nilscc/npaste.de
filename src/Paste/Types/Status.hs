@@ -3,7 +3,8 @@ module Paste.Types.Status
     ( LoggedIn (..)
     ) where
 
-import Users.State (User)
+import Happstack.Auth (SessionKey)
 
-data LoggedIn = LoggedInAs User
+data LoggedIn = LoggedInAs SessionKey
               | NotLoggedIn
+              deriving (Eq, Show, Ord)

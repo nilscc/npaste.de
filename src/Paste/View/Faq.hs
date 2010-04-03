@@ -6,13 +6,12 @@ module Paste.View.Faq
     ) where
 
 import HSP
-import Happstack.Server
 import Text.Pandoc          (readMarkdown, defaultParserState)
+import Happstack.Server
 
 import App.View             (xmlResponse, HtmlBody (..), pandocToXml)
 import Paste.View           (htmlOpts, getLogin)
 import Paste.View.Menu      (menuHsp)
-import Paste.Types          (LoggedIn (..))
 
 faqs :: [Faq]
 faqs =
@@ -29,6 +28,7 @@ faqs =
    ++ "if there is a valid paste with that ID and add a \"Replies: ...\" link to it."
  ]
 
+showFaq :: ServerPart Response
 showFaq = do
     loggedInAs  <- getLogin
     xmlResponse $ HtmlBody htmlOpts [menuHsp loggedInAs, faqHsp]
@@ -45,6 +45,7 @@ instance (XMLGenerator m, EmbedAsChild m XML) => (EmbedAsChild m Faq) where
             ]
         %>
 
+faqHsp :: HSP XML
 faqHsp =
     <div id="main">
         <h1>FAQ - Frequently Asked Questions</h1>

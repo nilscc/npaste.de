@@ -6,7 +6,7 @@ import Control.Monad.Error.Class    (Error (..))
 import System.Time                  (TimeDiff (..), timeDiffToString)
 
 import Paste.State
-import Users.State.User             (User)
+-- import Users.State.User             (User)
 
 type MaxSize = Int
 

@@ -10,25 +10,21 @@ module Paste.View.Pastes
 
 import Happstack.Server
 import Happstack.State
-import Happstack.Server.HSP.HTML    (webHSP')
 
 import HSP
 import Text.Highlighting.Kate
-import Text.XHtml                   ((+++), (<<), (!))
 import qualified HSX.XMLGenerator   as HSX
-import qualified Text.XHtml         as X
 
-import Control.Monad                (msum, mzero, liftM)
-import Control.Monad.Trans          (liftIO)
+import Control.Monad
+import Control.Monad.Trans
 
-import Data.Char                    (toLower)
+import Data.Char
 import Data.Maybe
 import Data.List                    (find, nub)
 import qualified Data.Set as S
 
 import App.View
 import Paste.State
-import Users.State
 import qualified Paste.Parser.Description as PPD
 
 
@@ -130,10 +126,10 @@ instance (XMLGenerator m, EmbedAsChild m XML, HSX.XML m ~ XML) => (EmbedAsChild 
                                    Plain text -> text
                                    _ -> ""
                 description = unPDescription description'
-                filetype    = unPFileType filetype'
+                -- filetype    = unPFileType filetype'
                 pId         = unPId pId'
                 id          = unId pId
-                parsedDesc  = PPD.parseDesc $ fromMaybe "" description
+                -- parsedDesc  = PPD.parseDesc $ fromMaybe "" description
                 langOptions l
                     | l == language = <option selected="selected"><% l ++ " (current)" %></option>
                     | otherwise     = <option><% l %></option>
@@ -180,7 +176,7 @@ instance (XMLGenerator m, EmbedAsChild m XML, HSX.XML m ~ XML) => (EmbedAsChild 
                             <td class="lineNumbers">
                                 <pre><%
                                     let clickable n = <a href=("#n" ++ n) class="no" name=("n" ++ n) id=("n" ++ n)><% n ++ "\n" %></a>
-                                    in map clickable . map (fst) $ zip (map show [1..]) (lines content)
+                                    in map clickable . map (fst) $ zip (map show [(1 :: Int)..]) (lines content)
                                 %></pre>
                             </td>
                             <td class="sourceCode">
@@ -198,7 +194,7 @@ instance (XMLGenerator m, EmbedAsChild m XML, HSX.XML m ~ XML) => (EmbedAsChild 
 
 
 instance (XMLGenerator m) => (EmbedAsChild m Description) where
-    asChild (Description ids "") =
+    asChild (Description _ "") =
         <%
             [<% "No description." %>]
         %>

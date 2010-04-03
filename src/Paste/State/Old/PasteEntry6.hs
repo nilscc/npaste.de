@@ -9,7 +9,7 @@ import Happstack.Data
 import Happstack.Server.HTTP.Types      (Host)
 import Happstack.State.ClockTime        (ClockTime (..))
 
-import Users.State                      (User (..))
+import Users.State.Old.User2            (User (..))
 import Paste.State.ID                   (ID (..))
 import Paste.State.Content              (Content (..))
 
@@ -40,4 +40,4 @@ instance Version PasteEntry where
     mode = extension 6 (Proxy :: Proxy Old.PasteEntry)
 
 instance Migrate Old.PasteEntry PasteEntry where
-    migrate (Old.PasteEntry u i d c md f h desc hide) = PasteEntry u i d c md f h desc hide [] []
+    migrate (Old.PasteEntry u i d c md f h desc hi) = PasteEntry u i d c md f h desc hi [] []

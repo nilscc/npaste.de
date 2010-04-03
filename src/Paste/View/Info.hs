@@ -11,35 +11,36 @@ import qualified Data.Set as S
 
 import HSP
 import Happstack.Server
-import Happstack.State          (query, update)
+import Happstack.State
 
 import System.Time              (ClockTime (..), toUTCTime, calendarTimeToString, getClockTime)
 
 import Paste.View               (htmlBody, getLogin, xmlResponse)
 import Paste.State              (GetAllEntries (..))
 
-import Users.State              (GetAllUsers (..), User (..), RemoveInactiveUsers (..))
+-- import Users.State              (GetAllUsers (..), User (..), RemoveInactiveUsers (..))
+
 
 showInfo :: ServerPart Response
 showInfo = do
     login       <- getLogin
     now         <- liftIO getClockTime
-    update $ RemoveInactiveUsers
+    -- update $ RemoveInactiveUsers
     pentries    <- query $ GetAllEntries
-    users       <- query $ GetAllUsers
+    -- users       <- query $ GetAllUsers
 
     let info = [ Info "Total number of pastes"  $ show (S.size pentries)
-               , Info "Registered users"        $ show (length users)
-               , Info "Active users"            $ show (length $ filter isActive users)
+               -- , Info "Registered users"        $ show (length users)
+               -- , Info "Active users"            $ show (length $ filter isActive users)
                -- , Info "All user names"          $ foldr (\user rest -> (ulogin user) ++ if null rest then rest else (", " ++ rest)) "" users
                ]
 
     xmlResponse $ htmlBody login [infoHsp now info]
 
-  where ulogin (User login _ _)           = "\"" ++ login ++ "\""
-        ulogin (InactiveUser login _ _ _) = "\"" ++ login ++ "\" (inactive)"
-        isActive (User _ _ _) = True
-        isActive _            = False
+  -- where ulogin (User login _ _)           = "\"" ++ login ++ "\""
+        -- ulogin (InactiveUser login _ _ _) = "\"" ++ login ++ "\" (inactive)"
+        -- isActive (User _ _ _) = True
+        -- isActive _            = False
 
 
 data Info = Info { infoKey :: String
