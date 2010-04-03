@@ -68,12 +68,12 @@ post = do
     unless (null $ fromMaybe "" mSpam) (throwError IsSpam)
 
     -- check if host is allowed to post
-    update $ ClearKnownHosts 60
+    update $ ClearKnownHosts 10
     rq      <- askRq
     let peer = fromMaybe (fst $ rqPeer rq) $
             (\HeaderPair { hValue = (ip:_) } -> BU.toString ip) `fmap` M.lookup (BU.fromString "x-forwarded-for") (rqHeaders rq)
     ctime   <- liftIO getClockTime
-    htime   <- query $ GetClockTimeByHost 10 peer
+    htime   <- query $ GetClockTimeByHost 50 peer
     case htime of
          Just time -> throwError . MaxPastes $ let time' = addToClockTime noTimeDiff { tdHour = 1 } time
                                                in normalizeTimeDiff $ diffClockTimes time' ctime
@@ -126,15 +126,17 @@ post = do
          Just pe -> throwError $ MD5Exists pe
          _       -> return ()
 
-    -- see if this is supposed to be a non public paste
-    mHide <- getDataBodyFn $ look "hide"
-    let hide = isJust mHide
-
-    -- get id
+    -- get ids
     mId       <- getDataBodyFn $ look "id"
     mIdType   <- getDataBodyFn $ look "id-type"
+    mHide     <- getDataBodyFn $ look "hide"
+
     let idT' | null (fromMaybe "" mIdType) = map toLower $ fromMaybe "" mId
              | otherwise = map toLower $ fromMaybe "" mIdType
+
+        -- see if this is supposed to be a non public paste, hide random ids
+        hide = isJust mHide || idT' `elem` randomIds
+
         idT | idT' `elem` defaultIds && not hide                        = DefaultID
             | (idT' `elem` defaultIds && hide) || idT' `elem` randomIds = RandomID 10
             | otherwise                                                 = CustomID . ID $ fromMaybe "" mId
