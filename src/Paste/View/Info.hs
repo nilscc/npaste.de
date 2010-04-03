@@ -13,17 +13,14 @@ import HSP
 import Happstack.Server
 import Happstack.State
 
-import System.Time              (ClockTime (..), toUTCTime, calendarTimeToString, getClockTime)
+import System.Time
 
-import Paste.View               (htmlBody, getLogin, xmlResponse)
-import Paste.State              (GetAllEntries (..))
-
--- import Users.State              (GetAllUsers (..), User (..), RemoveInactiveUsers (..))
-
+import Paste.View
+import Paste.State
 
 showInfo :: ServerPart Response
 showInfo = do
-    login       <- getLogin
+
     now         <- liftIO getClockTime
     -- update $ RemoveInactiveUsers
     pentries    <- query $ GetAllEntries
@@ -35,7 +32,7 @@ showInfo = do
                -- , Info "All user names"          $ foldr (\user rest -> (ulogin user) ++ if null rest then rest else (", " ++ rest)) "" users
                ]
 
-    xmlResponse $ htmlBody login [infoHsp now info]
+    htmlBody [infoHsp now info]
 
   -- where ulogin (User login _ _)           = "\"" ++ login ++ "\""
         -- ulogin (InactiveUser login _ _ _) = "\"" ++ login ++ "\" (inactive)"

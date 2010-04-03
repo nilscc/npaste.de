@@ -14,17 +14,7 @@ import Happstack.Server
 
 import Text.Highlighting.Kate           (languages)
 
-import App.View
-import Paste.View                       (htmlOpts, getLogin)
-import Paste.View.Menu                  (menuHsp)
-
--- import Users.State                      (UserOfSessionId (..))
--- import Users.State.SessionID            (SessionID (..))
-
-
--- little helper :)
--- a +?+ "" = ""
--- a +?+ b  = a ++ b
+import Paste.View
 
 --------------------------------------------------------------------------------
 -- ServerPartT stuff
@@ -44,9 +34,7 @@ showIndex' err = do
     id          <- getDataBodyFn $ look "id"
     filetype    <- getDataBodyFn $ look "filetype"
 
-    loggedInAs  <- getLogin
-
-    xmlResponse $ HtmlBody htmlOpts [menuHsp loggedInAs, indexHsp err content description filetype idT id]
+    htmlBody [indexHsp err content description filetype idT id]
 
 
 

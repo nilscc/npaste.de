@@ -19,23 +19,8 @@ import Paste.State
 showNews :: ServerPart Response
 showNews = do
 
-    login    <- getLogin
-    -- rootUser <- query $ UserOfLogin "root" -- root always exists :O
-    -- pastes   <- query $ GetPastesByUser rootUser
+    htmlBody [<h1>An error occurred: No news yet</h1>]
 
-    -- xmlResponse $ htmlBody login [newsHsp . sortDesc . S.toAscList $ S.filter (("news" `elem`) . unPTags . tags) pastes]
-    xmlResponse $ htmlBody login [<h1>An error occurred: No news yet</h1>]
-
-  -- where sortDesc = sortBy $ flip compare
-
-{-
-newsHsp :: [PasteEntry] -> HSP XML
-newsHsp news =
-    <div id="main">
-        <h1>News</h1>
-        <% news %>
-    </div>
--}
 
 --------------------------------------------------------------------------------
 -- XML instances

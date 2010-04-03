@@ -29,9 +29,9 @@ logoutPerform = do
              update $ RemoveSessionData skey
              update $ Auth.DelSession skey
 
-             xmlResponse $ htmlBody NotLoggedIn [logoutHsp]
+             htmlBody [logoutHsp]
 
-         NotLoggedIn -> xmlResponse $ htmlBody login [notLoggedInHsp]
+         NotLoggedIn -> htmlBody [notLoggedInHsp]
 
 logoutHsp :: HSP XML
 logoutHsp =

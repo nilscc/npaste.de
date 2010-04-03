@@ -14,13 +14,19 @@ module Users.State
 
     , AskUsers (..)
     , AskUserData (..)
+    , UserDataByUserId (..)
     , AskSessionData (..)
 
     , SetSessionData (..)
     , RemoveSessionData (..)
 
+    , SetDefaultPasteSetting (..)
+    , SetRequestedEmail (..)
+    , SetNewEmail (..)
+
     , module Users.State.Users
     , module Users.State.UserData
+    , module Users.State.PasteSettings
     ) where
 
 import Control.Monad.State
@@ -34,6 +40,7 @@ import qualified Happstack.Auth             as Auth
 
 import Users.State.Users
 import Users.State.UserData
+import Users.State.PasteSettings
 
 
 type Login          = String
@@ -163,6 +170,9 @@ askUsers = ask
 askUserData :: Query Users (M.Map Auth.UserId UserData)
 askUserData = asks userData
 
+userDataByUserId :: Auth.UserId -> Query Users (Maybe UserData)
+userDataByUserId uid = M.lookup uid `fmap` asks userData
+
 askSessionData :: Query Users (M.Map Auth.SessionKey (Host, ClockTime))
 askSessionData = asks sessionData
 
@@ -180,6 +190,48 @@ removeSessionData skey = modify $ \ u -> u { sessionData = M.delete skey $ sessi
 
 
 --------------------------------------------------------------------------------
+-- Changing user settings
+--------------------------------------------------------------------------------
+
+setDefaultPasteSetting :: Auth.UserId -> PasteSettings -> Update Users ()
+setDefaultPasteSetting uid pset =
+
+    modify $ \u -> let f (Just ud) = Just ud { defaultPasteSettings = pset }
+                       f ud        = ud
+                   in u { userData = M.alter f uid $ userData u }
+
+setRequestedEmail :: Auth.UserId
+                  -> String         -- ^ new email
+                  -> String         -- ^ activation key
+                  -> Update Users ()
+setRequestedEmail uid newEmail akey =
+
+    modify $ \u -> let f (Just ud) = Just ud { userEmailRequested = Just (newEmail, akey) }
+                       f ud        = ud
+                   in u { userData = M.alter f uid $ userData u }
+
+setNewEmail :: Auth.UserId
+            -> String           -- ^ activation key
+            -> Update Users Bool
+setNewEmail uid akey = do
+
+    ud <- asks userData
+    case M.lookup uid ud of
+
+         Just UserData { userEmailRequested = Just (_,activationKey) } | activationKey == akey -> do
+             modify $ \u -> let f (Just ud@UserData { userEmailRequested = Just (newEmail, activationKey) }) | activationKey == akey =
+                                    Just ud { userEmail = newEmail
+                                            , userEmailRequested = Nothing
+                                            }
+
+                                f ud = ud
+                            in u { userData = M.alter f uid $ userData u }
+             return True
+
+         _ -> return False
+
+--
+--------------------------------------------------------------------------------
 -- Register methods
 --------------------------------------------------------------------------------
 
@@ -193,8 +245,13 @@ $(mkMethods ''Users [ 'addInactiveUser
 
                     , 'askUsers
                     , 'askUserData
+                    , 'userDataByUserId
                     , 'askSessionData
 
                     , 'setSessionData
                     , 'removeSessionData
+
+                    , 'setDefaultPasteSetting
+                    , 'setRequestedEmail
+                    , 'setNewEmail
                     ])

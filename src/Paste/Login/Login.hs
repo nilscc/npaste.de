@@ -31,8 +31,8 @@ loginMain = do
     pwd   <- getDataBodyFn $ look "password"
     case login of
 
-         NotLoggedIn  -> xmlResponse $ htmlBody login [loginFormHsp uname pwd Nothing]
-         LoggedInAs _ -> xmlResponse $ htmlBody login [alreadyLoggedInHsp]
+         NotLoggedIn  -> htmlBody [loginFormHsp uname pwd Nothing]
+         LoggedInAs _ -> htmlBody [alreadyLoggedInHsp]
 
 loginFormHsp :: Maybe String -> Maybe String -> Maybe String -> HSP XML
 loginFormHsp uname pwd err =
@@ -79,17 +79,17 @@ loginPerform = do
 
              skey <- update $ Auth.NewSession (Auth.SessionData uid (Auth.Username uname))
 
+             addCookie (60 * 60 * 24 * 31) -- 1 month
+                       (mkCookie "session-key" (let Auth.SessionKey i = skey in show i))
+
              now  <- liftIO getClockTime
              host <- rqPeer `fmap` askRq
              update $ SetSessionData skey (host, now)
 
-             addCookie (60 * 60 * 24 * 31) -- 1 month
-                       (mkCookie "session-key" (let Auth.SessionKey i = skey in show i))
+             htmlBody' (LoggedInAs skey) [loginSuccessHsp uname]
 
-             xmlResponse $ htmlBody (LoggedInAs skey) [loginSuccessHsp uname]
-
-         Just _  -> xmlResponse $ htmlBody NotLoggedIn [loginFormHsp (Just uname) (Just pwd) (Just "Wrong password.")]
-         Nothing -> xmlResponse $ htmlBody NotLoggedIn [loginFormHsp (Just uname) (Just pwd) (Just "Wrong username.")]
+         Just _  -> htmlBody' NotLoggedIn [loginFormHsp (Just uname) (Just pwd) (Just "Wrong password.")]
+         Nothing -> htmlBody' NotLoggedIn [loginFormHsp (Just uname) (Just pwd) (Just "Wrong username.")]
 
 loginSuccessHsp :: String -> HSP XML
 loginSuccessHsp uname =

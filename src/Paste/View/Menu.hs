@@ -13,20 +13,25 @@ import Paste.Types.Status   (LoggedIn (..))
 -- Menu entries
 --------------------------------------------------------------------------------
 
-entries :: [Entry]
-entries =
+entries :: Maybe String -> [Entry]
+entries uname =
     [ Always        <p><a href="/">New paste</a></p>
     , Always        <p><a href="/?view=recent">View recent pastes</a></p>
 
     , Always        <hr />
-    , WithoutLogin  <p><a href="/?view=login">Login</a> or <a href="/?view=register">Register</a></p>
+
+    ] ++ (case uname of
+               Just u -> [WithLogin <p>Logged in as <% u %></p>]
+               _      -> []) ++
+
+    [ WithoutLogin  <p><a href="/?view=login">Login</a> or <a href="/?view=register">Register</a></p>
     , WithLogin     <p><a href="/?view=my">My pastes</a></p>
     , WithLogin     <p><a href="/?view=profile">My profile</a></p>
     , WithLogin     <p><a href="/?view=logout">Logout</a></p>
     , Always        <hr />
 
     , Always        <p><a href="/?view=download">Download clients</a></p>
-    , Always        <p>{- <a href="/?view=news">News</a>, -}<a href="/?view=info">Info</a> and <a href="/?view=faq">FAQ</a></p>
+    , Always        <p><a href="/?view=info">Info</a> and <a href="/?view=faq">FAQ</a></p>
     ]
 
 
@@ -47,10 +52,10 @@ data Entry = Always       (HSP XML)
 --------------------------------------------------------------------------------
 
 -- | Menu HSP
-menuHsp :: LoggedIn -> HSP XML
-menuHsp login =
+menuHsp :: Maybe String -> LoggedIn -> HSP XML
+menuHsp uname login =
     <ul id="menu">
-        <% map makeLi $ withLogin login entries %>
+        <% map makeLi $ withLogin login (entries uname) %>
     </ul>
   where makeLi entry = <li><% entry %></li>
 

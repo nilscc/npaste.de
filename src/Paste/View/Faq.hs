@@ -9,9 +9,7 @@ import HSP
 import Text.Pandoc          (readMarkdown, defaultParserState)
 import Happstack.Server
 
-import App.View             (xmlResponse, HtmlBody (..), pandocToXml)
-import Paste.View           (htmlOpts, getLogin)
-import Paste.View.Menu      (menuHsp)
+import Paste.View
 
 faqs :: [Faq]
 faqs =
@@ -36,9 +34,7 @@ faqs =
  ]
 
 showFaq :: ServerPart Response
-showFaq = do
-    loggedInAs  <- getLogin
-    xmlResponse $ HtmlBody htmlOpts [menuHsp loggedInAs, faqHsp]
+showFaq = htmlBody [faqHsp]
 
 data Faq = Faq { question :: String
                , answer   :: String

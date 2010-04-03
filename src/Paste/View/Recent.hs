@@ -16,16 +16,14 @@ import System.Time              (ClockTime (..), toUTCTime, calendarTimeToString
 import Happstack.Server
 import Happstack.State          (query)
 
-import App.View
-import Paste.View               (htmlOpts, getLogin)
-import Paste.View.Menu          (menuHsp)
+import Paste.View
 import Paste.View.Pastes
 import Paste.State
 
 
 showRecent :: ServerPart Response
 showRecent = do
-    loggedInAs  <- getLogin
+
     pastes      <- query $ GetAllEntries
 
     let
@@ -36,7 +34,7 @@ showRecent = do
 
     recent      <- mapM makeRecent . take 5 . sortByDate . S.toAscList . S.filter (not . unPHide . hide) $ pastes
 
-    xmlResponse $ HtmlBody htmlOpts [menuHsp loggedInAs, recentHsp recent Nothing]
+    htmlBody [recentHsp recent Nothing]
 
 
 

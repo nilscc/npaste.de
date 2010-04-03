@@ -33,11 +33,11 @@ alphaNum  = ['0'..'9'] ++ ['A'..'Z'] ++ ['a'..'z']
 
 registerMain :: ServerPart Response
 registerMain = do
-    login <- getLogin
+
     nick  <- getDataBodyFn $ look "nick"
     email <- getDataBodyFn $ look "email"
 
-    xmlResponse $ htmlBody login [registerHsp nick email Nothing]
+    htmlBody [registerHsp nick email Nothing]
 
 registerHsp :: Maybe String -> Maybe String -> Maybe String -> HSP XML
 registerHsp nick email err =
@@ -62,8 +62,6 @@ registerNew :: ServerPart Response
 registerNew = do
     methodM POST
 
-    login <- getLogin
-
     nick <- fromMaybe "" `fmap` getDataBodyFn (look "nick")
     guard $ not (null nick) && all (`elem` alphaNum) nick
 
@@ -84,15 +82,15 @@ registerNew = do
 
     case (loginExists, emailExists) of
 
-         (True,_) -> xmlResponse $ htmlBody login [registerHsp (Just nick) (Just email) (Just "Login already exists.")]
-         (_,True) -> xmlResponse $ htmlBody login [registerHsp (Just nick) (Just email) (Just "Email already exists.")]
+         (True,_) -> htmlBody [registerHsp (Just nick) (Just email) (Just "Login already exists.")]
+         (_,True) -> htmlBody [registerHsp (Just nick) (Just email) (Just "Email already exists.")]
 
          _        -> do
              ak <- update $ AddInactiveUser nick email
              case ak of
-                  Just akey -> do liftIO $ sendSimpleMessages "85.14.216.254" "n-sch.de" [activationMail nick (NameAddr (Just nick) email) akey]
-                                  xmlResponse $ htmlBody login [newHsp nick email]
-                  _ -> xmlResponse $ htmlBody login [registerHsp (Just nick) (Just email) (Just "Inactive user.")]
+                  Just akey -> do liftIO $ sendSimpleMessages "10.8.0.1" "npaste.de" [activationMail nick (NameAddr (Just nick) email) akey]
+                                  htmlBody [newHsp nick email]
+                  _ -> htmlBody [registerHsp (Just nick) (Just email) (Just "Inactive user.")]
 
 newHsp :: String -> String -> HSP XML
 newHsp nick email =
@@ -103,15 +101,20 @@ newHsp nick email =
 
 activationMail :: String -> NameAddr -> String -> SimpleMessage
 activationMail nick to activationkey = SimpleMessage
-    { from = [NameAddr (Just "npaste.de") "npaste@n-sch.de"]
+    { from = [NameAddr (Just "npaste.de") "noreply@npaste.de"]
     , to = [to]
     , subject = "npaste.de Activation"
     , body = "Hi " ++ nick ++ "!\n\n"
+
              ++ "Welcome to npaste.de! To activate your account, please follow this link:\n\n"
+
              ++ "http://npaste.de/?view=register&user=" ++ nick ++ "&activate=" ++ activationkey ++ "\n\n"
+
              ++ "You have 48 hours to complete this action.\n"
              ++ "If you did not request this email please ignore this email. Do not respond to this email.\n\n"
-             ++ "Thank you,\nnpaste.de webmaster"
+
+             ++ "Thank you for using npaste.de,\n"
+             ++ "  npaste.de webmaster"
     }
 
 
@@ -121,8 +124,6 @@ activationMail nick to activationkey = SimpleMessage
 registerActivate :: ServerPart Response
 registerActivate = do
     methodM GET
-
-    login <- getLogin
 
     nick <- fromMaybe "" `fmap` getDataQueryFn (look "user")
     guard $ not (null nick)
@@ -140,12 +141,12 @@ registerActivate = do
              case user' of
 
                   Just Auth.User { Auth.userid = id } -> do
-                      update $ AddUser id (UserData e)
-                      xmlResponse $ htmlBody login [activationHsp pwd]
+                      update $ AddUser id (UserData e Nothing DefaultPasteSettings)
+                      htmlBody [activationHsp pwd]
 
-                  m -> xmlResponse $ htmlBody login [activationErrorHsp $ Just (show m)]
+                  m -> htmlBody [activationErrorHsp $ Just (show m)]
 
-         _ -> xmlResponse $ htmlBody login [activationErrorHsp $ Just "Invalid user/activation key."]
+         _ -> htmlBody [activationErrorHsp $ Just "Invalid user/activation key."]
 
 
 activationHsp :: String -> HSP XML
