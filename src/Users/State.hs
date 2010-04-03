@@ -211,9 +211,21 @@ setRequestedEmail uid newEmail akey =
                    in u { userData = M.alter f uid $ userData u }
 
 setNewEmail :: Auth.UserId
-            -> String           -- ^ activation key
+            -> Maybe String           -- ^ activation key
             -> Update Users Bool
-setNewEmail uid akey = do
+setNewEmail uid Nothing = do
+
+    ud <- asks userData
+    case M.lookup uid ud of
+
+         Just _ -> do
+             modify $ \u -> let f (Just ud) = Just ud { userEmailRequested = Nothing }
+                                f ud        = ud
+                            in u { userData = M.alter f uid $ userData u }
+             return True
+         _ -> return False
+
+setNewEmail uid (Just akey) = do
 
     ud <- asks userData
     case M.lookup uid ud of

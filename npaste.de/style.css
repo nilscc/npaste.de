@@ -201,7 +201,19 @@ div#main
     div#main .error
     {
         font-weight: bold;
-        color: #f00
+        color: #c20;
+    }
+
+    div#main .success
+    {
+        font-weight: bold;
+        color: #0a0;
+    }
+
+    div#main .info
+    {
+        font-weight: bold;
+        font-style: italic;
     }
 
     div#main pre
@@ -309,6 +321,27 @@ div#main
     }
 
     div#main form#login-form p input
+    {
+        display: inline-block;
+    }
+
+/* }}} */
+
+/* {{{ Profile */
+
+    div#main form#profile-form p span.desc
+    {
+        display: inline-block;
+        font-weight: bold;
+        width: 200px;
+    }
+
+    div#main form#profile-form p.radio
+    {
+        font-weight: bold;
+    }
+
+    div#main form#profile-form p input
     {
         display: inline-block;
     }

@@ -12,5 +12,6 @@ profileControl = msum
 
     [ profileUpdate
     , profileActivateEmail
+    , profileCancelActivation
     , profileShow
     ]

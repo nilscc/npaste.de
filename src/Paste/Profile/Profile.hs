@@ -4,6 +4,7 @@ module Paste.Profile.Profile
     ( profileShow
     , profileUpdate
     , profileActivateEmail
+    , profileCancelActivation
     ) where
 
 import Control.Monad
@@ -50,7 +51,8 @@ profileShow = do
                       Just ud <- query $ UserDataByUserId uid
 
                       emailOpt <- case userEmailRequested ud of
-                                       Just (emailReq,_) -> return $ Just <p class="info">An activation key has been sent to <em><% emailReq %></em>.</p>
+                                       Just (emailReq,_) -> return $ Just <p class="info">An activation key has been sent to <% emailReq %>.
+                                                                            <a href="/?view=profile&remove-requested-email=yes">Cancel activation.</a></p>
                                        _                 -> return Nothing
                       htmlBody [profileHsp $ Profile (userEmail ud)
                                                      emailOpt
@@ -114,7 +116,8 @@ profileUpdate = do
     emailOpt <- if null newEmail || newEmail == userEmail ud
 
                    then case userEmailRequested ud of
-                             Just (emailReq,_) -> return $ Just <p class="info">An activation key has been sent to <em><% emailReq %></em>.</p>
+                             Just (emailReq,_) -> return $ Just <p class="info">An activation key has been sent to <% emailReq %>.
+                                 <a href="/?view=profile&remove-requested-email=yes">Cancel activation.</a></p>
                              _                 -> return Nothing
 
                    else do
@@ -186,7 +189,7 @@ profileActivateEmail = do
 
                   Just Auth.SessionData { Auth.sesUid = uid } -> do
 
-                      succ <- update $ SetNewEmail uid akey
+                      succ <- update $ SetNewEmail uid (Just akey)
 
                       if succ
                          then htmlBody [profileEmailActivatedHsp]
@@ -200,7 +203,8 @@ profileEmailActivatedHsp :: HSP XML
 profileEmailActivatedHsp =
     <div id="main">
         <h1>Email activated</h1>
-        <p>Your new email has been activated. You can change the rest of your settings in <a href="/?view=profile">your profile</a>.</p>
+        <p>Your new email has been activated.<br />
+            You can change the rest of your settings in <a href="/?view=profile">your profile</a>.</p>
     </div>
 
 profileEmailInvalidActivationKeyHsp :: HSP XML
@@ -209,6 +213,43 @@ profileEmailInvalidActivationKeyHsp =
         <h1>Invalid activation key</h1>
         <p>Your activation key is invalid. Make sure you copied the correct link.</p>
     </div>
+
+
+--------------------------------------------------------------------------------
+-- | Remove an activation key
+
+profileCancelActivation :: ServerPart Response
+profileCancelActivation = do
+
+    methodM GET
+
+    guard =<< ((Just "yes" ==) `fmap` getDataQueryFn (look "remove-requested-email"))
+
+    login <- getLogin
+    case login of
+
+         LoggedInAs skey -> do
+             sdata <- query $ Auth.GetSession skey
+             case sdata of
+
+                  Just Auth.SessionData { Auth.sesUid = uid } -> do
+
+                      update $ SetNewEmail uid Nothing
+                      htmlBody [profileRequestedEmailRemovedHsp]
+
+                  _ -> mzero
+         _ -> mzero
+
+profileRequestedEmailRemovedHsp :: HSP XML
+profileRequestedEmailRemovedHsp =
+    <div id="main">
+        <h1>Requested email removed</h1>
+        <p>Your request to change your email address has been canceled.<br />
+            You can change the rest of your settings in <a href="/?view=profile">your profile</a>.</p>
+    </div>
+
+
+
 
 --------------------------------------------------------------------------------
 -- | HSP
