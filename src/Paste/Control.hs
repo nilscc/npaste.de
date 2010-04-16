@@ -16,6 +16,7 @@ import Paste.Post.NewPaste
 import Paste.Login.Control
 import Paste.Register.Control
 import Paste.Profile.Control
+import Paste.MyPastes.Control
 
 import Util.Control
 
@@ -42,6 +43,7 @@ viewHandler s
 
     | view == "logout"      = withLogin     logoutControl
     | view == "profile"     = withLogin     profileControl
+    | view == "mypastes"    = withLogin     myPastesControl
 
     | otherwise             = showIndex
   where view = map toLower s

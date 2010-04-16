@@ -25,7 +25,7 @@ entries uname =
                _      -> []) ++
 
     [ WithoutLogin  <p><a href="/?view=login">Login</a> or <a href="/?view=register">Register</a></p>
-    , WithLogin     <p><a href="/?view=my">My pastes</a></p>
+    , WithLogin     <p><a href="/?view=mypastes">My pastes</a></p>
     , WithLogin     <p><a href="/?view=profile">My profile</a></p>
     , WithLogin     <p><a href="/?view=logout">Logout</a></p>
     , Always        <hr />

@@ -15,12 +15,14 @@ import Happstack.Data.IxSet
 
 import Paste.State.ID               (ID (..))
 import Paste.State.PasteDB
+import Paste.State.PasteEntry
 
 -- For migration:
 import qualified Paste.State.Old.Paste3 as Old
 import qualified Paste.State.Old.PasteEntry6 as OldPE
+import qualified Paste.State.Old.PasteEntry7 as OldPE7
 
-$(deriveAll [''Show, ''Default]
+$(deriveAll [''Show]
     [d|
 
         -- | Paste: A list of all PasteEntry with the last used ID
@@ -46,3 +48,6 @@ instance Migrate Old.Paste Paste where
         Paste (foldr insert empty . map migrate $ M.elems entries)
               hosts
               (M.fromList . map (\entry -> (OldPE.pId entry, OldPE.responses entry)) $ M.elems entries)
+
+instance Migrate OldPE.PasteEntry PasteEntry where
+    migrate old = migrate (migrate old :: OldPE7.PasteEntry)

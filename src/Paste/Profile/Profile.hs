@@ -52,7 +52,7 @@ profileShow = do
 
                       emailOpt <- case userEmailRequested ud of
                                        Just (emailReq,_) -> return $ Just <p class="info">An activation key has been sent to <% emailReq %>.
-                                                                            <a href="/?view=profile&remove-requested-email=yes">Cancel activation.</a></p>
+                                                                            <a href="/?view=profile&remove-requested-email=yes">Cancel activation</a>.</p>
                                        _                 -> return Nothing
                       htmlBody [profileHsp $ Profile (userEmail ud)
                                                      emailOpt
@@ -117,14 +117,15 @@ profileUpdate = do
 
                    then case userEmailRequested ud of
                              Just (emailReq,_) -> return $ Just <p class="info">An activation key has been sent to <% emailReq %>.
-                                 <a href="/?view=profile&remove-requested-email=yes">Cancel activation.</a></p>
+                                                                    <a href="/?view=profile&remove-requested-email=yes">Cancel activation</a>.</p>
                              _                 -> return Nothing
 
                    else do
                        akey <- randomString 30
                        liftIO $ sendSimpleMessages "10.8.0.1" "npaste.de" [activationMail uname (NameAddr (Just uname) newEmail) akey]
                        update $ SetRequestedEmail uid newEmail akey
-                       return $ Just <p class="success">An activation key has been send to your new email address.</p>
+                       return $ Just <p class="success">An activation key has been sent to <% newEmail %>.
+                                        <a href="/?view=profile&remove-requested-email=yes">Cancel activation</a>.</p>
 
     -- Change default paste settings
     newPaste <- getDataBodyFn $ look "new-pastes"
@@ -203,8 +204,8 @@ profileEmailActivatedHsp :: HSP XML
 profileEmailActivatedHsp =
     <div id="main">
         <h1>Email activated</h1>
-        <p>Your new email has been activated.<br />
-            You can change the rest of your settings in <a href="/?view=profile">your profile</a>.</p>
+        <p>Your new email has been activated.</p>
+        <p>You can change the rest of your settings in <a href="/?view=profile">your profile</a>.</p>
     </div>
 
 profileEmailInvalidActivationKeyHsp :: HSP XML
@@ -243,9 +244,9 @@ profileCancelActivation = do
 profileRequestedEmailRemovedHsp :: HSP XML
 profileRequestedEmailRemovedHsp =
     <div id="main">
-        <h1>Requested email removed</h1>
-        <p>Your request to change your email address has been canceled.<br />
-            You can change the rest of your settings in <a href="/?view=profile">your profile</a>.</p>
+        <h1>Email activation canceled</h1>
+        <p>Your request to change your email address has been canceled.</p>
+        <p>You can change the rest of your settings in <a href="/?view=profile">your profile</a>.</p>
     </div>
 
 

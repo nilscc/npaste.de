@@ -4,6 +4,7 @@ module Paste.Post.NewPaste
 
 import Happstack.Server
 import Happstack.State
+import qualified Happstack.Auth as Auth
 
 import Control.Monad.Error
 
@@ -25,7 +26,8 @@ import Text.Highlighting.Kate                       (languagesByExtension, langu
 import qualified Paste.Parser.Description as PPD
 import Paste.View.Index (showIndex')
 import Paste.State
-import Paste.Types                                  (PostError (..))
+import Paste.Types
+import Util.Control
 
 -- | Remove any trailing white space characters
 stripSpaces :: String -> String
@@ -105,20 +107,24 @@ post = do
                     _ -> Nothing
     unless (null $ drop 300 (fromMaybe "" desc)) (throwError $ DescriptionTooBig 300)
 
-    {-
     -- get and validate user
-    mUser       <- getDataBodyFn $ look "user"
-    mPassword   <- getDataBodyFn $ look "password"
-    let user'   = fromMaybe "" mUser
-        passwd' = fromMaybe "" mPassword
-    userReply <- query $ Validate' user' passwd'
-    validUser <- case userReply of
-                      OK user                        -> return $ Just user
-                      _ | null user' && null passwd' -> return Nothing
-                      WrongLogin                     -> throwError WrongUserLogin
-                      WrongPassword                  -> throwError WrongUserPassword
-                      _                              -> throwError $ OtherPostError "User validation failed."
-    -}
+    login <- getLogin
+    uid   <- case login of
+
+                  LoggedInAs skey -> do
+                      sdata <- query $ Auth.GetSession skey
+                      case sdata of
+                           Just (Auth.SessionData uid _) -> return $ Just uid
+                           _                             -> return Nothing
+
+                  NotLoggedIn -> do
+                      user       <- fromMaybe "" `fmap` getDataBodyFn (look "user")
+                      password   <- fromMaybe "" `fmap` getDataBodyFn (look "password")
+                      muser      <- query $ Auth.AuthUser user password
+                      case muser of
+                           Just Auth.User { Auth.userid = uid } -> return $ Just uid
+                           _ | null user && null password       -> return Nothing
+                             | otherwise                        -> throwError WrongLogin
 
     -- check if the content is already posted by our user
     peByMd5 <- query $ GetPasteEntryByMd5sum {- validUser -} md5content
@@ -167,7 +173,7 @@ post = do
 
     update $ AddPaste PasteEntry { date          = PDate         $ ctime
                                  , content       = PContent      $ File filepath
-                                 , user          = PUser         $ Nothing
+                                 , user          = PUser         $ uid
                                  , pId           = PId           $ id
                                  , filetype      = PFileType     $ filetype'
                                  , md5hash       = PHash         $ md5content

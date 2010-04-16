@@ -68,3 +68,20 @@ getLogin = do
                   _ -> return NotLoggedIn
 
          _ -> return NotLoggedIn
+
+requireLogin :: (Functor m, MonadIO m, ServerMonad m, MonadPlus m)
+             => m (Auth.UserId, Auth.Username)
+requireLogin = do
+
+    login <- getLogin
+    case login of
+
+         LoggedInAs skey -> do
+
+             sdata <- query $ Auth.GetSession skey
+             case sdata of
+
+                  Just (Auth.SessionData uid uname) -> return (uid,uname)
+                  _ -> mzero
+
+         _ -> mzero

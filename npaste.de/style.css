@@ -207,7 +207,7 @@ div#main
     div#main .success
     {
         font-weight: bold;
-        color: #0a0;
+        font-style: italic;
     }
 
     div#main .info
@@ -220,6 +220,11 @@ div#main
     {
         margin: 10px 30px 10px;
         font-weight: bold;
+    }
+
+    div#main p.moreless
+    {
+        text-align: right;
     }
 
 /* {{{ Pasteform */

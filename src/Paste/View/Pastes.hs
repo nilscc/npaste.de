@@ -14,9 +14,9 @@ import Happstack.State
 import HSP
 import Text.Highlighting.Kate
 import qualified HSX.XMLGenerator   as HSX
-
 import Control.Monad
 import Control.Monad.Trans
+import Text.Pandoc                  (readMarkdown, defaultParserState, ParserState (..))
 
 import Data.Char
 import Data.Maybe
@@ -117,10 +117,10 @@ data Description = Description (S.Set ID) String
 instance (XMLGenerator m, EmbedAsChild m XML, HSX.XML m ~ XML) => (EmbedAsChild m PasteView) where
     asChild pview@(PasteView { pasteEntries = pes }) =
         <% map `flip` pes $ \ PasteEntry { content = content'
-                                      , filetype = filetype'
-                                      , description = description'
-                                      , pId = pId'
-                                      } ->
+                                         , filetype = filetype'
+                                         , description = description'
+                                         , pId = pId'
+                                         } ->
             let
                 content     = case unPContent content' of
                                    Plain text -> text
@@ -130,15 +130,21 @@ instance (XMLGenerator m, EmbedAsChild m XML, HSX.XML m ~ XML) => (EmbedAsChild 
                 pId         = unPId pId'
                 id          = unId pId
                 -- parsedDesc  = PPD.parseDesc $ fromMaybe "" description
+
                 langOptions l
                     | l == language = <option selected="selected"><% l ++ " (current)" %></option>
                     | otherwise     = <option><% l %></option>
-                language = language' . fromMaybe "" $ unPFileType filetype'
+
+                language    = language' $ fromMaybe "" (unPFileType filetype')
+
+                language' s
+                    | s `elem` ["Render Markdown", "render-markdown"] = "Render Markdown"
                 language' s =
                     case find ((map toLower s ==) . map toLower) languages of
                          Just l -> l
                          _ | not (null $ languagesByExtension s) -> head $ languagesByExtension s
                            | otherwise                           -> "Text"
+
             in
             <%
                 [
@@ -164,31 +170,40 @@ instance (XMLGenerator m, EmbedAsChild m XML, HSX.XML m ~ XML) => (EmbedAsChild 
                             <select size="1" class="languages" id=("languages-" ++ id)
                               onchange=("menu = document.getElementById('languages-" ++ id ++ "'); window.location = menu.options[menu.selectedIndex].text")>
                                 <%
-                                    map langOptions ("Text" : languages)
+                                    map langOptions ("Text" : "Render Markdown" : languages)
                                 %>
                             </select>
 
                         </div>
                     </div>
-                ,   -- Source code
-                    <table class="sourceCode">
-                        <tr>
-                            <td class="lineNumbers">
-                                <pre><%
-                                    let clickable n = <a href=("#n" ++ n) class="no" name=("n" ++ n) id=("n" ++ n)><% n ++ "\n" %></a>
-                                    in map clickable . map (fst) $ zip (map show [(1 :: Int)..]) (lines content)
-                                %></pre>
-                            </td>
-                            <td class="sourceCode">
-                                <%
-                                    case highlightAs language content of
-                                         Left _   -> <pre><% "\n" ++ content %></pre>
-                                         Right sl -> htmlToXml $ formatAsXHtml [] language sl
-                                %>
-                            </td>
-                        </tr>
-                    </table>
                 ]
+                ++ case language of
+                        "Render Markdown" ->
+                            [
+                                <div class="renderedText">
+                                    <% pandocToXml $ readMarkdown defaultParserState { stateSanitizeHTML = True } content %>
+                                </div>
+                            ]
+                        _                 ->
+                            [
+                                <table class="sourceCode">
+                                    <tr>
+                                        <td class="lineNumbers">
+                                            <pre><%
+                                                let clickable n = <a href=("#n" ++ n) class="no" name=("n" ++ n) id=("n" ++ n)><% n ++ "\n" %></a>
+                                                in map clickable . map (fst) $ zip (map show [(1 :: Int)..]) (lines content)
+                                            %></pre>
+                                        </td>
+                                        <td class="sourceCode">
+                                            <%
+                                                case highlightAs language content of
+                                                     Left _   -> <pre><% "\n" ++ content %></pre>
+                                                     Right sl -> htmlToXml $ formatAsXHtml [] language sl
+                                            %>
+                                        </td>
+                                    </tr>
+                                </table>
+                            ]
             %>
         %>
 

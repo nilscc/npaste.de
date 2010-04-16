@@ -12,7 +12,7 @@ module Paste.State
     , GetAllIds (..)
     , GetPasteById (..)
     , GenerateId (..)
-    -- , GetPastesByUser (..)
+    , GetPastesByUser (..)
     , GetPasteEntryByMd5sum (..)
 
     , AddResponse (..)
@@ -51,10 +51,11 @@ import Happstack.Data.IxSet
 import Happstack.State
 import Happstack.State.ClockTime
 import Happstack.Crypto.MD5         (md5)
+import qualified Happstack.Auth     as Auth
 
 import System.Time
 
-import Control.Monad.Reader         (ask)
+import Control.Monad.Reader         (ask, asks)
 import Control.Monad.State          (modify)
 
 import Data.Maybe                   (fromMaybe)
@@ -90,13 +91,10 @@ md5string = BS.concat . BS8.toChunks . md5 . BS8.pack
 
 -- | Get a paste by ID
 getPasteById :: ID -> Query Paste (Maybe PasteEntry)
-getPasteById id = ask >>= return . getOne . (@= PId id)  . pasteDB
+getPasteById id = asks pasteDB >>= return . getOne . (@= PId id)
 
-{-
--- | Get all pastes of a user
-getPastesByUser :: Maybe User -> Query Paste (S.Set PasteEntry)
-getPastesByUser u = ask >>= return . toSet . (@= PUser u) . pasteDB
--}
+getPastesByUser :: Maybe Auth.UserId -> Query Paste (S.Set PasteEntry)
+getPastesByUser u = asks pasteDB >>= return . toSet . (@= PUser u)
 
 -- | Get all entries
 getAllEntries :: Query Paste (S.Set PasteEntry)
@@ -290,7 +288,7 @@ $(mkMethods ''Paste
     , 'addKnownHost
     , 'clearKnownHosts
     , 'getClockTimeByHost
-    -- , 'getPastesByUser
+    , 'getPastesByUser
     , 'getPasteById
     , 'getPasteEntryByMd5sum
     , 'generateId

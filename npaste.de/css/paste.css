@@ -34,6 +34,7 @@ div.topmenu
         float: left;
         display: inline-block;
         margin-top: 3px;
+        text-align: left;
     }
 
     div.topmenu div.left *
@@ -90,10 +91,16 @@ div.topmenu
         content: "]";
     }
 
-    table.sourceCode
+    table.sourceCode,
+    div.renderedText
     {
         clear: both;
         margin-bottom: 75px;
+    }
+
+    div.renderedText
+    {
+        margin-left: 20px;
     }
 
 /* }}} */

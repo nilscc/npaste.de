@@ -20,7 +20,7 @@ import qualified Paste.State.Old.Paste4 as Old
 
 type Hostname = String
 
-$(deriveAll [''Show, ''Default]
+$(deriveAll [''Show]
     [d|
 
         -- | Paste: A list of all PasteEntry with the last used ID

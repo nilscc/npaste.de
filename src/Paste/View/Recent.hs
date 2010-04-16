@@ -3,6 +3,11 @@
 
 module Paste.View.Recent
     ( showRecent
+
+    -- * Internal stuff
+    , RecentPaste (..) -- XML instance :)
+    , sortByDate
+    , makeRecent
     ) where
 
 import Data.List                (sortBy)
@@ -26,16 +31,13 @@ showRecent = do
 
     pastes      <- query $ GetAllEntries
 
-    let
-        -- getLast :: Int -> [a] -> [a]
-        -- getLast n l = fst . flip (foldr `flip` ([],0)) l $ \ pe rest@(ls, x) -> if x < n then (ls ++ [pe], x+1) else rest
-
-        sortByDate = sortBy $ \p1 p2 -> (date p2) `compare` (date p1)
-
     recent      <- mapM makeRecent . take 5 . sortByDate . S.toAscList . S.filter (not . unPHide . hide) $ pastes
 
     htmlBody [recentHsp recent Nothing]
 
+
+sortByDate :: [PasteEntry] -> [PasteEntry]
+sortByDate = sortBy $ \p1 p2 -> (date p2) `compare` (date p1)
 
 
 --------------------------------------------------------------------------------
@@ -70,7 +72,7 @@ makeRecent pe = do
 recentHsp :: [RecentPaste] -> Maybe String -> HSP XML
 recentHsp entries user =
     <div id="main">
-        <h1>Recent pastes<% maybe "" (" of " ++) user %>:</h1>
+        <h1>Recent pastes<% maybe "" (" of " ++) user %></h1>
         <%
             if null entries
                then <% <p>Nothing pasted yet. Be the <a href="/">first</a>!</p> %>

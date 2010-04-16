@@ -18,8 +18,7 @@ data PostError = MD5Exists PasteEntry   -- ^ md5 of a paste entry already exists
                -- | NoUser                 -- ^ no user given
                | NoPassword             -- ^ no password given
                | NoContent              -- ^ no content given
-               | WrongUserLogin         -- ^ wrong login name
-               | WrongUserPassword      -- ^ wrong password
+               | WrongLogin             -- ^ wrong login name
                | InvalidID              -- ^ invalid ID
                | IsSpam
                -- | NoError IDType         -- ^ URL of paste
@@ -35,8 +34,7 @@ instance Show PostError where
     show NoPassword         = "No password given."
     show (ContentTooBig ms) = "Content size too big (max " ++ show ms ++ "kb)."
     show (DescriptionTooBig n) = "Description too big (max " ++ show n ++ " chars)."
-    show WrongUserLogin     = "Wrong login name."
-    show WrongUserPassword  = "Wrong password."
+    show WrongLogin         = "Wrong username/password."
     show InvalidID          = "Invalid ID."
     show IsSpam             = "Something went wrong." -- we don't want to let everybody know :)
     show (OtherPostError s) = s
