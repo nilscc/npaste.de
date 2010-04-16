@@ -30,7 +30,7 @@ executable npaste
         parsec == 2.1.*,
         filepath == 1.1.*,
         directory == 1.*,
-        hsemail == 1.3,
+        hsemail == 1.*,
         hsx == 0.*,
         regex-compat == 0.92,
         happstack == 0.4.*,
