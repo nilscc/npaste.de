@@ -6,15 +6,18 @@ module Paste.View.Index
     , indexHsp
     ) where
 
+import Control.Monad
 import Data.Maybe                       (fromMaybe, isJust)
-
 import HSP
-
 import Happstack.Server
-
+import Happstack.State
 import Text.Highlighting.Kate           (languages)
 
+import qualified Data.Map as M
+
 import Paste.View
+import Users.State
+import Util.Control
 
 --------------------------------------------------------------------------------
 -- ServerPartT stuff
@@ -34,7 +37,14 @@ showIndex' err = do
     id          <- getDataBodyFn $ look "id"
     filetype    <- getDataBodyFn $ look "filetype"
 
-    htmlBody [indexHsp err content description filetype idT id]
+    pastesettings <- msum
+        [ do
+            (uid,_) <- requireLogin
+            fmap defaultPasteSettings `fmap` query (UserDataByUserId uid)
+        , return Nothing
+        ]
+
+    htmlBody [indexHsp err content description filetype idT id pastesettings]
 
 
 
@@ -50,8 +60,8 @@ type IdType = Maybe String
 type Id = Maybe String
 
 -- body
-indexHsp :: ErrorMsg -> Content -> Description -> Filetype -> IdType -> Id -> HSP XML
-indexHsp err content description filetype idtype id =
+indexHsp :: ErrorMsg -> Content -> Description -> Filetype -> IdType -> Id -> Maybe PasteSettings -> HSP XML
+indexHsp err content description filetype idtype id pastesettings =
             <div id="main">
                 <h1>New Paste</h1>
                 <p>To add a new paste you can either get the <a href="/?view=download">client</a>, use curl with...
@@ -72,19 +82,35 @@ indexHsp err content description filetype idtype id =
                             <% map langSelect langOptions %>
                         </select>
                         <select size="1" name="id-type" selected="2">
-                            <% map idSelect idTypeOptions %>
+                            <% map idSelect $ map snd idTypeOptions %>
                         </select>
                         <input type="text" name="id" id="id" value=(fromMaybe "" id) />
-                        <input type="checkbox" name="hide" id="hide" value="hide" /> Hide from recent pastes
+                        <% case pastesettings of
+                                Just DefaultPasteSettings -> <input type="checkbox" name="hide" id="hide" value="hide" />
+                                _                         -> <input type="checkbox" name="hide" id="hide" value="hide" checked="checked" />
+                            %> Hide from recent pastes
                         <input type="submit" name="submit" id="submit"/>
                         <input type="text" style="display: none;" name="email" id="email"/> -- invisible anti-spam input
                     </p>
                 </form>
             </div>
 
-  where idTypeOptions = ["Default ID", "Random ID", "Custom ID"]
-        idSelect l | l == (fromMaybe "" idtype) = <option selected="selected"><% l %></option>
-                   | otherwise = <option><% l %></option>
+  where idTypeOptions = [ (Just DefaultPasteSettings, "Default ID")
+                        , (Just HideAndRandom, "Random ID")
+                        , (Nothing, "Custom ID")
+                        ]
+
+        idSelect l
+            -- Try to use default paste settings if idtype is Nothing or empty
+            | not ((fromMaybe "" idtype) `elem` map snd idTypeOptions)
+                && isJust pastesettings
+                && Just l == M.lookup pastesettings (M.fromList idTypeOptions) =
+
+                    <option selected="selected"><% l %></option>
+
+            -- Otherwise compare:
+            | l == (fromMaybe "" idtype) = <option selected="selected"><% l %></option>
+            | otherwise                  = <option><% l %></option>
 
         langOptions   = ("Text" : "Render Markdown" : optSeparator : languages ++ [optSeparator])
         langSelect l | l == (fromMaybe "" filetype) = <option selected="selected"><% l %></option>

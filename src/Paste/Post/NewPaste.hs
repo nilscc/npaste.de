@@ -143,7 +143,7 @@ post = do
         -- see if this is supposed to be a non public paste, hide random ids
         hide = isJust mHide || idT' `elem` randomIds
 
-        idT | idT' `elem` defaultIds && not hide                        = DefaultID
+        idT | idT' `elem` defaultIds                                    = DefaultID
             | (idT' `elem` defaultIds && hide) || idT' `elem` randomIds = RandomID 10
             | otherwise                                                 = CustomID . ID $ fromMaybe "" mId
     id <- query $ GenerateId {- validUser -} idT

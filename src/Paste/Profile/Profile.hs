@@ -140,6 +140,10 @@ profileUpdate = do
                             update $ SetDefaultPasteSetting uid HideNewPastes
                             return $ Just <p class="success">Settings changed.</p>
 
+                        | t == "random"  && defaultPasteSettings ud /= HideAndRandom -> do
+                            update $ SetDefaultPasteSetting uid HideAndRandom
+                            return $ Just <p class="success">Settings changed.</p>
+
                      _ -> return Nothing
 
     Just ud <- query $ UserDataByUserId uid
@@ -276,7 +280,8 @@ profileHsp profile =
             <% pasteOpts profile %>
             <p class="radio">
                 <% makeRadio "default" (== DefaultPasteSettings) %> Use default IDs<br />
-                <% makeRadio "hidden"  (== HideNewPastes)        %> Hide new pastes and use random IDs
+                <% makeRadio "hidden"  (== HideNewPastes)        %> Hide new pastes<br />
+                <% makeRadio "random"  (== HideAndRandom)        %> Hide new pastes and use random IDs
             </p>
 
             <p><input type="submit" name="submit" value="Submit changes" /> <input type="reset" name="reset" value="Reset changes" /></p>
