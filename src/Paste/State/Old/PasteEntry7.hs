@@ -3,14 +3,14 @@
     TypeSynonymInstances, UndecidableInstances
     #-}
 
-module Paste.State.PasteEntry ( PasteEntry (..) ) where
+module Paste.State.Old.PasteEntry7 ( PasteEntry (..) ) where
 
 import Happstack.Data
 
-import Paste.State.NewTypes
-import qualified Paste.State.Old.PasteEntry7 as Old
+import Paste.State.Old.NewTypes0
+import qualified Paste.State.Old.PasteEntry6 as Old
 
-$(deriveAll [''Show, ''Eq, ''Ord]
+$(deriveAll [''Show, ''Eq, ''Ord, ''Default]
     [d|
 
         -- | PasteEntry: Simple paste entry
@@ -30,16 +30,16 @@ $(deriveAll [''Show, ''Eq, ''Ord]
 
 $(deriveSerialize ''PasteEntry)
 instance Version PasteEntry where
-    mode = extension 8 (Proxy :: Proxy Old.PasteEntry)
+    mode = extension 7 (Proxy :: Proxy Old.PasteEntry)
 
 instance Migrate Old.PasteEntry PasteEntry where
-    migrate (Old.PasteEntry puser pid pdate pcontent phash pfiletype pdesc phide ptags) =
-        PasteEntry (migrate puser)
-                   pid
-                   pdate
-                   pcontent
-                   phash
-                   pfiletype
-                   pdesc
-                   phide
-                   ptags
+    migrate (Old.PasteEntry u i d c md f _ desc hi ta _) =
+        PasteEntry (PUser u)
+                   (PId i)
+                   (PDate d)
+                   (PContent c)
+                   (PHash md)
+                   (PFileType f)
+                   (PDescription desc)
+                   (PHide hi)
+                   (PTags ta)

@@ -12,7 +12,6 @@ import Happstack.State
 import Happstack.State.ClockTime    (ClockTime (..))
 
 import Paste.State.ID               (ID (..))
-import Paste.State.PasteEntry       (PasteEntry (..))
 
 -- For migration:
 import qualified Paste.State.Old.Paste1 as Old

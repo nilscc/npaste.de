@@ -6,13 +6,10 @@ module Paste.View.Faq
     ) where
 
 import HSP
-import Happstack.Server
 import Text.Pandoc          (readMarkdown, defaultParserState)
+import Happstack.Server
 
-import App.View             (xmlResponse, HtmlBody (..), pandocToXml)
-import Paste.View           (htmlOpts, getLogin)
-import Paste.View.Menu      (menuHsp)
-import Paste.Types          (LoggedIn (..))
+import Paste.View
 
 faqs :: [Faq]
 faqs =
@@ -36,9 +33,8 @@ faqs =
 
  ]
 
-showFaq = do
-    loggedInAs  <- getLogin
-    xmlResponse $ HtmlBody htmlOpts [menuHsp loggedInAs, faqHsp]
+showFaq :: ServerPart Response
+showFaq = htmlBody [faqHsp]
 
 data Faq = Faq { question :: String
                , answer   :: String
@@ -52,6 +48,7 @@ instance (XMLGenerator m, EmbedAsChild m XML) => (EmbedAsChild m Faq) where
             ]
         %>
 
+faqHsp :: HSP XML
 faqHsp =
     <div id="main">
         <h1>FAQ - Frequently Asked Questions</h1>

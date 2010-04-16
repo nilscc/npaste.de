@@ -4,10 +4,10 @@
     UndecidableInstances, TypeOperators
     #-}
 
-module Users.State.UserReply ( UserReply (..) ) where
+module Users.State.Old.UserReply ( UserReply (..) ) where
 
 import Happstack.Data
-import Users.State.User ( User )
+import Users.State.Old.User2 ( User )
 
 import qualified Users.State.Old.UserReply0 as Old
 

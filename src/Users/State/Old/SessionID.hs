@@ -3,10 +3,9 @@
     UndecidableInstances, TypeOperators
     #-}
 
-module Users.State.SessionID ( SessionID (..) ) where
+module Users.State.Old.SessionID ( SessionID (..) ) where
 
 import Happstack.Data
-import Happstack.Server.HTTP.Types (Host)
 
 $(deriveAll [''Show, ''Eq, ''Ord, ''Read, ''Default]
   [d|

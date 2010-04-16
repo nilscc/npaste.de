@@ -9,7 +9,7 @@ import Happstack.Data
 import Happstack.Server.HTTP.Types      (Host)
 import Happstack.State.ClockTime        (ClockTime (..))
 
-import Users.State                      (User (..))
+import Users.State.Old.User2            (User (..))
 import Paste.State.ID                   (ID (..))
 import Paste.State.Content              (Content (..))
 

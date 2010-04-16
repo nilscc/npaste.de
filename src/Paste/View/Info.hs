@@ -8,43 +8,42 @@ module Paste.View.Info
 import Control.Monad.Trans      (liftIO)
 
 import qualified Data.Set as S
+import qualified Data.Map as M
 
 import HSP
+import Happstack.Data.IxSet (size)
 import Happstack.Server
-import Happstack.State          (query, update)
+import Happstack.State
+import qualified Happstack.Auth as Auth
 
-import System.Time              (ClockTime (..), toUTCTime, calendarTimeToString, getClockTime)
+import System.Time
 
-import Paste.View               (htmlBody, getLogin, xmlResponse)
-import Paste.State              (GetAllEntries (..))
-
-import Users.State              (GetAllUsers (..), User (..), RemoveInactiveUsers (..))
+import Paste.View
+import Paste.State
+import Users.State
 
 showInfo :: ServerPart Response
 showInfo = do
-    login       <- getLogin
+
     now         <- liftIO getClockTime
     update $ RemoveInactiveUsers
-    pentries    <- query $ GetAllEntries
-    users       <- query $ GetAllUsers
+
+    pentries    <- query GetAllEntries
+    userdb      <- query Auth.AskUsers
+    users       <- query AskUsers
 
     let info = [ Info "Total number of pastes"  $ show (S.size pentries)
-               , Info "Registered users"        $ show (length users)
-               , Info "Active users"            $ show (length $ filter isActive users)
-               -- , Info "All user names"          $ foldr (\user rest -> (ulogin user) ++ if null rest then rest else (", " ++ rest)) "" users
+               , Info "Registered users"        $ show (size userdb)
+               , Info "Inactive users"          $ show (M.size $ inactiveUsers users)
                ]
 
-    xmlResponse $ htmlBody login [infoHsp now info]
-
-  where ulogin (User login _ _)           = "\"" ++ login ++ "\""
-        ulogin (InactiveUser login _ _ _) = "\"" ++ login ++ "\" (inactive)"
-        isActive (User _ _ _) = True
-        isActive _            = False
+    htmlBody [infoHsp now info]
 
 
 data Info = Info { infoKey :: String
                  , infoVal :: String
                  }
+
 
 --------------------------------------------------------------------------------
 -- HSP definition

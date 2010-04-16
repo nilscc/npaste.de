@@ -1,4 +1,4 @@
-module NumWithBase
+module Util.NumWithBase
     (
     -- * Convertion from Integral
       toBase
@@ -6,8 +6,6 @@ module NumWithBase
     , NumWithBase (..)
     ) where
 
-import qualified Data.Maybe as M
-import qualified Data.List  as L
 
 --------------------------------------------------------------------------------
 -- Internals
@@ -33,13 +31,13 @@ normalize n (x:xs)
 -- Convert a number to NumWithBase
 toBase :: Integral a => a -> a -> NumWithBase a
 toBase n i 
-    | n <  0 = negate $ NumWithBase n (normalize (-n) [i])
-    | n >= 0 = NumWithBase n (normalize n [i])
+    | n <  0    = negate $ NumWithBase n (normalize (-n) [i])
+    | otherwise = NumWithBase n (normalize n [i])
 
 -- Convert a NumWithBase back to a "normal" number
 fromBase :: Integral a => NumWithBase a -> a
-fromBase (NumWithBase n [])     = error "Empty list"
-fromBase (NumWithBase n (x:[])) = x
+fromBase (NumWithBase _ [])     = error "Empty list"
+fromBase (NumWithBase _ (x:[])) = x
 fromBase (NumWithBase n (x:xs)) =
     x + n * fromBase (NumWithBase n xs)
 
@@ -64,7 +62,7 @@ instance Integral a => Num (NumWithBase a) where
     abs         = absNWB
     negate      = negateNWB
     fromInteger = toBase 10 . fromInteger
-    n@(NumWithBase b1 l1) * m@(NumWithBase b2 l2)
+    n@(NumWithBase b1 _) * m@(NumWithBase b2 _)
         | b1 /= b2  = error "Wrong base"
         | otherwise = toBase b1 $ fromBase n * fromBase m
     signum n@(NumWithBase b _) = toBase b . signum $ fromBase n

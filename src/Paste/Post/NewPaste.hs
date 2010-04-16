@@ -4,15 +4,15 @@ module Paste.Post.NewPaste
 
 import Happstack.Server
 import Happstack.State
+import qualified Happstack.Auth as Auth
 
-import Control.Monad.Trans                          (liftIO)
 import Control.Monad.Error
 
 import Codec.Binary.UTF8.Light
 import qualified Data.ByteString.UTF8 as BU
 
 import Data.Char                                    (isSpace, toLower)
-import Data.Maybe                                   (fromJust, isJust, isNothing, fromMaybe, catMaybes)
+import Data.Maybe                                   (isJust, isNothing, fromMaybe, catMaybes)
 import qualified Data.Map as M
 
 import Text.ParserCombinators.Parsec
@@ -21,26 +21,14 @@ import System.Directory                             (createDirectoryIfMissing)
 import System.FilePath                              (pathSeparator)
 import System.Time
 
-import HSP
 import Text.Highlighting.Kate                       (languagesByExtension, languages)
 
 import qualified Paste.Parser.Description as PPD
 import Paste.View.Index (showIndex')
 import Paste.State
-import Paste.Types                                  (PostError (..))
-
+import Paste.Types
 import Users.State
-    ( Validate' (..)
-    , UserReply (..)
-    , User (..)
-    )
-
--- | Remove any trailing white space characters
-stripSpaces :: String -> String
-stripSpaces = init . unlines . map (foldr strip "") . lines . (++ " ")
-  where strip s "" = if isSpace s then "" else [s]
-        strip s r  = s : r
-
+import Util.Control
 
 -- | Handle incoming post data
 newPasteHandler :: ServerPart Response
@@ -53,7 +41,7 @@ newPasteHandler = do
 
     -- check if we used the html form
     mSubmit <- getDataBodyFn $ look "submit"
-    mFiletype <- getDataBodyFn $ look "filetype"
+    -- mFiletype <- getDataBodyFn $ look "filetype"
     let submit = not . null $ fromMaybe "" mSubmit
         -- isTiny | (fromMaybe "" mFiletype) `elem` tinyIds = True
                -- | otherwise = False
@@ -114,20 +102,26 @@ post = do
     unless (null $ drop 300 (fromMaybe "" desc)) (throwError $ DescriptionTooBig 300)
 
     -- get and validate user
-    mUser       <- getDataBodyFn $ look "user"
-    mPassword   <- getDataBodyFn $ look "password"
-    let user'   = fromMaybe "" mUser
-        passwd' = fromMaybe "" mPassword
-    userReply <- query $ Validate' user' passwd'
-    validUser <- case userReply of
-                      OK user                        -> return $ Just user
-                      _ | null user' && null passwd' -> return Nothing
-                      WrongLogin                     -> throwError WrongUserLogin
-                      WrongPassword                  -> throwError WrongUserPassword
-                      _                              -> throwError $ OtherPostError "User validation failed."
+    login <- getLogin
+    uid   <- case login of
+
+                  LoggedInAs skey -> do
+                      sdata <- query $ Auth.GetSession skey
+                      case sdata of
+                           Just (Auth.SessionData uid _) -> return $ Just uid
+                           _                             -> return Nothing
+
+                  NotLoggedIn -> do
+                      user       <- fromMaybe "" `fmap` getDataBodyFn (look "user")
+                      password   <- fromMaybe "" `fmap` getDataBodyFn (look "password")
+                      muser      <- query $ Auth.AuthUser user password
+                      case muser of
+                           Just Auth.User { Auth.userid = uid } -> return $ Just uid
+                           _ | null user && null password       -> return Nothing
+                             | otherwise                        -> throwError WrongLogin
 
     -- check if the content is already posted by our user
-    peByMd5 <- query $ GetPasteEntryByMd5sum validUser md5content
+    peByMd5 <- query $ GetPasteEntryByMd5sum {- validUser -} md5content
     case peByMd5 of
          Just pe -> throwError $ MD5Exists pe
          _       -> return ()
@@ -137,21 +131,32 @@ post = do
     mIdType   <- getDataBodyFn $ look "id-type"
     mHide     <- getDataBodyFn $ look "hide"
 
-    let idT' | null (fromMaybe "" mIdType) = map toLower $ fromMaybe "" mId
-             | otherwise = map toLower $ fromMaybe "" mIdType
+    -- get default paste settings
+    pastesettings <- maybe (return Nothing)
+                           (\uid -> fmap defaultPasteSettings `fmap` query (UserDataByUserId uid))
+                           uid
 
-        -- see if this is supposed to be a non public paste, hide random ids
-        hide = isJust mHide || idT' `elem` randomIds
+    let
+        -- make life easier for clients
+        idT' | null (fromMaybe "" mIdType) = map toLower $ fromMaybe "" mId
+             | otherwise                   = map toLower $ fromMaybe "" mIdType
 
-        idT | idT' `elem` defaultIds && not hide                        = DefaultID
-            | (idT' `elem` defaultIds && hide) || idT' `elem` randomIds = RandomID 10
-            | otherwise                                                 = CustomID . ID $ fromMaybe "" mId
+        -- see if this is supposed to be a non public paste, hide if mId is "rand" or similar
+        hide = isJust mHide
+            || fmap (map toLower) mId `elem` map Just randomIds
+            || pastesettings == Just HideNewPastes
+            || pastesettings == Just HideAndRandom
 
-    id <- query $ GenerateId validUser idT
+        idT | idT' `elem` randomIds                             = RandomID 10
+            | null idT' && pastesettings == Just HideAndRandom  = RandomID 10
+            | idT' `elem` defaultIds                            = DefaultID
+            | otherwise                                         = CustomID . ID $ fromMaybe "" mId
+
+    id <- query $ GenerateId {- validUser -} idT
     when (NoID == id) (throwError InvalidID)
 
     -- save to file
-    let dir      = "pastes" ++ (maybe "" ([pathSeparator] ++) $ liftM userLogin validUser)
+    let dir      = "pastes" ++ (maybe "" (([pathSeparator] ++) . ("@" ++) . show . Auth.unUid) uid)
         filepath = dir ++ [pathSeparator] ++ unId id
     liftIO $ do createDirectoryIfMissing True dir
                 writeUTF8File filepath $ encode content
@@ -172,16 +177,16 @@ post = do
 
     mapM_ (update . AddResponse id) linkList
 
-    idR <- update $ AddPaste PasteEntry { date          = PDate         $ ctime
-                                        , content       = PContent      $ File filepath
-                                        , user          = PUser         $ validUser
-                                        , pId           = PId           $ id
-                                        , filetype      = PFileType     $ filetype'
-                                        , md5hash       = PHash         $ md5content
-                                        , description   = PDescription  $ desc
-                                        , hide          = PHide         $ hide
-                                        , tags          = PTags         $ tagList
-                                        }
+    update $ AddPaste PasteEntry { date          = PDate         $ ctime
+                                 , content       = PContent      $ File filepath
+                                 , user          = PUser         $ uid
+                                 , pId           = PId           $ id
+                                 , filetype      = PFileType     $ filetype'
+                                 , md5hash       = PHash         $ md5content
+                                 , description   = PDescription  $ desc
+                                 , hide          = PHide         $ hide
+                                 , tags          = PTags         $ tagList
+                                 }
 
     -- add to known hosts
     update $ AddKnownHost peer

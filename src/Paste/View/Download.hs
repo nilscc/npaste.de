@@ -8,14 +8,12 @@ import HSP
 import Happstack.Server
 import Data.List                (intercalate)
 
-import Paste.View               (xmlResponse, htmlBody, getLogin)
+import Paste.View
 import Paste.State              (defaultIds, randomIds)
 
 -- | Show download site
 showDownload :: ServerPart Response
-showDownload = do
-    login <- getLogin
-    xmlResponse $ htmlBody login [downloadHsp]
+showDownload = htmlBody [downloadHsp]
 
 
 downloadHsp :: HSP XML

@@ -3,43 +3,42 @@
 
 module Paste.View.Recent
     ( showRecent
+
+    -- * Internal stuff
+    , RecentPaste (..) -- XML instance :)
+    , sortByDate
+    , makeRecent
     ) where
 
-import Control.Monad            (liftM2)
 import Data.List                (sortBy)
 import Data.Maybe
 import qualified Data.Set as S
 
 import HSP
 import Control.Monad.Trans      (liftIO)
-import System.Time              (ClockTime (..), toUTCTime, calendarTimeToString)
+import System.Time
+import System.Locale
 
 import Happstack.Server
 import Happstack.State          (query)
 
-import App.View
-import Users.State
-import Paste.View               (htmlOpts, getLogin)
-import Paste.View.Menu          (menuHsp)
+import Paste.View
 import Paste.View.Pastes
-import Paste.Types              (LoggedIn (..))
 import Paste.State
 
 
+showRecent :: ServerPart Response
 showRecent = do
-    loggedInAs  <- getLogin
+
     pastes      <- query $ GetAllEntries
-
-    let
-        getLast :: Int -> [a] -> [a]
-        getLast n l = fst . flip (foldr `flip` ([],0)) l $ \ pe rest@(ls, x) -> if x < n then (ls ++ [pe], x+1) else rest
-
-        sortByDate = sortBy $ \p1 p2 -> (date p2) `compare` (date p1)
 
     recent      <- mapM makeRecent . take 5 . sortByDate . S.toAscList . S.filter (not . unPHide . hide) $ pastes
 
-    xmlResponse $ HtmlBody htmlOpts [menuHsp loggedInAs, recentHsp recent Nothing]
+    htmlBody [recentHsp recent Nothing]
 
+
+sortByDate :: [PasteEntry] -> [PasteEntry]
+sortByDate = sortBy $ \p1 p2 -> (date p2) `compare` (date p1)
 
 
 --------------------------------------------------------------------------------
@@ -74,7 +73,7 @@ makeRecent pe = do
 recentHsp :: [RecentPaste] -> Maybe String -> HSP XML
 recentHsp entries user =
     <div id="main">
-        <h1>Recent pastes<% maybe "" (" of " ++) user %>:</h1>
+        <h1>Recent pastes<% maybe "" (" of " ++) user %></h1>
         <%
             if null entries
                then <% <p>Nothing pasted yet. Be the <a href="/">first</a>!</p> %>
@@ -94,7 +93,7 @@ instance (XMLGenerator m, EmbedAsChild m XML) => (EmbedAsChild m RecentPaste) wh
                 <p class="paste-info"><a href=id'><% id' %></a> - <%
                     Description ids . fromMaybe "" $ rDesc pe
                 %></p>
-                <p class="paste-date">Pasted at: <% calendarTimeToString . toUTCTime $ rDate pe %></p>
+                <p class="paste-date">Pasted at: <% formatCalendarTime defaultTimeLocale "%H:%M - %a %Y.%m.%d" . toUTCTime $ rDate pe %></p>
                 <pre><% ("\n" ++) . unlines . take 8 . lines $ rCont pe %></pre>
             </div>
         %>

@@ -45,7 +45,7 @@ register nick email
         case user of
              OK user@(InactiveUser login email akey _) -> do
                  -- send email :)
-                 liftIO $ sendSimpleMessages "85.14.216.254" "n-sch.de" [activationMail login (NameAddr (Just login) email) akey]
+                 liftIO $ sendSimpleMessages "127.0.0.1" "n-sch.de" [activationMail login (NameAddr (Just login) email) akey]
 
                  -- remember host
                  rq <- askRq
@@ -74,6 +74,6 @@ activationMail nick to activationkey = SimpleMessage
              ++ "Welcome to npaste.de! To activate your account, please follow this link:\n\n"
              ++ "http://npaste.de/?view=register&user=" ++ nick ++ "&activate=" ++ activationkey ++ "\n\n"
              ++ "You have 48 hours to complete this action.\n"
-             ++ "If you did not request this email please ignore this email. Do not respond to this email.\n\n"
+             ++ "If you did not request this email please ignore it. Do not reply to this email.\n\n"
              ++ "Thank you,\nnpaste.de webmaster"
     }

@@ -1,21 +1,24 @@
 module Paste.Control (pasteHandler) where
 
-import Happstack.State
 import Happstack.Server
 
 import Data.Char            (toLower)
-import Control.Monad        (msum, mzero, MonadPlus)
+import Control.Monad
 
 import Paste.View.Download  (showDownload)
 import Paste.View.Pastes    (showPaste)
 import Paste.View.Index     (showIndex)
-import Paste.View.News      (showNews)
 import Paste.View.Recent    (showRecent)
 import Paste.View.Faq       (showFaq)
-import Paste.View.Register  (showRegister)
 import Paste.View.Info      (showInfo)
+import Paste.Post.NewPaste
 
-import Paste.Post.NewPaste  (newPasteHandler)
+import Paste.Login.Control
+import Paste.Register.Control
+import Paste.Profile.Control
+import Paste.MyPastes.Control
+
+import Util.Control
 
 pasteHandler :: ServerPartT IO Response
 pasteHandler = msum
@@ -28,22 +31,19 @@ pasteHandler = msum
     ]
 
 
+viewHandler :: String -> ServerPart Response
 viewHandler s
     | view == "recent"      = showRecent
     | view == "download"    = showDownload
     | view == "faq"         = showFaq
     | view == "info"        = showInfo
-    -- | view == "register"    = showRegister
-    -- | view == "login"       = showLogin
-    -- | view == "news"        = showNews
+
+    | view == "register"    = withoutLogin  registerControl
+    | view == "login"       = withoutLogin  loginControl
+
+    | view == "logout"      = withLogin     logoutControl
+    | view == "profile"     = withLogin     profileControl
+    | view == "mypastes"    = withLogin     myPastesControl
+
     | otherwise             = showIndex
   where view = map toLower s
-
-
--- | Match on a QUERY element and pass its value to the function
-hQuery :: (ServerMonad m, MonadPlus m) => String -> (String -> m a) -> m a
-hQuery q f = do
-    val <- getDataQueryFn $ look q
-    case val of
-         Just v | not (null v) -> f v
-         _ -> mzero

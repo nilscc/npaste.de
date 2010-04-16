@@ -7,7 +7,7 @@
 module Users.State.Old.UserReply0 ( UserReply (..) ) where
 
 import Happstack.Data
-import Users.State.User ( User )
+import Users.State.Old.User2 ( User )
 
 
 $(deriveAll [''Show, ''Eq, ''Ord, ''Default]

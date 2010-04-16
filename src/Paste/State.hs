@@ -5,6 +5,7 @@
 
 module Paste.State
     ( AddPaste (..)
+    , UpdatePaste (..)
     , AddKnownHost (..)
     , ClearKnownHosts (..)
     , GetClockTimeByHost (..)
@@ -47,22 +48,18 @@ import Paste.State.PasteEntry
 import Paste.State.NewTypes
 
 
-import Happstack.Data
 import Happstack.Data.IxSet
-import Happstack.Server.HTTP.Types  (Host)
 import Happstack.State
 import Happstack.State.ClockTime
 import Happstack.Crypto.MD5         (md5)
+import qualified Happstack.Auth     as Auth
 
-import System.Random
 import System.Time
 
-import Control.Monad                (liftM2, forM)
-import Control.Monad.Reader         (ask)
+import Control.Monad.Reader         (ask, asks)
 import Control.Monad.State          (modify)
 
-import Data.Typeable                (Typeable)
-import Data.Maybe                   (fromJust, fromMaybe)
+import Data.Maybe                   (fromMaybe)
 import qualified Data.List as L
 import qualified Data.Set  as S
 import qualified Data.Map  as M
@@ -70,19 +67,13 @@ import qualified Data.Map  as M
 import qualified Data.ByteString as BS
 import qualified Data.ByteString.Lazy.Char8 as BS8
 
-import Users.State
-    ( User (..)
-    , Password
-    , PasswordPlain
-    , Login
-    )
-
-import NumWithBase
 
 
 -- | Reserved IDs
+validChars :: [Char]
 validChars  = ['0'..'9'] ++ ['A'..'Z'] ++ ['a'..'z']
 
+reservedIds, defaultIds, randomIds, tinyIds, restrictedIds :: [String]
 reservedIds = [ "static", "client" ] ++ defaultIds ++ randomIds ++ tinyIds ++ restrictedIds
 defaultIds  = [ "", "def", "default", "default id", "defaultid" ]
 randomIds   = [ "rand", "random", "random id", "randomid" ]
@@ -101,20 +92,19 @@ md5string = BS.concat . BS8.toChunks . md5 . BS8.pack
 
 -- | Get a paste by ID
 getPasteById :: ID -> Query Paste (Maybe PasteEntry)
-getPasteById id = ask >>= return . getOne . (@= PId id)  . pasteDB
+getPasteById id = asks pasteDB >>= return . getOne . (@= PId id)
 
--- | Get all pastes of a user
-getPastesByUser :: Maybe User -> Query Paste (S.Set PasteEntry)
-getPastesByUser u = ask >>= return . toSet . (@= PUser u) . pasteDB
+getPastesByUser :: Maybe Auth.UserId -> Query Paste (S.Set PasteEntry)
+getPastesByUser u = asks pasteDB >>= return . toSet . (@= PUser u)
 
 -- | Get all entries
 getAllEntries :: Query Paste (S.Set PasteEntry)
 getAllEntries = ask >>= return . toSet . pasteDB
 
 -- | Return ID of an MD5 sum
-getPasteEntryByMd5sum :: Maybe User -> BS.ByteString -> Query Paste (Maybe PasteEntry)
-getPasteEntryByMd5sum u md = ask >>= \Paste { pasteDB = ix } ->
-    return . getOne $ ix @= (PUser u) @= (PHash md)
+getPasteEntryByMd5sum :: {- Maybe User -> -} BS.ByteString -> Query Paste (Maybe PasteEntry)
+getPasteEntryByMd5sum {- u -} md = ask >>= \Paste { pasteDB = ix } ->
+    return . getOne $ ix {- @= (PUser u) -} @= (PHash md)
 
 -- | Return all IDs
 getAllIds :: Query Paste (S.Set ID)
@@ -130,27 +120,28 @@ getAllIds = getAllEntries >>= return . S.map (unPId . pId)
 -- TODO: Handle each users ID separately
 
 -- | General ID generation
-generateId :: Maybe User -> IDType -> Query Paste ID
-generateId us idT = do
-    id <- generateId' idT us
+generateId :: {- Maybe User -> -} IDType -> Query Paste ID
+generateId {- us -}  idT = do
+    id <- generateId' idT -- us
     -- Limit ID size to 15 chars
     return $ case id of
                   ID s | length s <= 15 -> ID s
                   _                     -> NoID
 
+generateId' :: IDType -> Query Paste ID
 generateId' DefaultID    = defaultId
-generateId' (RandomID r) = flip randomId (r,r)
-generateId' (CustomID i) = flip customId i
+generateId' (RandomID r) = {- flip -} randomId (r,r)
+generateId' (CustomID i) = {- flip -} customId i
 
 
 -- | Generate a new default ID
-defaultId :: Maybe User -> Query Paste ID
-defaultId u = do
+defaultId :: {- Maybe User -> -} Query Paste ID
+defaultId {- u -} = do
     ids <- getAllIds
     return . ID . head $ dropWhile (\id -> id `elem` reservedIds || (ID id) `S.member` ids) everything
 
-  where isId (ID _) = True
-        isId NoID   = False
+  where -- isId (ID _) = True
+        -- isId NoID   = False
         everything  = concat $ iterate func chars
         func list   = concatMap (\char -> map (char ++) list) chars
         chars       = map (:[]) validChars
@@ -173,10 +164,10 @@ defaultId u = do
 
 -- | Random ID generation. Increases maximum ID length everytime it fails to
 -- create a unique ID.
-randomId :: Maybe User            -- ^ user posting that paste
-         -> (Int,Int)       -- ^ min & max number of chars to start with
+randomId :: {- Maybe User            -- ^ user posting that paste
+         -> -} (Int,Int)       -- ^ min & max number of chars to start with
          -> Query Paste ID
-randomId us r@(min,max) = do
+randomId {- us -} r@(min,max) = do
     ids   <- getAllIds
     n     <- getRandomR r
     iList <- randomRs n (0,length validChars - 1) []
@@ -184,20 +175,21 @@ randomId us r@(min,max) = do
     let randId = ID $ map (validChars !!) iList
 
     if (randId `S.member` ids)
-       then randomId us (min,max+1) -- increase max number to make sure we don't run out of IDs
+       then randomId {- us -} (min,max+1) -- increase max number to make sure we don't run out of IDs
        else return randId
 
   where randomRs 0 _ akk = return akk
-        randomRs n r akk = do random <- getRandomR r
-                              randomRs (n-1) r (akk ++ [random])
+        randomRs n r akk = do random' <- getRandomR r
+                              randomRs (n-1) r (akk ++ [random'])
 
 -- | Validate a custom ID
-customId :: Maybe User -> ID -> Query Paste ID
-customId us id@(ID id') = do
+customId :: {- Maybe User -> -} ID -> Query Paste ID
+customId {- us -} id'@(ID id'') = do
     ids <- getAllIds
-    if  all (`elem` validChars) id' && not (id' `elem` reservedIds || id `S.member` ids)
-       then return id
+    if  all (`elem` validChars) id'' && not (id'' `elem` reservedIds || id' `S.member` ids)
+       then return id'
        else return NoID
+customId _ = error "customId: Invalid ID"
 
 
 
@@ -212,7 +204,7 @@ type Hostname = String
 addKnownHost :: Hostname -> Update Paste ()
 addKnownHost host = do
 
-    paste <- ask
+    -- paste <- ask
     ctime <- getEventClockTime
 
     modify $ \paste -> paste { knownHosts = M.insertWith (++) host [ctime] $ knownHosts paste }
@@ -220,16 +212,16 @@ addKnownHost host = do
 -- | Remove all known hosts older than X minutes
 clearKnownHosts :: Int              -- ^ age in minutes (one month = 30 days)
                 -> Update Paste ()
-clearKnownHosts min = do
-    paste <- ask
+clearKnownHosts min' = do
+    -- paste <- ask
     ctime <- getEventClockTime
-    let maxTime = normalizeTimeDiff $ noTimeDiff { tdMin = min }
+    let maxTime = normalizeTimeDiff $ noTimeDiff { tdMin = min' }
         timeDiff time = let tdiff = normalizeTimeDiff $ diffClockTimes ctime time
                         in tdiff <= maxTime
         clear times = case filter timeDiff times of
                            [] -> Nothing
                            l  -> Just l
-    modify $ \paste -> paste { knownHosts = M.mapMaybe clear $ knownHosts paste }
+    modify $ \paste' -> paste' { knownHosts = M.mapMaybe clear $ knownHosts paste' }
 
 -- | Get ClockTime if pasteNo >= maxNum
 getClockTimeByHost :: Int                            -- ^ max number of pastes
@@ -238,7 +230,7 @@ getClockTimeByHost :: Int                            -- ^ max number of pastes
 getClockTimeByHost maxNum host = do
     -- get paste & current time
     paste <- ask
-    ctime <- getEventClockTime
+    -- ctime <- getEventClockTime
 
     -- get oldest paste time
     let ctimes = fromMaybe [] . M.lookup host $ knownHosts paste
@@ -258,16 +250,19 @@ addPaste entry = do
 
     -- get entries
     ids <- runQuery $ getAllIds
-    -- get time
-    ctime <- getEventClockTime
 
     let pid = pId entry
     case pid of
-         PId id | not (id `S.member` ids) -> do
+         PId id' | not (id' `S.member` ids) -> do
              modify $ \paste -> paste { pasteDB = insert entry $ pasteDB paste }
-             return id
+             return id'
          _ -> return NoID
 
+
+updatePaste :: ID -> PasteEntry -> Update Paste ()
+updatePaste id entry = do
+
+    modify $ \paste -> paste { pasteDB = updateIx (PId id) entry (pasteDB paste) }
 
 --------------------------------------------------------------------------------
 -- Description stuff (Twitter style yay!)
@@ -287,13 +282,14 @@ addResponse from to = modify $ \paste ->
 
 -- | Get all responses of ID
 getAllReplies :: ID -> Query Paste [ID]
-getAllReplies id = ask >>= return . M.findWithDefault [] id . replies
+getAllReplies id' = ask >>= return . M.findWithDefault [] id' . replies
 
 
 
 -- Generate methods
 $(mkMethods ''Paste
     [ 'addPaste
+    , 'updatePaste
     , 'addKnownHost
     , 'clearKnownHosts
     , 'getClockTimeByHost

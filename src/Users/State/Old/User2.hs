@@ -3,16 +3,14 @@
     UndecidableInstances, TypeOperators
     #-}
 
-module Users.State.User ( User (..) ) where
+module Users.State.Old.User2 ( User (..) ) where
 
 import Happstack.Data
 import Happstack.State.ClockTime        (ClockTime (..))
 
 import qualified Data.ByteString       as B
-import qualified Data.ByteString.Char8 as C
 import Data.Maybe                               (fromMaybe)
 
-import qualified Users.State.Old.Login as Login ( Login (..), Password (..) )
 import qualified Users.State.Old.User1 as Old
 
 $(deriveAll [''Show, ''Eq, ''Ord, ''Default]

@@ -201,13 +201,30 @@ div#main
     div#main .error
     {
         font-weight: bold;
-        color: #f00
+        color: #c20;
+    }
+
+    div#main .success
+    {
+        font-weight: bold;
+        font-style: italic;
+    }
+
+    div#main .info
+    {
+        font-weight: bold;
+        font-style: italic;
     }
 
     div#main pre
     {
         margin: 10px 30px 10px;
         font-weight: bold;
+    }
+
+    div#main p.moreless
+    {
+        text-align: right;
     }
 
 /* {{{ Pasteform */
@@ -282,6 +299,59 @@ div#main
     {
         margin: 0.5em auto auto;
         padding: 0;
+    }
+
+/* }}} */
+
+/* {{{ Registration */
+
+    div#main form#registration-form p span.desc
+    {
+        display: inline-block;
+        font-weight: bold;
+        width: 200px;
+    }
+
+    div#main form#registration-form p input
+    {
+        display: inline-block;
+    }
+
+/* }}} */
+
+/* {{{ Login */
+
+    div#main form#login-form p span.desc
+    {
+        display: inline-block;
+        font-weight: bold;
+        width: 200px;
+    }
+
+    div#main form#login-form p input
+    {
+        display: inline-block;
+    }
+
+/* }}} */
+
+/* {{{ Profile */
+
+    div#main form#profile-form p span.desc
+    {
+        display: inline-block;
+        font-weight: bold;
+        width: 200px;
+    }
+
+    div#main form#profile-form p.radio
+    {
+        font-weight: bold;
+    }
+
+    div#main form#profile-form p input
+    {
+        display: inline-block;
     }
 
 /* }}} */

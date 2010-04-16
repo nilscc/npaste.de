@@ -3,58 +3,42 @@
     TypeSynonymInstances, UndecidableInstances
     #-}
 
-module Paste.State.NewTypes where
+module Paste.State.NewTypes
+    ( PUser (..)
+    , module Paste.State.Old.NewTypes0
+    {-
+    , PId (..)
+    , PDate (..)
+    , PContent (..)
+    , PHash (..)
+    , PFileType (..)
+    , PDescription (..)
+    , PHide (..)
+    , PTags (..)
+    -}
+    ) where
 
 import Happstack.Data
-import Happstack.State.ClockTime        (ClockTime (..))
-import Happstack.Server.HTTP.Types      (Host)
 
-import qualified Data.ByteString as BS
+import qualified Happstack.Auth  as Auth
 
-import Paste.State.Content
-import Paste.State.ID
-import Users.State
+-- Reimport the old states
+import Paste.State.Old.NewTypes0 hiding (PUser (..))
 
-$(deriveAll [''Show, ''Eq, ''Ord, ''Default]
+-- Migrate old PUser...
+import qualified Paste.State.Old.NewTypes0 as Old
+
+$(deriveAll [''Show, ''Eq, ''Ord]
     [d|
 
-        newtype PUser           = PUser         { unUser            :: (Maybe User)         }
-        newtype PId             = PId           { unPId             :: ID                   }
-        newtype PDate           = PDate         { unPDate           :: ClockTime            }
-        newtype PContent        = PContent      { unPContent        :: Content              }
-        newtype PHash           = PHash         { unPHash           :: BS.ByteString        }
-        newtype PFileType       = PFileType     { unPFileType       :: Maybe String         }
-        newtype PDescription    = PDescription  { unPDescription    :: Maybe String         }
-        newtype PHide           = PHide         { unPHide           :: Bool                 }
-        newtype PTags           = PTags         { unPTags           :: [String]             }
+        newtype PUser = PUser { unUser :: (Maybe Auth.UserId) }
 
     |])
 
 -- newtype stuff
 $(deriveSerialize ''PUser)
-instance Version PUser
+instance Version PUser where
+    mode = extension 1 (Proxy :: Proxy Old.PUser)
 
-$(deriveSerialize ''PId)
-instance Version PId
-
-$(deriveSerialize ''PDate)
-instance Version PDate
-
-$(deriveSerialize ''PContent)
-instance Version PContent
-
-$(deriveSerialize ''PHash)
-instance Version PHash
-
-$(deriveSerialize ''PFileType)
-instance Version PFileType
-
-$(deriveSerialize ''PDescription)
-instance Version PDescription
-
-$(deriveSerialize ''PHide)
-instance Version PHide
-
-$(deriveSerialize ''PTags)
-instance Version PTags
-
+instance Migrate Old.PUser PUser where
+    migrate (Old.PUser _) = PUser Nothing -- get rid of everything old here :)

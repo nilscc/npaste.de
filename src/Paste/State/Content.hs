@@ -8,7 +8,6 @@ module Paste.State.Content ( Content (..) ) where
 import Happstack.Data
 
 import qualified Codec.Binary.UTF8.Light as UTF8 (decode)
-import Data.ByteString.Internal
 
 import qualified Paste.State.Old.Content1 as Old
 
