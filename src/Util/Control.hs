@@ -2,6 +2,7 @@ module Util.Control where
 
 import Control.Monad
 import Control.Monad.Trans
+import Data.Char
 import Happstack.Server
 import Happstack.State
 import System.Time
@@ -12,6 +13,12 @@ import qualified Data.Map as M
 import Paste.Types.Status
 import Users.State
 
+
+-- | Remove any trailing white space characters
+stripSpaces :: String -> String
+stripSpaces = init . unlines . map (foldr strip "") . lines . (++ " ")
+  where strip s "" = if isSpace s then "" else [s]
+        strip s r  = s : r
 
 -- | Match on a QUERY element and pass its value to the function
 hQuery :: (ServerMonad m, MonadPlus m) => String -> (String -> m a) -> m a

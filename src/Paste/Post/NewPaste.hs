@@ -27,14 +27,8 @@ import qualified Paste.Parser.Description as PPD
 import Paste.View.Index (showIndex')
 import Paste.State
 import Paste.Types
+import Users.State
 import Util.Control
-
--- | Remove any trailing white space characters
-stripSpaces :: String -> String
-stripSpaces = init . unlines . map (foldr strip "") . lines . (++ " ")
-  where strip s "" = if isSpace s then "" else [s]
-        strip s r  = s : r
-
 
 -- | Handle incoming post data
 newPasteHandler :: ServerPart Response
@@ -137,20 +131,32 @@ post = do
     mIdType   <- getDataBodyFn $ look "id-type"
     mHide     <- getDataBodyFn $ look "hide"
 
-    let idT' | null (fromMaybe "" mIdType) = map toLower $ fromMaybe "" mId
-             | otherwise = map toLower $ fromMaybe "" mIdType
+    -- get default paste settings
+    pastesettings <- maybe (return Nothing)
+                           (\uid -> fmap defaultPasteSettings `fmap` query (UserDataByUserId uid))
+                           uid
 
-        -- see if this is supposed to be a non public paste, hide random ids
-        hide = isJust mHide || idT' `elem` randomIds
+    let
+        -- make life easier for clients
+        idT' | null (fromMaybe "" mIdType) = map toLower $ fromMaybe "" mId
+             | otherwise                   = map toLower $ fromMaybe "" mIdType
 
-        idT | idT' `elem` defaultIds                                    = DefaultID
-            | (idT' `elem` defaultIds && hide) || idT' `elem` randomIds = RandomID 10
-            | otherwise                                                 = CustomID . ID $ fromMaybe "" mId
+        -- see if this is supposed to be a non public paste, hide if mId is "rand" or similar
+        hide = isJust mHide
+            || fmap (map toLower) mId `elem` map Just randomIds
+            || pastesettings == Just HideNewPastes
+            || pastesettings == Just HideAndRandom
+
+        idT | idT' `elem` randomIds                             = RandomID 10
+            | null idT' && pastesettings == Just HideAndRandom  = RandomID 10
+            | idT' `elem` defaultIds                            = DefaultID
+            | otherwise                                         = CustomID . ID $ fromMaybe "" mId
+
     id <- query $ GenerateId {- validUser -} idT
     when (NoID == id) (throwError InvalidID)
 
     -- save to file
-    let dir      = "pastes" {- ++ (maybe "" ([pathSeparator] ++) $ liftM userLogin validUser) -}
+    let dir      = "pastes" ++ (maybe "" (([pathSeparator] ++) . ("@" ++) . show . Auth.unUid) uid)
         filepath = dir ++ [pathSeparator] ++ unId id
     liftIO $ do createDirectoryIfMissing True dir
                 writeUTF8File filepath $ encode content

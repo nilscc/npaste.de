@@ -5,10 +5,11 @@ module Paste.MyPastes.Control
 import Control.Monad
 import Happstack.Server
 import Paste.MyPastes.View
+import Paste.MyPastes.Edit
 
 myPastesControl :: ServerPart Response
 myPastesControl = msum
 
-    -- [ methodM POST >> 
-    [ showMyPastes
+    [ editMyPaste
+    , showMyPastes
     ]

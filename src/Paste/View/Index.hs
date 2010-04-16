@@ -59,13 +59,12 @@ type Filetype = Maybe String
 type IdType = Maybe String
 type Id = Maybe String
 
--- body
 indexHsp :: ErrorMsg -> Content -> Description -> Filetype -> IdType -> Id -> Maybe PasteSettings -> HSP XML
 indexHsp err content description filetype idtype id pastesettings =
             <div id="main">
                 <h1>New Paste</h1>
                 <p>To add a new paste you can either get the <a href="/?view=download">client</a>, use curl with...
-                    <pre><% "cat <file> | curl -F \"content=<-\" npaste.de" %></pre>
+                    <pre><% "curl -F \"content=<-\" npaste.de < file" %></pre>
                     ...or enter your text below to add a new paste.</p>
                 <form id="paste" action="/" method="post">
                     <%
@@ -87,6 +86,7 @@ indexHsp err content description filetype idtype id pastesettings =
                         <input type="text" name="id" id="id" value=(fromMaybe "" id) />
                         <% case pastesettings of
                                 Just DefaultPasteSettings -> <input type="checkbox" name="hide" id="hide" value="hide" />
+                                Nothing                   -> <input type="checkbox" name="hide" id="hide" value="hide" />
                                 _                         -> <input type="checkbox" name="hide" id="hide" value="hide" checked="checked" />
                             %> Hide from recent pastes
                         <input type="submit" name="submit" id="submit"/>

@@ -95,6 +95,10 @@ profileUpdate = do
     pwdChange <- case (pwdCur, pwdNew, pwdCon) of
 
          (Just cur, Just new, Just con)
+            | not (null cur || null new || null con) && new == con && length new < 6 ->
+
+                return $ Just <p class="error">Your new password is too short (min. 6 chars).</p>
+
             | not (null cur || null new || null con) && new == con -> do
 
                 succ <- Auth.changePassword uname cur new
@@ -122,7 +126,7 @@ profileUpdate = do
 
                    else do
                        akey <- randomString 30
-                       liftIO $ sendSimpleMessages "10.8.0.1" "npaste.de" [activationMail uname (NameAddr (Just uname) newEmail) akey]
+                       liftIO $ sendSimpleMessages "127.0.0.1" "npaste.de" [activationMail uname (NameAddr (Just uname) newEmail) akey]
                        update $ SetRequestedEmail uid newEmail akey
                        return $ Just <p class="success">An activation key has been sent to <% newEmail %>.
                                         <a href="/?view=profile&remove-requested-email=yes">Cancel activation</a>.</p>

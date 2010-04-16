@@ -5,6 +5,7 @@
 
 module Paste.State
     ( AddPaste (..)
+    , UpdatePaste (..)
     , AddKnownHost (..)
     , ClearKnownHosts (..)
     , GetClockTimeByHost (..)
@@ -249,8 +250,6 @@ addPaste entry = do
 
     -- get entries
     ids <- runQuery $ getAllIds
-    -- get time
-    -- ctime <- getEventClockTime
 
     let pid = pId entry
     case pid of
@@ -259,6 +258,11 @@ addPaste entry = do
              return id'
          _ -> return NoID
 
+
+updatePaste :: ID -> PasteEntry -> Update Paste ()
+updatePaste id entry = do
+
+    modify $ \paste -> paste { pasteDB = updateIx (PId id) entry (pasteDB paste) }
 
 --------------------------------------------------------------------------------
 -- Description stuff (Twitter style yay!)
@@ -285,6 +289,7 @@ getAllReplies id' = ask >>= return . M.findWithDefault [] id' . replies
 -- Generate methods
 $(mkMethods ''Paste
     [ 'addPaste
+    , 'updatePaste
     , 'addKnownHost
     , 'clearKnownHosts
     , 'getClockTimeByHost

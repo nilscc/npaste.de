@@ -16,7 +16,8 @@ import qualified Data.Set as S
 
 import HSP
 import Control.Monad.Trans      (liftIO)
-import System.Time              (ClockTime (..), toUTCTime, calendarTimeToString)
+import System.Time
+import System.Locale
 
 import Happstack.Server
 import Happstack.State          (query)
@@ -92,7 +93,7 @@ instance (XMLGenerator m, EmbedAsChild m XML) => (EmbedAsChild m RecentPaste) wh
                 <p class="paste-info"><a href=id'><% id' %></a> - <%
                     Description ids . fromMaybe "" $ rDesc pe
                 %></p>
-                <p class="paste-date">Pasted at: <% calendarTimeToString . toUTCTime $ rDate pe %></p>
+                <p class="paste-date">Pasted at: <% formatCalendarTime defaultTimeLocale "%H:%M - %a %Y.%m.%d" . toUTCTime $ rDate pe %></p>
                 <pre><% ("\n" ++) . unlines . take 8 . lines $ rCont pe %></pre>
             </div>
         %>
