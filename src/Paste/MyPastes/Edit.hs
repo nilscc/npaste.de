@@ -16,6 +16,7 @@ import Text.Highlighting.Kate (languages)
 import Paste.State
 import Paste.View
 import Util.Control
+import Util.IO
 
 editMyPaste :: ServerPart Response
 editMyPaste = msum
@@ -91,7 +92,7 @@ showPaste info = do
     when (unUser (user paste) /= Just uid) mzero
 
     cont <- case unPContent $ content paste of
-                 File fp -> liftIO $ readFile fp
+                 File fp -> liftIO $ readFile' fp
                  Plain t -> return t
 
     htmlBody [editHsp info paste cont]

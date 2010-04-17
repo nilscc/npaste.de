@@ -26,6 +26,7 @@ import qualified Data.Set as S
 import App.View
 import Paste.State
 import qualified Paste.Parser.Description as PPD
+import Util.IO
 
 
 --------------------------------------------------------------------------------
@@ -48,7 +49,7 @@ showPaste ids = do
 getContent :: PasteEntry -> IO PContent
 getContent p = case content p of
                     plain@(PContent (Plain _)) -> return plain
-                    (PContent (File file))     -> readFile file >>= return . PContent . Plain
+                    (PContent (File file))     -> readFile' file >>= return . PContent . Plain
 
 -- | Show plain text
 showPlain :: PasteEntry -> ServerPart Response

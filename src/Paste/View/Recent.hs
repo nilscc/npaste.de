@@ -25,7 +25,7 @@ import Happstack.State          (query)
 import Paste.View
 import Paste.View.Pastes
 import Paste.State
-
+import Util.IO
 
 showRecent :: ServerPart Response
 showRecent = do
@@ -57,7 +57,7 @@ makeRecent pe = do
     ids <- query $ GetAllIds
     content <- liftIO $ case unPContent (content pe) of
                              Plain str -> return str
-                             File fp   -> readFile fp
+                             File fp   -> readFile' fp
     return $ RecentPaste { rDate  = unPDate $ date pe
                          , rCont  = content
                          , rDesc  = unPDescription $ description pe
