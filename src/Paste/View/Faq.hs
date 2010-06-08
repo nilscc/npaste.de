@@ -6,25 +6,11 @@ module Paste.View.Faq
     ) where
 
 import HSP
-import Text.Pandoc          (readMarkdown, defaultParserState)
 import Happstack.Server
-
 import Paste.View
 
 showFaq :: ServerPart Response
 showFaq = htmlBody [faqHsp]
-
-data Faq = Faq { question :: String
-               , answer   :: String
-               }
-
-instance (XMLGenerator m, EmbedAsChild m XML) => (EmbedAsChild m Faq) where
-    asChild faq =
-        <%
-            [ <p class="faq-question"><% question faq %></p>
-            , <p class="faq-answer"><% pandocToXml . readMarkdown defaultParserState $ answer faq %></p>
-            ]
-        %>
 
 faqHsp :: HSP XML
 faqHsp =
