@@ -1,7 +1,7 @@
 dist/*
 n-sch.de/*
 pastes/*
-_local/*
+_state/*
 client/np
 access.log
 app.log
