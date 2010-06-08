@@ -60,6 +60,15 @@ infoHsp date infos =
                else <ul id="info"><% infos %></ul>
         %>
         <p>State: <% calendarTimeToString . toUTCTime $ date %></p>
+
+        <h1>Contact information</h1>
+        <p>You can contact me via email, jabber or on irc:</p>
+        <ul>
+            <li>Email: mail [at] npaste [dot] de</li>
+            <li>Jabber: mcmaniac [at] n-sch [dot] de</li>
+            <li>IRC: McManiaC on Freenode</li>
+            <li>Follow me and send me patches on <a href="http://github.com/mcmaniac/npaste.de">github.com</a>!</li>
+        </ul>
     </div>
 
 
