@@ -42,7 +42,8 @@ executable npaste
         happstack-state == 0.5.*,
         happstack-data == 0.5.*,
         happstack-util == 0.5.*,
-        happstack-auth == 0.*
+        happstack-auth == 0.*,
+        json == 0.4.*
 
 executable npaste-client
     main-is: Np.hs
