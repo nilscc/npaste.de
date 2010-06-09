@@ -6,6 +6,7 @@
 module Paste.State
     ( AddPaste (..)
     , UpdatePaste (..)
+    , RemovePaste (..)
     , AddKnownHost (..)
     , ClearKnownHosts (..)
     , GetClockTimeByHost (..)
@@ -108,7 +109,11 @@ getPasteEntryByMd5sum {- u -} md = ask >>= \Paste { pasteDB = ix } ->
 
 -- | Return all IDs
 getAllIds :: Query Paste (S.Set ID)
-getAllIds = getAllEntries >>= return . S.map (unPId . pId)
+getAllIds = do
+    paste <- ask
+    let ids   = S.map (unPId . pId) . toSet $ pasteDB paste
+        rmIds = removedIds paste
+    return $ ids `S.union` rmIds
 
 
 
@@ -264,6 +269,21 @@ updatePaste id entry = do
 
     modify $ \paste -> paste { pasteDB = updateIx (PId id) entry (pasteDB paste) }
 
+-- | Remove a paste. Returns @True@ on success, otherwise @False@.
+removePaste :: ID -> Update Paste Bool
+removePaste id = do
+
+    p <- runQuery $ getPasteById id
+
+    case p of
+
+         Just PasteEntry {} -> do
+             modify $ \paste -> paste { pasteDB = deleteIx (PId id) (pasteDB paste)
+                                      , removedIds = S.insert id (removedIds paste)
+                                      }
+             return True
+         _ -> return False
+
 --------------------------------------------------------------------------------
 -- Description stuff (Twitter style yay!)
 --------------------------------------------------------------------------------
@@ -290,6 +310,7 @@ getAllReplies id' = ask >>= return . M.findWithDefault [] id' . replies
 $(mkMethods ''Paste
     [ 'addPaste
     , 'updatePaste
+    , 'removePaste
     , 'addKnownHost
     , 'clearKnownHosts
     , 'getClockTimeByHost

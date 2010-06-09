@@ -66,7 +66,7 @@ instance (XMLGenerator m, EmbedAsChild m XML) => (EmbedAsChild m MyRecentPaste) 
     asChild (MyRecentPaste pe) =
         <%
             <div class="recentpaste">
-                <p class="paste-info"><a href=id'><% id' %></a> - <a href=edit>Edit</a> - <%
+                <p class="paste-info"><a href=id'><% id' %></a> - <a href=edit>Edit</a>/<a href=remove>Remove</a> - <%
                     Description ids . fromMaybe "" $ rDesc pe
                 %></p>
                 <p class="paste-date">Pasted at: <% formatCalendarTime defaultTimeLocale "%H:%M - %a %Y.%m.%d" . toUTCTime $ rDate pe %></p>
@@ -77,3 +77,4 @@ instance (XMLGenerator m, EmbedAsChild m XML) => (EmbedAsChild m MyRecentPaste) 
             ids = allIds pe
             id' = "/" ++ id ++ "/"
             edit = "/?view=mypastes&edit=" ++ id
+            remove = "/?view=mypastes&remove=" ++ id
