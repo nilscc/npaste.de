@@ -10,6 +10,7 @@ module Paste.View.Pastes
 
 import Happstack.Server
 import Happstack.State
+import qualified Happstack.Auth as Auth
 
 import HSP
 import Text.Highlighting.Kate
@@ -26,6 +27,7 @@ import qualified Data.Set as S
 import App.View
 import Paste.State
 import qualified Paste.Parser.Description as PPD
+import Util.Control
 import Util.IO
 
 
@@ -78,6 +80,8 @@ showWithSyntax' (p:ps) = do
 
         cont <- liftIO $ getContent p
 
+        uid <- msum [ (Just . fst) `fmap` requireLogin, return Nothing ]
+
         let
             shortDesc = case unPDescription $ description p of
                              Nothing -> ""
@@ -90,6 +94,7 @@ showWithSyntax' (p:ps) = do
                               , allIds  = ids
                               , viewReplies = replies
                               , pasteEntries = [p { content = cont }]
+                              , userId = uid
                               }
 
         (HtmlBody opts xmls) <- showWithSyntax' ps
@@ -105,6 +110,7 @@ data PasteView = PasteView { showAll :: Bool
                            , allIds  :: S.Set ID
                            , viewReplies :: [ID]
                            , pasteEntries :: [PasteEntry]
+                           , userId :: Maybe Auth.UserId
                            }
 
 data Description = Description (S.Set ID) String
@@ -117,10 +123,12 @@ data Description = Description (S.Set ID) String
 -- | XML generator for PasteEntry
 instance (XMLGenerator m, EmbedAsChild m XML, HSX.XML m ~ XML) => (EmbedAsChild m PasteView) where
     asChild pview@(PasteView { pasteEntries = pes }) =
+
         <% map `flip` pes $ \ PasteEntry { content = content'
                                          , filetype = filetype'
                                          , description = description'
                                          , pId = pId'
+                                         , user = user'
                                          } ->
             let
                 content     = case unPContent content' of
@@ -146,6 +154,11 @@ instance (XMLGenerator m, EmbedAsChild m XML, HSX.XML m ~ XML) => (EmbedAsChild 
                          _ | not (null $ languagesByExtension s) -> head $ languagesByExtension s
                            | otherwise                           -> "Text"
 
+                edit = if userId pview == unUser user'
+                          then [<% <p class="edit_paste"><a href=("/?view=mypastes&edit=" ++ id)>Edit</a></p> %>]
+                          else []
+
+
             in
             <%
                 [
@@ -165,6 +178,9 @@ instance (XMLGenerator m, EmbedAsChild m XML, HSX.XML m ~ XML) => (EmbedAsChild 
                                 <input type="hidden" name="description" value=("Reply to /" ++ id ++ "/") />
                                 <p class="reply"><a href=("javascript:document.getElementById('reply-form-" ++ unId pId ++ "').submit();")>Reply</a></p>
                             </form>
+
+                            -- Link to edit the paste if logged in
+                            <% edit %>
 
                             -- Language selection
                             <p class="available_languages">Available languages:</p>

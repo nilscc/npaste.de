@@ -67,6 +67,7 @@ div.topmenu
     }
 
     div.topmenu div.right p.reply,
+    div.topmenu div.right p.edit_paste,
     div.topmenu div.right p.view_plain,
     div.topmenu div.right p.available_languages
     {
@@ -74,18 +75,20 @@ div.topmenu
         margin-right: 5px;
     }
 
-    div.topmenu div.right p.view_plain
+    div.topmenu div.right p.available_languages
     {
         margin-left: 20px;
     }
 
     div.topmenu div.right p.reply :before,
+    div.topmenu div.right p.edit_paste :before,
     div.topmenu div.right p.view_plain :before
     {
         content: "[";
     }
 
     div.topmenu div.right p.reply :after,
+    div.topmenu div.right p.edit_paste :after,
     div.topmenu div.right p.view_plain :after
     {
         content: "]";

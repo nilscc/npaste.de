@@ -29,66 +29,6 @@ div
     padding: 0;
 }
 
-/* {{{ Paste menu */
-
-div#topmenu
-{
-    background-color: #666;
-    color: #fff;
-    font-size: 12px;
-    text-align: left;
-    padding: 2px;
-    margin: 0;
-}
-
-    div#topmenu div#right
-    {
-        float: right;
-        text-align: right;
-    }
-    div#topmenu p#description
-    {
-        padding: 5px;
-    }
-    div#topmenu p#description,
-    div#topmenu form#reply-form,
-    div#topmenu div#right p#reply,
-    div#topmenu div#right p#view_plain,
-    div#topmenu div#right p#available_languages
-    {
-        display: inline-block;
-        margin-top: 0;
-        margin-bottom: 0;
-    }
-
-    div#topmenu div#clear            { clear: both; }
-
-    div#topmenu div#right p#reply,
-    div#topmenu div#right p#view_plain
-    {
-        margin-right: 10px;
-    }
-
-    div#topmenu div#right p#reply :before,
-    div#topmenu div#right p#view_plain :before
-    {
-        content: "[";
-    }
-
-    div#topmenu div#right p#reply :after,
-    div#topmenu div#right p#view_plain :after
-    {
-        content: "]";
-    }
-
-    div#topmenu div#right p#reply a,
-    div#topmenu div#right p#view_plain a
-    {
-        color: #ccc;
-    }
-
-/* }}} */
-
 /* {{{ Logo */
 
 div#logo
