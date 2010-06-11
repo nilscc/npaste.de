@@ -28,8 +28,10 @@ entries uname =
     , WithLogin     <p><a href="/?view=mypastes">My pastes</a></p>
     , WithLogin     <p><a href="/?view=profile">My profile</a></p>
     , WithLogin     <p><a href="/?view=logout">Logout</a></p>
+
     , Always        <hr />
 
+    , Always        <p><a href="/?view=news">News</a></p>
     , Always        <p><a href="/?view=download">Download clients</a></p>
     , Always        <p><a href="/?view=info">Info</a> and <a href="/?view=faq">FAQ</a></p>
     ]

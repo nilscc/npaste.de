@@ -1,13 +1,16 @@
 {-# OPTIONS_GHC -F -pgmFtrhsx #-}
+{-# LANGUAGE ScopedTypeVariables #-}
 
 module Paste.MyPastes.Remove
     ( removeMyPaste
     ) where
 
 import Control.Monad
+import Control.Monad.Trans
 import Happstack.Server
 import Happstack.State
 import HSP
+import System.Directory
 
 import Paste.State
 import Paste.View
@@ -27,10 +30,19 @@ removeMyPaste = do
 
     if confirm == Just "yes"
         then do
+
             s <- update $ RemovePaste (ID pid)
             if s
-               then htmlBody [removeHspSuccess paste]
+               then do
+                   -- case content paste of
+                        -- PContent (File fp) -> liftIO $ removeFile fp `Prelude.catch` \e ->
+                                -- putStrLn $ "Error while removing /" ++ pid ++ "/: " ++ show e -- TODO: use decent logger :)
+                        -- _                  -> return ()
+
+                   -- update $ RemoveReplies (ID pid)
+                   htmlBody [removeHspSuccess paste]
                else htmlBody [removeHspFail paste]
+
         else htmlBody [confirmHsp paste]
 
 

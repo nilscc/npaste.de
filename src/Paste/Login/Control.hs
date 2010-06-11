@@ -5,18 +5,25 @@ module Paste.Login.Control
 
 import Control.Monad
 import Happstack.Server
+
+import Paste.Login.AlreadyLoggedIn
 import Paste.Login.Login
 import Paste.Login.Logout
+import Util.Control
 
 loginControl :: ServerPart Response
 loginControl = msum
 
-    [ loginPerform
-    , loginMain
+    [ withoutLogin $ msum
+        [ loginPerform
+        , loginMain
+        ]
+
+    , withLogin alreadLoggedIn
     ]
 
 logoutControl :: ServerPart Response
-logoutControl = msum
+logoutControl = withLogin $ msum
 
     [ logoutPerform
     ]

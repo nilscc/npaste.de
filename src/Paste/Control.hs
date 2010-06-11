@@ -11,6 +11,7 @@ import Paste.View.Index     (showIndex)
 import Paste.View.Recent    (showRecent)
 import Paste.View.Faq       (showFaq)
 import Paste.View.Info      (showInfo)
+import Paste.View.News      (showNews)
 import Paste.Post.NewPaste
 
 import Paste.Login.Control
@@ -37,13 +38,15 @@ viewHandler s
     | view == "download"    = showDownload
     | view == "faq"         = showFaq
     | view == "info"        = showInfo
+    | view == "news"        = showNews
 
-    | view == "register"    = withoutLogin  registerControl
-    | view == "login"       = withoutLogin  loginControl
+    | view == "register"    = registerControl
+    | view == "login"       = loginControl
 
     | view == "logout"      = withLogin     logoutControl
     | view == "profile"     = withLogin     profileControl
     | view == "mypastes"    = withLogin     myPastesControl
 
     | otherwise             = showIndex
+
   where view = map toLower s

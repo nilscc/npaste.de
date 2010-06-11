@@ -45,7 +45,7 @@ data HtmlBody = HtmlBody [HtmlOptions] [HSP XML]
 data HtmlOptions = WithCss Css
                  | WithTitle String
                  -- | WithJavascript JavaScript
-                 | WithLogo String String String
+                 | WithLogo String String (HSP XML)
 
 
 --------------------------------------------------------------------------------

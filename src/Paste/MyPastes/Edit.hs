@@ -13,8 +13,10 @@ import Happstack.State
 import HSP
 import Text.Highlighting.Kate (languages)
 
+import qualified Paste.Parser.Description as P
 import Paste.State
 import Paste.View
+import Paste.MyPastes.Remove
 import Util.Control
 import Util.IO
 
@@ -36,45 +38,52 @@ updatePaste = do
     (uid,_) <- requireLogin
     pid     <- fromMaybe "" `fmap` getDataQueryFn (look "edit")
 
-    -- Get the paste entry
-    paste   <- maybe mzero return =<< query (GetPasteById $ ID pid)
+    -- Look for "remove" button
+    remove  <- getDataBodyFn (look "remove")
+    if remove == Just "Remove"
+       then seeOther ("/?view=mypastes&remove=" ++ pid) (toResponse $ "Forward to \"My Pastes\" -> \"Remove /" ++ pid ++ "/\"")
+       else do
 
-    when (unUser (user paste) /= Just uid) mzero
+           -- Get the paste entry
+           paste   <- maybe mzero return =<< query (GetPasteById $ ID pid)
 
-    -- Get POST values
-    desc    <- fromMaybe ""         `fmap` getDataBodyFn (look "description")
-    cont    <- maybe "" stripSpaces `fmap` getDataBodyFn (look "content")
-    ft      <- fromMaybe ""         `fmap` getDataBodyFn (look "filetype")
-    hide    <- isJust               `fmap` getDataBodyFn (look "hide")
+           when (unUser (user paste) /= Just uid) mzero
 
-    --when   (null content || all isSpace content)  (throwError NoContent)
-    --unless (null $ drop (maxSize * 1000) content) (throwError $ ContentTooBig maxSize)
+           -- Get POST values
+           desc    <- fromMaybe ""         `fmap` getDataBodyFn (look "description")
+           cont    <- maybe "" stripSpaces `fmap` getDataBodyFn (look "content")
+           ft      <- fromMaybe ""         `fmap` getDataBodyFn (look "filetype")
+           hide    <- isJust               `fmap` getDataBodyFn (look "hide")
 
-    case cont of
+           case cont of
 
-         _ | null cont || all isSpace cont ->
+                _ | null cont || all isSpace cont ->
 
-                showPaste $ Just <p class="error">No content given.</p>
+                       showPaste $ Just <p class="error">No content given.</p>
 
-           | not . null $ drop (200 * 1000) cont ->
+                  | not . null $ drop (200 * 1000) cont ->
 
-                showPaste $ Just <p class="error">Content too big.</p>
+                       showPaste $ Just <p class="error">Content too big.</p>
 
-           | otherwise -> do
+                  | otherwise -> do
 
-                -- Update file/plaintext content
-                cont' <- case unPContent $ content paste of
-                              File fp -> liftIO (writeFile fp cont) >> return (File fp)
-                              Plain _ -> return $ Plain cont
+                       -- Update file/plaintext content
+                       cont' <- case unPContent $ content paste of
+                                     File fp -> liftIO (writeFile fp cont) >> return (File fp)
+                                     Plain _ -> return $ Plain cont
 
-                update $ UpdatePaste (ID pid) paste
-                    { description = PDescription (if null desc then Nothing else Just desc)
-                    , content     = PContent cont'
-                    , filetype    = PFileType (if null ft then Nothing else Just ft)
-                    , hide        = PHide hide
-                    }
+                       -- TODO: Remove old replies, add new replies
+                       -- update $ RemoveReplies (ID pid)
+                       -- update $ 
 
-                showPaste $ Just <p class="success">Paste updated.</p>
+                       update $ UpdatePaste (ID pid) paste
+                           { description = PDescription (if null desc then Nothing else Just desc)
+                           , content     = PContent cont' -- $ Plain cont
+                           , filetype    = PFileType (if null ft then Nothing else Just ft)
+                           , hide        = PHide hide
+                           }
+
+                       showPaste $ Just <p class="success">Paste updated.</p>
 
 
 --------------------------------------------------------------------------------
@@ -123,7 +132,8 @@ editHsp info pe cont =
                       then <input type="checkbox" name="hide" id="hide" value="hide" checked="checked" />
                       else <input type="checkbox" name="hide" id="hide" value="hide" />
                     %> Hide from recent pastes
-                <input type="submit" name="submit" id="submit"/>
+                <input type="submit" name="submit" id="submit" value="Save" />
+                <input type="submit" name="remove" id="remove" value="Remove" />
             </p>
         </form>
     </div>
