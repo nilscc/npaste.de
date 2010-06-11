@@ -35,7 +35,7 @@ htmlOpts p =
 
   where title = case p of
                      Just PasteEntry { description = PDescription (Just d) } ->
-                         <span>whats new? <a href="/?view=news"><% map toLower d %></a>!</span>
+                         <span>whats new? <a href="/?view=news"><% map toLower d %></a></span>
                      _ ->
                          <span>a haskell happstack pastebin</span>
 
