@@ -59,7 +59,7 @@ htmlBody' login elem = do
 
                   _ -> return Nothing
 
-    news <- dropWhile (isNothing . unPDescription . description) `fmap` getRecentPastes' (Just "news") True
+    news <- dropWhile (isNothing . unPDescription . description) `fmap` getRecentPastes' (Just "news") 20 True
 
     xmlResponse . HtmlBody (htmlOpts $ if null news then Nothing else Just (head news)) $
         [menuHsp uname login] ++ elem

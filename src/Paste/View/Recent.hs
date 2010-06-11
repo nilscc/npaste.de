@@ -20,7 +20,7 @@ import Paste.State
 showRecent :: ServerPart Response
 showRecent = do
 
-    recent <- getRecentPastes Nothing True (Just 10)
+    recent <- getRecentPastes Nothing 8 True (Just 10)
 
     htmlBody [recentHsp recent Nothing]
 

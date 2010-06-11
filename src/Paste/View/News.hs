@@ -21,11 +21,11 @@ import Paste.State
 showNews :: ServerPart Response
 showNews = do
 
-    -- Load pastes
-    pastes <- getRecentPastes (Just "news") True Nothing
-
     -- Get number of pastes to display
     show <- getNumber 20 `fmap` getDataQueryFn (look "show")
+
+    -- Load pastes
+    pastes <- getRecentPastes (Just "news") show True Nothing
 
     htmlBody [newsHsp pastes show]
 

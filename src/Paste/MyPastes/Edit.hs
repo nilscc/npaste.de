@@ -6,6 +6,7 @@ module Paste.MyPastes.Edit
 
 import Control.Monad
 import Control.Monad.Trans
+import Codec.Binary.UTF8.Light
 import Data.Char
 import Data.Maybe (fromMaybe, isJust)
 import Happstack.Server
@@ -69,7 +70,7 @@ updatePaste = do
 
                        -- Update file/plaintext content
                        cont' <- case unPContent $ content paste of
-                                     File fp -> liftIO (writeFile fp cont) >> return (File fp)
+                                     File fp -> liftIO (writeUTF8File fp $ encode cont) >> return (File fp)
                                      Plain _ -> return $ Plain cont
 
                        -- TODO: Remove old replies, add new replies

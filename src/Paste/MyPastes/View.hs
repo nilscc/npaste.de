@@ -23,7 +23,7 @@ showMyPastes = do
 
     (_,Auth.Username un) <- requireLogin
     number  <- getNumber `fmap` getDataQueryFn (look "show")
-    recent  <- getRecentPastes (Just un) False (Just number)
+    recent  <- getRecentPastes (Just un) number False (Just number)
 
     htmlBody [myPastesHsp recent number]
 

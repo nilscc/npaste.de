@@ -62,22 +62,24 @@ removeHidden :: S.Set PasteEntry -> S.Set PasteEntry
 removeHidden = S.filter (not . unPHide . hide)
 
 -- | Get all pastes of a user and turn them into recent pastes
-getRecentPastes :: Maybe String         -- ^ Username
-                -> Bool             -- ^ Hide hidden pastes?
-                -> Maybe Int            -- ^ Content: Number of lines
+getRecentPastes :: Maybe String                 -- ^ Username
+                -> Int                         -- ^ Number of pastes to get
+                -> Bool                         -- ^ Hide hidden pastes?
+                -> Maybe Int                    -- ^ Content: Number of lines
                 -> ServerPart [RecentPaste]
-getRecentPastes u h n = getRecentPastes' u h >>= mapM (makeRecent n)
+getRecentPastes u num h n = getRecentPastes' u num h >>= mapM (makeRecent n)
 
 -- Variant
-getRecentPastes' :: Maybe String         -- ^ Username
-                 -> Bool             -- ^ Hide hidden pastes?
+getRecentPastes' :: Maybe String                -- ^ Username
+                 -> Int                         -- ^ Number of pastes to get
+                 -> Bool                        -- ^ Hide hidden pastes?
                  -> ServerPart [PasteEntry]
-getRecentPastes' (Just user) h = do
+getRecentPastes' (Just user) num h = do
 
     Auth.User { Auth.userid = uid } <- maybe mzero return =<< query (Auth.GetUser $ Auth.Username user)
-    (sortByDate . S.toList . if h then removeHidden else id) `fmap` query (GetPastesByUser (Just uid))
+    (take num . sortByDate . S.toList . if h then removeHidden else id) `fmap` query (GetPastesByUser (Just uid))
 
-getRecentPastes' _ h = (sortByDate . S.toList . if h then removeHidden else id) `fmap` query GetAllEntries
+getRecentPastes' _ num h = (take num . sortByDate . S.toList . if h then removeHidden else id) `fmap` query GetAllEntries
 
 
 sortByDate :: [PasteEntry] -> [PasteEntry]
