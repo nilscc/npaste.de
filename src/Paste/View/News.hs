@@ -6,6 +6,7 @@ module Paste.View.News
     ) where
 
 
+import Data.Maybe                   (fromMaybe)
 import HSP
 import Happstack.Server
 import Text.Pandoc                  (readMarkdown, defaultParserState, ParserState (..))
@@ -61,10 +62,10 @@ newsHsp l n =
 
 
 renderNews :: RecentPaste -> HSP XML
-renderNews pe@RecentPaste { rCont = content } =
+renderNews pe@RecentPaste { rCont = content, rId = ID id } =
 
-    <div class="news">
-        -- <p class="paste-info"><a href=id'><% id' %></a></p>
+    <div class="news" id=(unId $ rId pe)>
+        <p class="news-info"><a href=("/?view=news#" ++ id)><% fromMaybe "No description." (rDesc pe) %></a></p>
 
         <p class="news-date">News from: <% formatCalendarTime defaultTimeLocale "%H:%M - %a %Y.%m.%d" . toUTCTime $ rDate pe %></p>
 
@@ -75,3 +76,5 @@ renderNews pe@RecentPaste { rCont = content } =
               else  <pre><% content %></pre>
         %>
     </div>
+
+renderNews pe = renderNews pe { rId = ID "" }
