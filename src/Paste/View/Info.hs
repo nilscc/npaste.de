@@ -61,6 +61,17 @@ infoHsp date infos =
         %>
         <p>State: <% calendarTimeToString . toUTCTime $ date %></p>
 
+        <h1>Terms of usage</h1>
+        <p>npaste.de was created to help the open source community. Feel free
+        to paste any code, error log or configuration file as long as you are
+        the owner and/or are allowed to show it in public.</p>
+        <p>No advertisement, no spam in general, no binary/base64 encrypted
+        pastes. Your pastes may be deleted/modified and your IP blocked
+        if you violate these terms.</p>
+        <p>All pastes are user content. npaste.de is not responsible for any
+        violation of trademarks or copyrights and doesn't claim any ownership
+        for its pastes.</p>
+
         <h1>Contact information</h1>
         <p>You can contact me via email, jabber or on irc:</p>
         <ul>
