@@ -7,17 +7,15 @@ module Paste.MyPastes.Edit
 import Control.Monad
 import Control.Monad.Trans
 import Codec.Binary.UTF8.Light
+import Data.Maybe
 import Data.Char
-import Data.Maybe (fromMaybe, isJust)
 import Happstack.Server
 import Happstack.State
 import HSP
 import Text.Highlighting.Kate (languages)
 
-import qualified Paste.Parser.Description as P
 import Paste.State
 import Paste.View
-import Paste.MyPastes.Remove
 import Util.Control
 import Util.IO
 
@@ -28,6 +26,9 @@ editMyPaste = msum
     , showPaste Nothing
     ]
 
+isRight :: Either a b -> Bool
+isRight (Right _) = True
+isRight _         = False
 
 --------------------------------------------------------------------------------
 -- Update/edit paste
@@ -37,11 +38,11 @@ updatePaste :: ServerPart Response
 updatePaste = do
 
     (uid,_) <- requireLogin
-    pid     <- fromMaybe "" `fmap` getDataQueryFn (look "edit")
+    pid     <- either (const "") id `fmap` getDataFn (queryString $ look "edit")
 
     -- Look for "remove" button
-    remove  <- getDataBodyFn (look "remove")
-    if remove == Just "Remove"
+    remove  <- getDataFn . body $ (look "remove")
+    if remove == Right "Remove"
        then seeOther ("/?view=mypastes&remove=" ++ pid) (toResponse $ "Forward to \"My Pastes\" -> \"Remove /" ++ pid ++ "/\"")
        else do
 
@@ -51,10 +52,10 @@ updatePaste = do
            when (unUser (user paste) /= Just uid) mzero
 
            -- Get POST values
-           desc    <- fromMaybe ""         `fmap` getDataBodyFn (look "description")
-           cont    <- maybe "" stripSpaces `fmap` getDataBodyFn (look "content")
-           ft      <- fromMaybe ""         `fmap` getDataBodyFn (look "filetype")
-           hide    <- isJust               `fmap` getDataBodyFn (look "hide")
+           desc    <- either (const "") id          `fmap` (getDataFn . body $ look "description")
+           cont    <- either (const "") stripSpaces `fmap` (getDataFn . body $ look "content")
+           ft      <- either (const "") id          `fmap` (getDataFn . body $ look "filetype")
+           hide    <- isRight                       `fmap` (getDataFn . body $ look "hide")
 
            case cont of
 
@@ -95,7 +96,7 @@ showPaste :: Maybe (HSP XML) -> ServerPart Response
 showPaste info = do
 
     (uid,_) <- requireLogin
-    pid     <- fromMaybe ""    `fmap` getDataQueryFn (look "edit")
+    pid     <- either (const "") id `fmap` getDataFn (queryString $ look "edit")
     paste   <- maybe mzero return =<< query (GetPasteById $ ID pid)
 
     -- Exit here if paste ID is invalid

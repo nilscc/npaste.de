@@ -6,11 +6,9 @@ module Paste.MyPastes.Remove
     ) where
 
 import Control.Monad
-import Control.Monad.Trans
 import Happstack.Server
 import Happstack.State
 import HSP
-import System.Directory
 
 import Paste.State
 import Paste.View
@@ -20,15 +18,15 @@ removeMyPaste :: ServerPart Response
 removeMyPaste = do
 
     (uid,_) <- requireLogin
-    pid     <- maybe mzero return =<< getDataQueryFn (look "remove")
+    pid     <- either (const mzero) return =<< getDataFn (queryString $ look "remove")
     paste   <- maybe mzero return =<< query (GetPasteById $ ID pid)
 
     -- Exit here if paste ID is invalid
     when (unUser (user paste) /= Just uid) mzero
 
-    confirm <- getDataQueryFn $ look "confirm"
+    confirm <- getDataFn . queryString $ look "confirm"
 
-    if confirm == Just "yes"
+    if confirm == Right "yes"
         then do
 
             s <- update $ RemovePaste (ID pid)

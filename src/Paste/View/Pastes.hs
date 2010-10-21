@@ -76,7 +76,8 @@ showWithSyntax' (p:ps) = do
         ids     <- query $ GetAllIds
         replies <- query $ GetAllReplies id
 
-        showAllReplies <- getDataQueryFn $ look "replies"
+        decodeBody queryPolicy
+        showAllReplies <- getDataFn . queryString $ look "replies"
 
         cont <- liftIO $ getContent p
 
@@ -90,7 +91,7 @@ showWithSyntax' (p:ps) = do
 
             htmlOpts = [ WithTitle $ "npaste.de - Paste #" ++ unId id ++ shortDesc ]
 
-            pview = PasteView { showAll = showAllReplies == Just "all"
+            pview = PasteView { showAll = showAllReplies == Right "all"
                               , allIds  = ids
                               , viewReplies = replies
                               , pasteEntries = [p { content = cont }]

@@ -9,14 +9,15 @@ module Paste.Profile.Profile
 
 import Control.Monad
 import Control.Monad.Trans
-import Data.Maybe (fromMaybe)
 import HSP
 import Happstack.Server
 import Happstack.State
-import Happstack.Util.Mail
 import System.Random
 
-import qualified Happstack.Auth as Auth
+import qualified Network.SMTP.Simple as N
+import Happstack.Auth
+import qualified Happstack.Auth.Internal      as Auth
+import qualified Happstack.Auth.Internal.Data as AuthD
 
 import Paste.View
 import Paste.Types
@@ -44,7 +45,7 @@ profileShow = do
              sdata <- query $ Auth.GetSession skey
              case sdata of
 
-                  Just Auth.SessionData { Auth.sesUid = uid } -> do
+                  Just AuthD.SessionData { AuthD.sesUid = uid } -> do
 
                       -- pwdCur <- getDataBodyFn (look "pwd-cur")
 
@@ -77,7 +78,7 @@ profileUpdate = do
 
     login  <- getLogin
 
-    Auth.SessionData { Auth.sesUid = uid, Auth.sesUsername = Auth.Username uname } <- case login of
+    AuthD.SessionData { AuthD.sesUid = uid, AuthD.sesUsername = AuthD.Username uname } <- case login of
 
          LoggedInAs skey -> do
              sd <- query $ Auth.GetSession skey
@@ -87,21 +88,21 @@ profileUpdate = do
 
          _               -> mzero
 
-    pwdCur <- getDataBodyFn $ look "pwd-cur"
-    pwdNew <- getDataBodyFn $ look "pwd-new"
-    pwdCon <- getDataBodyFn $ look "pwd-confirm"
+    pwdCur <- getDataFn . body $ look "pwd-cur"
+    pwdNew <- getDataFn . body $ look "pwd-new"
+    pwdCon <- getDataFn . body $ look "pwd-confirm"
 
     -- Change password if requested
     pwdChange <- case (pwdCur, pwdNew, pwdCon) of
 
-         (Just cur, Just new, Just con)
+         (Right cur, Right new, Right con)
             | not (null cur || null new || null con) && new == con && length new < 6 ->
 
                 return $ Just <p class="error">Your new password is too short (min. 6 chars).</p>
 
             | not (null cur || null new || null con) && new == con -> do
 
-                succ <- Auth.changePassword uname cur new
+                succ <- changePassword uname cur new
 
                 if succ
                    then return $ Just <p class="success">Password changed.</p>
@@ -116,7 +117,7 @@ profileUpdate = do
     Just ud <- query $ UserDataByUserId uid
 
     -- Change email settings
-    newEmail <- fromMaybe "" `fmap` getDataBodyFn (look "email")
+    newEmail <- either (const "") id `fmap` (getDataFn . body) (look "email")
     emailOpt <- if null newEmail || newEmail == userEmail ud
 
                    then case userEmailRequested ud of
@@ -126,27 +127,27 @@ profileUpdate = do
 
                    else do
                        akey <- randomString 30
-                       liftIO $ sendSimpleMessages "127.0.0.1" "npaste.de" [activationMail uname (NameAddr (Just uname) newEmail) akey]
+                       liftIO $ N.sendSimpleMessages (appendFile "mailerr.log") "127.0.0.1" "npaste.de"
+                                                     [activationMail uname (N.NameAddr (Just uname) newEmail) akey]
                        update $ SetRequestedEmail uid newEmail akey
                        return $ Just <p class="success">An activation key has been sent to <% newEmail %>.
                                         <a href="/?view=profile&remove-requested-email=yes">Cancel activation</a>.</p>
 
     -- Change default paste settings
-    newPaste <- getDataBodyFn $ look "new-pastes"
+    newPaste <- getDataFn . body $ look "new-pastes"
     defPaste <- case newPaste of
 
-                     Just t
-                        | t == "default" && defaultPasteSettings ud /= DefaultPasteSettings -> do
-                            update $ SetDefaultPasteSetting uid DefaultPasteSettings
-                            return $ Just <p class="success">Settings changed.</p>
+                     Right "default"    | defaultPasteSettings ud /= DefaultPasteSettings -> do
+                         update $ SetDefaultPasteSetting uid DefaultPasteSettings
+                         return $ Just <p class="success">Settings changed.</p>
 
-                        | t == "hidden"  && defaultPasteSettings ud /= HideNewPastes -> do
-                            update $ SetDefaultPasteSetting uid HideNewPastes
-                            return $ Just <p class="success">Settings changed.</p>
+                     Right "hidden"     | defaultPasteSettings ud /= HideNewPastes -> do
+                         update $ SetDefaultPasteSetting uid HideNewPastes
+                         return $ Just <p class="success">Settings changed.</p>
 
-                        | t == "random"  && defaultPasteSettings ud /= HideAndRandom -> do
-                            update $ SetDefaultPasteSetting uid HideAndRandom
-                            return $ Just <p class="success">Settings changed.</p>
+                     Right "random"     | defaultPasteSettings ud /= HideAndRandom -> do
+                         update $ SetDefaultPasteSetting uid HideAndRandom
+                         return $ Just <p class="success">Settings changed.</p>
 
                      _ -> return Nothing
 
@@ -160,21 +161,21 @@ profileUpdate = do
              ]
 
 
-activationMail :: String -> NameAddr -> String -> SimpleMessage
-activationMail nick to activationkey = SimpleMessage
-    { from = [NameAddr (Just "npaste.de") "noreply@npaste.de"]
-    , to = [to]
-    , subject = "npaste.de: Activate your email address"
-    , body = "Hi " ++ nick ++ "!\n\n"
+activationMail :: String -> N.NameAddr -> String -> N.SimpleMessage
+activationMail nick to activationkey = N.SimpleMessage
+    { N.from = [N.NameAddr (Just "npaste.de") "noreply@npaste.de"]
+    , N.to = [to]
+    , N.subject = "npaste.de: Activate your email address"
+    , N.body = "Hi " ++ nick ++ "!\n\n"
 
-             ++ "To activate your new email address, follow this link:\n\n"
+            ++ "To activate your new email address, follow this link:\n\n"
 
-             ++ "http://npaste.de/?view=profile&activate-email=" ++ activationkey ++ "\n\n"
+            ++ "http://npaste.de/?view=profile&activate-email=" ++ activationkey ++ "\n\n"
 
-             ++ "If you did not request this email please ignore this email. Do not respond to this email.\n\n"
+            ++ "If you did not request this email please ignore this email. Do not respond to this email.\n\n"
 
-             ++ "Thank you for using npaste.de,\n"
-             ++ "  npaste.de webmaster"
+            ++ "Thank you for using npaste.de,\n"
+            ++ "  npaste.de webmaster"
     }
 
 
@@ -186,7 +187,7 @@ profileActivateEmail = do
 
     methodM GET
 
-    akey <- fromMaybe "" `fmap` getDataQueryFn (look "activate-email")
+    akey <- either (const "") id `fmap` getDataFn (queryString $ look "activate-email")
     guard $ not (null akey)
 
     login <- getLogin
@@ -196,7 +197,7 @@ profileActivateEmail = do
              sdata <- query $ Auth.GetSession skey
              case sdata of
 
-                  Just Auth.SessionData { Auth.sesUid = uid } -> do
+                  Just AuthD.SessionData { AuthD.sesUid = uid } -> do
 
                       succ <- update $ SetNewEmail uid (Just akey)
 
@@ -232,7 +233,7 @@ profileCancelActivation = do
 
     methodM GET
 
-    guard =<< ((Just "yes" ==) `fmap` getDataQueryFn (look "remove-requested-email"))
+    guard =<< ((Right "yes" ==) `fmap` getDataFn (queryString $ look "remove-requested-email"))
 
     login <- getLogin
     case login of
@@ -241,7 +242,7 @@ profileCancelActivation = do
              sdata <- query $ Auth.GetSession skey
              case sdata of
 
-                  Just Auth.SessionData { Auth.sesUid = uid } -> do
+                  Just AuthD.SessionData { AuthD.sesUid = uid } -> do
 
                       update $ SetNewEmail uid Nothing
                       htmlBody [profileRequestedEmailRemovedHsp]

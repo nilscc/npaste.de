@@ -7,12 +7,18 @@ import Happstack.Server
 import Happstack.State
 import System.Time
 
-import qualified Happstack.Auth as Auth
-import qualified Data.Map as M
+import qualified Happstack.Auth.Internal        as Auth
+import qualified Happstack.Auth.Internal.Data   as AuthD
+import qualified Data.Map                       as M
 
 import Paste.Types.Status
 import Users.State
 
+queryPolicy :: BodyPolicy
+queryPolicy = defaultBodyPolicy "tmp/" 0 1024 1024
+
+postPolicy :: BodyPolicy
+postPolicy = defaultBodyPolicy "tmp/" 0 1024 1024
 
 -- | Remove any trailing white space characters
 stripSpaces :: String -> String
@@ -21,16 +27,17 @@ stripSpaces = init . unlines . map (foldr strip "") . lines . (++ " ")
         strip s r  = s : r
 
 -- | Match on a QUERY element and pass its value to the function
-hQuery :: (ServerMonad m, MonadPlus m) => String -> (String -> m a) -> m a
+hQuery :: (ServerMonad m, MonadIO m, MonadPlus m, HasRqData m) => String -> (String -> m a) -> m a
 hQuery q f = do
-    val <- getDataQueryFn $ look q
+    decodeBody queryPolicy
+    val <- getDataFn . queryString $ look q
     case val of
-         Just v | not (null v) -> f v
+         Right v | not (null v) -> f v
          _ -> mzero
 
 
 -- | Run @m a@ only when logged in, returns mzero if not.
-withLogin :: (Functor m, MonadIO m, ServerMonad m, MonadPlus m)
+withLogin :: (Functor m, MonadIO m, ServerMonad m, MonadPlus m, HasRqData m)
           => m a
           -> m a
 withLogin m = do
@@ -41,7 +48,7 @@ withLogin m = do
 
 
 -- | Run @m a@ only when *not* logged in, returns mzero if logged in.
-withoutLogin :: (Functor m, MonadIO m, MonadPlus m, ServerMonad m)
+withoutLogin :: (Functor m, MonadIO m, MonadPlus m, ServerMonad m, HasRqData m)
              => m a
              -> m a
 withoutLogin m = do
@@ -52,15 +59,15 @@ withoutLogin m = do
 
 
 -- | Get logged in status
-getLogin :: (Functor m, MonadIO m, ServerMonad m, MonadPlus m)
+getLogin :: (Functor m, MonadIO m, ServerMonad m, MonadPlus m, HasRqData m)
          => m LoggedIn
 getLogin = do
 
     -- Get session data
-    skey' <- fmap Auth.SessionKey `fmap` getDataFn (readCookieValue "session-key")
+    skey' <- fmap AuthD.SessionKey `fmap` getDataFn (readCookieValue "session-key")
     case skey' of
 
-         Just skey -> do
+         Right skey -> do
              host    <- rqPeer `fmap` askRq
              sdata   <- query $ AskSessionData
 
@@ -76,8 +83,8 @@ getLogin = do
 
          _ -> return NotLoggedIn
 
-requireLogin :: (Functor m, MonadIO m, ServerMonad m, MonadPlus m)
-             => m (Auth.UserId, Auth.Username)
+requireLogin :: (Functor m, MonadIO m, ServerMonad m, MonadPlus m, HasRqData m)
+             => m (AuthD.UserId, AuthD.Username)
 requireLogin = do
 
     login <- getLogin
@@ -88,7 +95,7 @@ requireLogin = do
              sdata <- query $ Auth.GetSession skey
              case sdata of
 
-                  Just (Auth.SessionData uid uname) -> return (uid,uname)
+                  Just (AuthD.SessionData uid uname _ _) -> return (uid,uname)
                   _ -> mzero
 
          _ -> mzero

@@ -1,16 +1,8 @@
 module Main where
 
-import Happstack.Server
-  ( Conf(port)
-  , simpleHTTPWithSocket
-  , bindPort
-  -- , nullConf
-  , validator
-  , wdgHTMLValidator
-  )
-
+import Happstack.Server         hiding (parseConfig)
+import Happstack.Server.Filters
 import Happstack.State
-import Happstack.Server.Parts
 import Happstack.Util.Cron
 
 import App.Conf
@@ -23,7 +15,6 @@ import System.Environment
 import System.Log.Logger
 import System.Exit
 import System.Console.GetOpt 
-import System.Posix.User
 
 main :: IO ()
 main = do
@@ -39,7 +30,7 @@ main = do
                      (Right f) -> Right (f $ defaultConf progName)
 
     -- quit if error in eArgs, extract appConf otherwise
-    appConf <- either (\e -> do getUserEntryForName "nils" >>= setUserID . userID
+    appConf <- either (\e -> do -- getUserEntryForName "nils" >>= setUserID . userID
                                 setupLogger logPath
                                 logM progName ERROR e
                                 exitFailure

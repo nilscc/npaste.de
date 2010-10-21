@@ -14,13 +14,14 @@ import Data.Maybe (fromMaybe)
 import HSP
 import Happstack.Server
 import Happstack.State
-import Happstack.Util.Mail
 import Text.ParserCombinators.Parsec (parse)
 import Text.ParserCombinators.Parsec.Rfc2822 (addr_spec)
 import System.Random
 
-import qualified Data.Map as M
-import qualified Happstack.Auth as Auth
+import qualified Data.Map                       as M
+import qualified Network.SMTP.Simple            as N
+import qualified Happstack.Auth.Internal        as Auth
+import qualified Happstack.Auth.Internal.Data   as AuthD
 
 import Paste.View
 import Users.State
@@ -34,8 +35,8 @@ alphaNum  = ['0'..'9'] ++ ['A'..'Z'] ++ ['a'..'z']
 registerMain :: ServerPart Response
 registerMain = do
 
-    nick  <- getDataBodyFn $ look "nick"
-    email <- getDataBodyFn $ look "email"
+    nick  <- fmap (either (const Nothing) Just) . getDataFn . body $ look "nick"
+    email <- fmap (either (const Nothing) Just) . getDataFn . body $ look "email"
 
     htmlBody [registerHsp nick email Nothing]
 
@@ -62,13 +63,13 @@ registerNew :: ServerPart Response
 registerNew = do
     methodM POST
 
-    nick <- fromMaybe "" `fmap` getDataBodyFn (look "nick")
+    nick <- either (const "") id `fmap` getDataFn (body $ look "nick")
     guard $ not (null nick) && all (`elem` alphaNum) nick
 
-    email' <- getDataBodyFn $ look "email"
+    email' <- getDataFn . body $ look "email"
     let email = case parse addr_spec "registerNew: email" `fmap` email' of
-                     Just (Right e) -> e
-                     _              -> ""
+                     Right (Right e) -> e
+                     _               -> ""
     guard $ not (null email)
 
     -- See if that login/email is available
@@ -78,7 +79,7 @@ registerNew = do
         exists _ = Nothing
         emailExists = not . M.null $ M.mapMaybe exists ud
 
-    loginExists <- query $ Auth.IsUser (Auth.Username nick)
+    loginExists <- query $ Auth.IsUser (AuthD.Username nick)
 
     case (loginExists, emailExists) of
 
@@ -88,7 +89,8 @@ registerNew = do
          _        -> do
              ak <- update $ AddInactiveUser nick email
              case ak of
-                  Just akey -> do liftIO $ sendSimpleMessages "10.8.0.1" "npaste.de" [activationMail nick (NameAddr (Just nick) email) akey]
+                  Just akey -> do liftIO $ N.sendSimpleMessages (appendFile "mailerr.log") "10.8.0.1" "npaste.de"
+                                                                [activationMail nick (N.NameAddr (Just nick) email) akey]
                                   htmlBody [newHsp nick email]
                   _ -> htmlBody [registerHsp (Just nick) (Just email) (Just "Inactive user.")]
 
@@ -99,12 +101,12 @@ newHsp nick email =
         <p>An email with your activation key has been send to <em><% email %></em>.</p>
     </div>
 
-activationMail :: String -> NameAddr -> String -> SimpleMessage
-activationMail nick to activationkey = SimpleMessage
-    { from = [NameAddr (Just "npaste.de") "noreply@npaste.de"]
-    , to = [to]
-    , subject = "npaste.de Activation"
-    , body = "Hi " ++ nick ++ "!\n\n"
+activationMail :: String -> N.NameAddr -> String -> N.SimpleMessage
+activationMail nick to activationkey = N.SimpleMessage
+    { N.from = [N.NameAddr (Just "npaste.de") "noreply@npaste.de"]
+    , N.to = [to]
+    , N.subject = "npaste.de Activation"
+    , N.body = "Hi " ++ nick ++ "!\n\n"
 
              ++ "Welcome to npaste.de! To activate your account, please follow this link:\n\n"
 
@@ -125,22 +127,22 @@ registerActivate :: ServerPart Response
 registerActivate = do
     methodM GET
 
-    nick <- fromMaybe "" `fmap` getDataQueryFn (look "user")
+    nick <- either (const "") id `fmap` getDataFn (queryString $ look "user")
     guard $ not (null nick)
 
-    akey <- fromMaybe "" `fmap` getDataQueryFn (look "activate")
+    akey <- either (const "") id `fmap` getDataFn (queryString $ look "activate")
     guard $ not (null akey)
 
     email <- update $ RemoveInactiveUser nick akey
     case email of
 
          Just e -> do
-             pwd    <- randomString 8
-             salted <- liftIO $ Auth.buildSaltAndHash pwd
-             user'  <- update $ Auth.AddUser (Auth.Username nick) salted
+             pwd         <- randomString 8
+             Just salted <- liftIO $ Auth.buildSaltAndHash pwd
+             user'       <- update $ Auth.AddUser (AuthD.Username nick) salted
              case user' of
 
-                  Just Auth.User { Auth.userid = id } -> do
+                  Just AuthD.User { AuthD.userid = id } -> do
                       update $ AddUser id (UserData e Nothing DefaultPasteSettings)
                       htmlBody [activationHsp pwd]
 

@@ -6,7 +6,7 @@
 module Paste.State.Old.PasteEntry5 ( PasteEntry (..) ) where
 
 import Happstack.Data
-import Happstack.Server.HTTP.Types      (Host)
+import Happstack.Server.Internal.Types  (Host)
 import Happstack.State.ClockTime        (ClockTime (..))
 
 import Users.State.Old.User2            (User (..))

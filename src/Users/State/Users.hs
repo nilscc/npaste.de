@@ -9,7 +9,7 @@ module Users.State.Users
 
 import Happstack.Data
 import Happstack.State
-import Happstack.Server.HTTP.Types hiding (Version (..))
+import Happstack.Server.Internal.Types hiding (Version (..))
 import Happstack.State.ClockTime
 
 import Users.State.UserData

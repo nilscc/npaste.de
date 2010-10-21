@@ -10,7 +10,7 @@ import Happstack.Server
 import HSP
 import System.Time
 import System.Locale
-import qualified Happstack.Auth     as Auth
+import qualified Happstack.Auth.Internal.Data   as AuthD
 
 import Paste.View
 import Paste.View.Pastes
@@ -21,17 +21,17 @@ import Util.Control
 showMyPastes :: ServerPart Response
 showMyPastes = do
 
-    (_,Auth.Username un) <- requireLogin
-    number  <- getNumber `fmap` getDataQueryFn (look "show")
+    (_,AuthD.Username un) <- requireLogin
+    number  <- getNumber `fmap` getDataFn (queryString $ look "show")
     recent  <- getRecentPastes (Just un) number False (Just number)
 
     htmlBody [myPastesHsp recent number]
 
-  where getNumber :: Maybe String -> Int
-        getNumber Nothing  = 20
-        getNumber (Just s) = case reads s of
-                                  ((i,_):_) | i >= 1 -> i
-                                  _                  -> 20
+  where getNumber :: Either [String] String -> Int
+        getNumber (Right s) = case reads s of
+                                   ((i,_):_) | i >= 1 -> i
+                                   _                  -> 20
+        getNumber _  = 20
 
 
 myPastesHsp :: [RecentPaste] -> Int -> HSP XML

@@ -32,7 +32,7 @@ module Users.State
 import Control.Monad.State
 import Control.Monad.Reader
 import Happstack.State
-import Happstack.Server.HTTP.Types
+import Happstack.Server.Internal.Types
 import System.Time
 
 import qualified Data.Map                   as M

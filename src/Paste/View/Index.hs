@@ -7,6 +7,7 @@ module Paste.View.Index
     ) where
 
 import Control.Monad
+import Control.Applicative
 import Data.Maybe                       (fromMaybe, isJust)
 import HSP
 import Happstack.Server
@@ -31,11 +32,13 @@ showIndex = showIndex' Nothing
 showIndex' :: Maybe String -> ServerPartT IO Response
 showIndex' err = do
 
-    content     <- getDataBodyFn $ look "content"
-    description <- getDataBodyFn $ look "description"
-    idT         <- getDataBodyFn $ look "id-type"
-    id          <- getDataBodyFn $ look "id"
-    filetype    <- getDataBodyFn $ look "filetype"
+    decodeBody postPolicy
+
+    content     <- body . optional $ look "content"
+    description <- body . optional $ look "description"
+    idT         <- body . optional $ look "id-type"
+    id          <- body . optional $ look "id"
+    filetype    <- body . optional $ look "filetype"
 
     pastesettings <- msum
         [ do
@@ -52,12 +55,12 @@ showIndex' err = do
 -- HTML
 --------------------------------------------------------------------------------
 
-type ErrorMsg = Maybe String
-type Content = Maybe String
-type Description = Maybe String
-type Filetype = Maybe String
-type IdType = Maybe String
-type Id = Maybe String
+type ErrorMsg       = Maybe String
+type Content        = Maybe String
+type Description    = Maybe String
+type Filetype       = Maybe String
+type IdType         = Maybe String
+type Id             = Maybe String
 
 indexHsp :: ErrorMsg -> Content -> Description -> Filetype -> IdType -> Id -> Maybe PasteSettings -> HSP XML
 indexHsp err content description filetype idtype id pastesettings =

@@ -4,9 +4,11 @@ module Paste.Post.NewPaste
 
 import Happstack.Server
 import Happstack.State
-import qualified Happstack.Auth as Auth
+import qualified Happstack.Auth.Internal      as Auth
+import qualified Happstack.Auth.Internal.Data as AuthD
 
 import Control.Monad.Error
+import Control.Applicative                          (optional)
 
 import Codec.Binary.UTF8.Light
 import qualified Data.ByteString.UTF8 as BU
@@ -15,7 +17,7 @@ import Data.Char                                    (isSpace, toLower)
 import Data.Maybe                                   (isJust, isNothing, fromMaybe, catMaybes)
 import qualified Data.Map as M
 
-import Text.ParserCombinators.Parsec
+import Text.ParserCombinators.Parsec         hiding (optional)
 
 import System.Directory                             (createDirectoryIfMissing)
 import System.FilePath                              (pathSeparator)
@@ -30,17 +32,21 @@ import Paste.Types
 import Users.State
 import Util.Control
 
+getBody :: RqData a -> ErrorT PostError (ServerPartT IO) (Maybe a)
+getBody = fmap (either (const Nothing) Just) . lift . getDataFn . body
+
 -- | Handle incoming post data
 newPasteHandler :: ServerPart Response
 newPasteHandler = do
     methodM POST
+    decodeBody postPolicy
     -- check if we want to reply
-    reply  <- getDataBodyFn $ look "reply"
+    reply  <- body . optional $ look "reply"
     guard $ isNothing reply
     errorT <- runErrorT post
 
     -- check if we used the html form
-    mSubmit <- getDataBodyFn $ look "submit"
+    mSubmit <- body . optional $ look "submit"
     -- mFiletype <- getDataBodyFn $ look "filetype"
     let submit = not . null $ fromMaybe "" mSubmit
         -- isTiny | (fromMaybe "" mFiletype) `elem` tinyIds = True
@@ -59,8 +65,10 @@ type Url = String
 post :: ErrorT PostError (ServerPartT IO) Url
 post = do
 
+    decodeBody postPolicy
+
     -- simple check for spam
-    mSpam <- getDataBodyFn $ look "email" -- email field = spam!
+    mSpam <- getBody $ look "email" -- email field = spam!
     unless (null $ fromMaybe "" mSpam) (throwError IsSpam)
 
     -- check if host is allowed to post
@@ -76,7 +84,7 @@ post = do
          _ -> return ()
 
     -- get and validate our content
-    mContent <- getDataBodyFn $ look "content"
+    mContent <- getBody $ look "content"
     let content     = stripSpaces $ fromMaybe "" mContent
         maxSize     = 200
         md5content  = md5string content
@@ -84,7 +92,7 @@ post = do
     unless (null $ drop (maxSize * 1000) content) (throwError $ ContentTooBig maxSize)
 
     -- get filetype
-    mFiletype <- getDataBodyFn $ look "filetype"
+    mFiletype <- getBody $ look "filetype"
 
     let validFiletype f = map toLower f `elem` map (map toLower) languages || not (null $ languagesByExtension f)
         filetype' = msum [ mFiletype >>= \f -> if null f then Nothing else Just f
@@ -95,30 +103,30 @@ post = do
             
 
     -- get description
-    mDescription <- getDataBodyFn $ look "description"
+    mDescription <- getBody $ look "description"
     let desc = case mDescription of
                     d@(Just a) | not (null a) -> d
                     _ -> Nothing
     unless (null $ drop 300 (fromMaybe "" desc)) (throwError $ DescriptionTooBig 300)
 
     -- get and validate user
-    login <- getLogin
+    login <- lift getLogin
     uid   <- case login of
 
                   LoggedInAs skey -> do
                       sdata <- query $ Auth.GetSession skey
                       case sdata of
-                           Just (Auth.SessionData uid _) -> return $ Just uid
-                           _                             -> return Nothing
+                           Just (AuthD.SessionData uid _ _ _) -> return $ Just uid
+                           _                              -> return Nothing
 
                   NotLoggedIn -> do
-                      user       <- fromMaybe "" `fmap` getDataBodyFn (look "user")
-                      password   <- fromMaybe "" `fmap` getDataBodyFn (look "password")
+                      user       <- fmap (fromMaybe "") . getBody $ look "user"
+                      password   <- fmap (fromMaybe "") . getBody $ look "password"
                       muser      <- query $ Auth.AuthUser user password
                       case muser of
-                           Just Auth.User { Auth.userid = uid } -> return $ Just uid
-                           _ | null user && null password       -> return Nothing
-                             | otherwise                        -> throwError WrongLogin
+                           Just AuthD.User { AuthD.userid = uid } -> return $ Just uid
+                           _ | null user && null password         -> return Nothing
+                             | otherwise                          -> throwError WrongLogin
 
     -- check if the content is already posted by our user
     peByMd5 <- query $ GetPasteEntryByMd5sum {- validUser -} md5content
@@ -127,9 +135,9 @@ post = do
          _       -> return ()
 
     -- get ids
-    mId       <- getDataBodyFn $ look "id"
-    mIdType   <- getDataBodyFn $ look "id-type"
-    mHide     <- getDataBodyFn $ look "hide"
+    mId       <- getBody $ look "id"
+    mIdType   <- getBody $ look "id-type"
+    mHide     <- getBody $ look "hide"
 
     -- get default paste settings
     pastesettings <- maybe (return Nothing)
@@ -156,7 +164,7 @@ post = do
     when (NoID == id) (throwError InvalidID)
 
     -- save to file
-    let dir      = "pastes" ++ (maybe "" (([pathSeparator] ++) . ("@" ++) . show . Auth.unUid) uid)
+    let dir      = "pastes" ++ (maybe "" (([pathSeparator] ++) . ("@" ++) . show . AuthD.unUid) uid)
         filepath = dir ++ [pathSeparator] ++ unId id
     liftIO $ do createDirectoryIfMissing True dir
                 writeUTF8File filepath $ encode content

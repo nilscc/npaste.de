@@ -22,18 +22,18 @@ showNews :: ServerPart Response
 showNews = do
 
     -- Get number of pastes to display
-    show <- getNumber 20 `fmap` getDataQueryFn (look "show")
+    show <- getNumber 20 `fmap` getDataFn (queryString $ look "show")
 
     -- Load pastes
     pastes <- getRecentPastes (Just "news") show True Nothing
 
     htmlBody [newsHsp pastes show]
 
-  where getNumber :: Int -> Maybe String -> Int
-        getNumber def Nothing  = def
-        getNumber def (Just s) = case reads s of
-                                      ((i,_):_) | i >= 1 -> i
-                                      _                  -> def
+  where getNumber :: Int -> Either [String] String -> Int
+        getNumber def (Right s) = case reads s of
+                                       ((i,_):_) | i >= 1 -> i
+                                       _                  -> def
+        getNumber def _  = def
 
 
 --------------------------------------------------------------------------------

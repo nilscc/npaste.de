@@ -13,7 +13,8 @@ import Data.Maybe (isNothing)
 import HSP
 import Happstack.Server
 import Happstack.State
-import qualified Happstack.Auth as Auth
+import qualified Happstack.Auth.Internal      as Auth
+import qualified Happstack.Auth.Internal.Data as AuthD
 
 import App.View
 import Paste.View.Menu
@@ -52,8 +53,7 @@ htmlBody' login elem = do
                   LoggedInAs skey -> do
                       s <- query $ Auth.GetSession skey
                       case s of
-
-                           Just Auth.SessionData { Auth.sesUsername = Auth.Username un } ->
+                           Just AuthD.SessionData { AuthD.sesUsername = AuthD.Username un } ->
                                return $ Just un
                            _ -> return Nothing
 

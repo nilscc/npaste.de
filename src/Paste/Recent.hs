@@ -20,7 +20,8 @@ import Happstack.Server
 import Happstack.State
 import System.Time
 import qualified Data.Set as S
-import qualified Happstack.Auth as Auth
+import qualified Happstack.Auth.Internal      as Auth
+import qualified Happstack.Auth.Internal.Data as AuthD
 
 import Paste.State
 import Util.IO
@@ -76,7 +77,7 @@ getRecentPastes' :: Maybe String                -- ^ Username
                  -> ServerPart [PasteEntry]
 getRecentPastes' (Just user) num h = do
 
-    Auth.User { Auth.userid = uid } <- maybe mzero return =<< query (Auth.GetUser $ Auth.Username user)
+    AuthD.User { AuthD.userid = uid } <- maybe mzero return =<< query (Auth.GetUser $ AuthD.Username user)
     (take num . sortByDate . S.toList . if h then removeHidden else id) `fmap` query (GetPastesByUser (Just uid))
 
 getRecentPastes' _ num h = (take num . sortByDate . S.toList . if h then removeHidden else id) `fmap` query GetAllEntries
@@ -103,7 +104,7 @@ getLatestPaste' :: String           -- ^ Username
 getLatestPaste' user h = msum
     [ do
 
-        Auth.User { Auth.userid = uid } <- maybe mzero return =<< query (Auth.GetUser $ Auth.Username user)
+        AuthD.User { AuthD.userid = uid } <- maybe mzero return =<< query (Auth.GetUser $ AuthD.Username user)
         pastes <- (sortByDate . S.toList) `fmap` query (GetPastesByUser (Just uid))
 
         case dropWhile (\PasteEntry { hide = PHide h' } -> h' == h) pastes of

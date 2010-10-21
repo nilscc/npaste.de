@@ -7,13 +7,16 @@ module Paste.Login.Login
 
 import Control.Monad
 import Control.Monad.Trans
+import Data.Convertible
 import Data.Maybe (fromMaybe)
 import HSP
 import Happstack.Server
 import Happstack.State
 import System.Time
 
-import qualified Happstack.Auth as Auth
+import Happstack.Auth
+import qualified Happstack.Auth.Internal        as Auth
+import qualified Happstack.Auth.Internal.Data   as AuthD
 
 import Paste.View
 import Paste.Types
@@ -27,8 +30,8 @@ loginMain :: ServerPart Response
 loginMain = do
 
     login <- getLogin
-    uname <- getDataBodyFn $ look "name"
-    pwd   <- getDataBodyFn $ look "password"
+    uname <- fmap (either (const Nothing) Just) . getDataFn . body $ look "name"
+    pwd   <- fmap (either (const Nothing) Just) . getDataFn . body $ look "password"
     case login of
 
          NotLoggedIn  -> htmlBody [loginFormHsp uname pwd Nothing]
@@ -67,20 +70,22 @@ loginPerform = do
     -- login <- getLogin
     -- guard $ NotLoggedIn /= login
 
-    uname <- fromMaybe "" `fmap` getDataBodyFn (look "name")
-    pwd   <- fromMaybe "" `fmap` getDataBodyFn (look "password")
+    uname <- either (const "") id `fmap` getDataFn (body $ look "name")
+    pwd   <- either (const "") id `fmap` getDataFn (body $ look "password")
 
     guard . not $ null uname || null pwd
 
-    user  <- query $ Auth.GetUser (Auth.Username uname)
+    user  <- query $ Auth.GetUser (AuthD.Username uname)
     case user of
 
-         Just Auth.User { Auth.userid = uid, Auth.userpass = salted } | Auth.checkSalt pwd salted == True -> do
+         Just u @ AuthD.User { AuthD.userpass = salted } | Auth.checkSalt pwd salted == True -> do
 
-             skey <- update $ Auth.NewSession (Auth.SessionData uid (Auth.Username uname))
-
+             -- skey <- update $ Auth.NewSession (AuthD.SessionData uid (AuthD.Username uname))
+             let u' = convert u
+             performLogin (60 * 60 * 24) u' $ do
+             Just skey <- getSessionKey
              addCookie (60 * 60 * 24 * 31) -- 1 month
-                       (mkCookie "session-key" (let Auth.SessionKey i = skey in show i))
+                       (mkCookie "session-key" (let AuthD.SessionKey i = skey in show i))
 
              now  <- liftIO getClockTime
              host <- rqPeer `fmap` askRq
