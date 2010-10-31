@@ -7,7 +7,7 @@ module Users.State.Old.Users2 ( Users (..) ) where
 
 import Happstack.Data
 import Happstack.State
-import Happstack.Server.Internal.Types hiding (Version (..))
+import Happstack.Server.Internal.Types
 import Happstack.State.ClockTime
 
 import Users.State.Old.SessionID

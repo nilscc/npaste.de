@@ -84,7 +84,7 @@ loginPerform = do
              let u' = convert u
              performLogin (60 * 60 * 24) u' $ do
              Just skey <- getSessionKey
-             addCookie (60 * 60 * 24 * 31) -- 1 month
+             addCookie (MaxAge $ 60 * 60 * 24 * 31) -- 1 month
                        (mkCookie "session-key" (let AuthD.SessionKey i = skey in show i))
 
              now  <- liftIO getClockTime

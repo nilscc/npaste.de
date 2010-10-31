@@ -24,7 +24,7 @@ logoutPerform = do
     case login of
 
          LoggedInAs skey -> do
-             addCookie 0 -- delete
+             addCookie Expired
                        (mkCookie "session-key" "")
              update $ RemoveSessionData skey
              update $ Auth.DelSession skey
