@@ -75,10 +75,11 @@ getRecentPastes' :: Maybe String                -- ^ Username
                  -> Int                         -- ^ Number of pastes to get
                  -> Bool                        -- ^ Hide hidden pastes?
                  -> ServerPart [PasteEntry]
-getRecentPastes' (Just user) num h = do
-
-    AuthD.User { AuthD.userid = uid } <- maybe mzero return =<< query (Auth.GetUser $ AuthD.Username user)
-    (take num . sortByDate . S.toList . if h then removeHidden else id) `fmap` query (GetPastesByUser (Just uid))
+getRecentPastes' (Just user) num h = msum
+    [ do AuthD.User { AuthD.userid = uid } <- maybe mzero return =<< query (Auth.GetUser $ AuthD.Username user)
+         (take num . sortByDate . S.toList . if h then removeHidden else id) `fmap` query (GetPastesByUser (Just uid))
+    , return []
+    ]
 
 getRecentPastes' _ num h = (take num . sortByDate . S.toList . if h then removeHidden else id) `fmap` query GetAllEntries
 
