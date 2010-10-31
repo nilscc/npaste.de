@@ -1,7 +1,6 @@
 module Main where
 
 import Happstack.Server         hiding (parseConfig)
-import Happstack.Server.Filters
 import Happstack.State
 import Happstack.Util.Cron
 
@@ -48,7 +47,7 @@ main = do
     control <- runTxSystem (Queue (FileSaver "_state/npaste.de")) stateProxy
 
     -- start the http server. use gzip/deflate
-    httpTid <- forkIO $ simpleHTTPWithSocket socket (httpConf appConf) (compressedResponseFilter >> appHandler appConf)
+    httpTid <- forkIO $ simpleHTTPWithSocket socket (httpConf appConf) (appHandler appConf)
 
     -- checkpoint the state once a day
     cronTid <- forkIO $ cron (60*60*24) (createCheckpoint control)

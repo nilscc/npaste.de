@@ -16,8 +16,7 @@ import System.Random
 
 import qualified Network.SMTP.Simple as N
 import Happstack.Auth
-import qualified Happstack.Auth.Internal      as Auth
-import qualified Happstack.Auth.Internal.Data as AuthD
+import qualified Happstack.Auth      as Auth
 
 import Paste.View
 import Paste.Types
@@ -45,7 +44,7 @@ profileShow = do
              sdata <- query $ Auth.GetSession skey
              case sdata of
 
-                  Just AuthD.SessionData { AuthD.sesUid = uid } -> do
+                  Just Auth.SessionData { Auth.sesUid = uid } -> do
 
                       -- pwdCur <- getDataBodyFn (look "pwd-cur")
 
@@ -78,7 +77,7 @@ profileUpdate = do
 
     login  <- getLogin
 
-    AuthD.SessionData { AuthD.sesUid = uid, AuthD.sesUsername = AuthD.Username uname } <- case login of
+    Auth.SessionData { Auth.sesUid = uid, Auth.sesUsername = Auth.Username uname } <- case login of
 
          LoggedInAs skey -> do
              sd <- query $ Auth.GetSession skey
@@ -197,7 +196,7 @@ profileActivateEmail = do
              sdata <- query $ Auth.GetSession skey
              case sdata of
 
-                  Just AuthD.SessionData { AuthD.sesUid = uid } -> do
+                  Just Auth.SessionData { Auth.sesUid = uid } -> do
 
                       succ <- update $ SetNewEmail uid (Just akey)
 
@@ -242,7 +241,7 @@ profileCancelActivation = do
              sdata <- query $ Auth.GetSession skey
              case sdata of
 
-                  Just AuthD.SessionData { AuthD.sesUid = uid } -> do
+                  Just Auth.SessionData { Auth.sesUid = uid } -> do
 
                       update $ SetNewEmail uid Nothing
                       htmlBody [profileRequestedEmailRemovedHsp]

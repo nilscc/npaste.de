@@ -4,8 +4,7 @@ module Paste.Post.NewPaste
 
 import Happstack.Server
 import Happstack.State
-import qualified Happstack.Auth.Internal      as Auth
-import qualified Happstack.Auth.Internal.Data as AuthD
+import qualified Happstack.Auth      as Auth
 
 import Control.Monad.Error
 import Control.Applicative                          (optional)
@@ -39,7 +38,6 @@ getBody = fmap (either (const Nothing) Just) . lift . getDataFn . body
 newPasteHandler :: ServerPart Response
 newPasteHandler = do
     methodM POST
-    decodeBody postPolicy
     -- check if we want to reply
     reply  <- body . optional $ look "reply"
     guard $ isNothing reply
@@ -64,8 +62,6 @@ type Url = String
 -- | Try to post data, throw PostError if anything goes wrong.
 post :: ErrorT PostError (ServerPartT IO) Url
 post = do
-
-    decodeBody postPolicy
 
     -- simple check for spam
     mSpam <- getBody $ look "email" -- email field = spam!
@@ -116,7 +112,7 @@ post = do
                   LoggedInAs skey -> do
                       sdata <- query $ Auth.GetSession skey
                       case sdata of
-                           Just (AuthD.SessionData uid _ _ _) -> return $ Just uid
+                           Just (Auth.SessionData uid _) -> return $ Just uid
                            _                              -> return Nothing
 
                   NotLoggedIn -> do
@@ -124,7 +120,7 @@ post = do
                       password   <- fmap (fromMaybe "") . getBody $ look "password"
                       muser      <- query $ Auth.AuthUser user password
                       case muser of
-                           Just AuthD.User { AuthD.userid = uid } -> return $ Just uid
+                           Just Auth.User { Auth.userid = uid } -> return $ Just uid
                            _ | null user && null password         -> return Nothing
                              | otherwise                          -> throwError WrongLogin
 
@@ -164,7 +160,7 @@ post = do
     when (NoID == id) (throwError InvalidID)
 
     -- save to file
-    let dir      = "pastes" ++ (maybe "" (([pathSeparator] ++) . ("@" ++) . show . AuthD.unUid) uid)
+    let dir      = "pastes" ++ (maybe "" (([pathSeparator] ++) . ("@" ++) . show . Auth.unUid) uid)
         filepath = dir ++ [pathSeparator] ++ unId id
     liftIO $ do createDirectoryIfMissing True dir
                 writeUTF8File filepath $ encode content

@@ -8,7 +8,7 @@ import HSP
 import Happstack.Server
 import Happstack.State
 
-import qualified Happstack.Auth.Internal as Auth
+import qualified Happstack.Auth as Auth
 
 import Paste.View
 import Paste.Types

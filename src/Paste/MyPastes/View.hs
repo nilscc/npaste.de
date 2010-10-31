@@ -10,7 +10,7 @@ import Happstack.Server
 import HSP
 import System.Time
 import System.Locale
-import qualified Happstack.Auth.Internal.Data   as AuthD
+import qualified Happstack.Auth   as Auth
 
 import Paste.View
 import Paste.View.Pastes
@@ -21,7 +21,7 @@ import Util.Control
 showMyPastes :: ServerPart Response
 showMyPastes = do
 
-    (_,AuthD.Username un) <- requireLogin
+    (_,Auth.Username un) <- requireLogin
     number  <- getNumber `fmap` getDataFn (queryString $ look "show")
     recent  <- getRecentPastes (Just un) number False (Just number)
 

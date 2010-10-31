@@ -32,8 +32,6 @@ showIndex = showIndex' Nothing
 showIndex' :: Maybe String -> ServerPartT IO Response
 showIndex' err = do
 
-    decodeBody postPolicy
-
     content     <- body . optional $ look "content"
     description <- body . optional $ look "description"
     idT         <- body . optional $ look "id-type"

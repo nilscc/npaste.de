@@ -14,7 +14,7 @@ import HSP
 import Happstack.Data.IxSet (size)
 import Happstack.Server
 import Happstack.State
-import qualified Happstack.Auth.Internal as Auth
+import qualified Happstack.Auth as Auth
 
 import System.Time
 

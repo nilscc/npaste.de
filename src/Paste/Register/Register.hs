@@ -20,8 +20,7 @@ import System.Random
 
 import qualified Data.Map                       as M
 import qualified Network.SMTP.Simple            as N
-import qualified Happstack.Auth.Internal        as Auth
-import qualified Happstack.Auth.Internal.Data   as AuthD
+import qualified Happstack.Auth        as Auth
 
 import Paste.View
 import Users.State
@@ -79,7 +78,7 @@ registerNew = do
         exists _ = Nothing
         emailExists = not . M.null $ M.mapMaybe exists ud
 
-    loginExists <- query $ Auth.IsUser (AuthD.Username nick)
+    loginExists <- query $ Auth.IsUser (Auth.Username nick)
 
     case (loginExists, emailExists) of
 
@@ -137,12 +136,12 @@ registerActivate = do
     case email of
 
          Just e -> do
-             pwd         <- randomString 8
-             Just salted <- liftIO $ Auth.buildSaltAndHash pwd
-             user'       <- update $ Auth.AddUser (AuthD.Username nick) salted
+             pwd    <- randomString 8
+             salted <- liftIO $ Auth.buildSaltAndHash pwd
+             user'  <- update $ Auth.AddUser (Auth.Username nick) salted
              case user' of
 
-                  Just AuthD.User { AuthD.userid = id } -> do
+                  Just Auth.User { Auth.userid = id } -> do
                       update $ AddUser id (UserData e Nothing DefaultPasteSettings)
                       htmlBody [activationHsp pwd]
 

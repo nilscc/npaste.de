@@ -7,18 +7,14 @@ import Happstack.Server
 import Happstack.State
 import System.Time
 
-import qualified Happstack.Auth.Internal        as Auth
-import qualified Happstack.Auth.Internal.Data   as AuthD
+import qualified Happstack.Auth        as Auth
 import qualified Data.Map                       as M
 
 import Paste.Types.Status
 import Users.State
 
-queryPolicy :: BodyPolicy
-queryPolicy = defaultBodyPolicy "tmp/" 0 1024 1024
-
-postPolicy :: BodyPolicy
-postPolicy = defaultBodyPolicy "tmp/" 0 1024 1024
+npastePolicy :: BodyPolicy
+npastePolicy = defaultBodyPolicy "tmp/" 0 1000000 1000000
 
 -- | Remove any trailing white space characters
 stripSpaces :: String -> String
@@ -29,7 +25,6 @@ stripSpaces = init . unlines . map (foldr strip "") . lines . (++ " ")
 -- | Match on a QUERY element and pass its value to the function
 hQuery :: (ServerMonad m, MonadIO m, MonadPlus m, HasRqData m) => String -> (String -> m a) -> m a
 hQuery q f = do
-    decodeBody queryPolicy
     val <- getDataFn . queryString $ look q
     case val of
          Right v | not (null v) -> f v
@@ -64,7 +59,7 @@ getLogin :: (Functor m, MonadIO m, ServerMonad m, MonadPlus m, HasRqData m)
 getLogin = do
 
     -- Get session data
-    skey' <- fmap AuthD.SessionKey `fmap` getDataFn (readCookieValue "session-key")
+    skey' <- fmap Auth.SessionKey `fmap` getDataFn (readCookieValue "session-key")
     case skey' of
 
          Right skey -> do
@@ -84,7 +79,7 @@ getLogin = do
          _ -> return NotLoggedIn
 
 requireLogin :: (Functor m, MonadIO m, ServerMonad m, MonadPlus m, HasRqData m)
-             => m (AuthD.UserId, AuthD.Username)
+             => m (Auth.UserId, Auth.Username)
 requireLogin = do
 
     login <- getLogin
@@ -95,7 +90,7 @@ requireLogin = do
              sdata <- query $ Auth.GetSession skey
              case sdata of
 
-                  Just (AuthD.SessionData uid uname _ _) -> return (uid,uname)
+                  Just (Auth.SessionData uid uname) -> return (uid,uname)
                   _ -> mzero
 
          _ -> mzero

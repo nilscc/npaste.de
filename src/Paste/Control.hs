@@ -22,14 +22,16 @@ import Paste.MyPastes.Control
 import Util.Control
 
 pasteHandler :: ServerPartT IO Response
-pasteHandler = msum
-    [ dir "static" $ fileServe ["index.html"] "npaste.de"
-    , dir "client" $ fileServe ["index.html"] "npaste.de/client"
-    , path showPaste
-    , hQuery "view" viewHandler
-    , newPasteHandler
-    , showIndex
-    ]
+pasteHandler = do
+    decodeBody npastePolicy
+    msum
+        [ dir "static" $ fileServe ["index.html"] "npaste.de"
+        , dir "client" $ fileServe ["index.html"] "npaste.de/client"
+        , path showPaste
+        , hQuery "view" viewHandler
+        , newPasteHandler
+        , showIndex
+        ]
 
 
 viewHandler :: String -> ServerPart Response

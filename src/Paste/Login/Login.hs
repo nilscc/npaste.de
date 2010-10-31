@@ -15,8 +15,7 @@ import Happstack.State
 import System.Time
 
 import Happstack.Auth
-import qualified Happstack.Auth.Internal        as Auth
-import qualified Happstack.Auth.Internal.Data   as AuthD
+import qualified Happstack.Auth        as Auth
 
 import Paste.View
 import Paste.Types
@@ -75,17 +74,17 @@ loginPerform = do
 
     guard . not $ null uname || null pwd
 
-    user  <- query $ Auth.GetUser (AuthD.Username uname)
+    user  <- query $ Auth.GetUser (Auth.Username uname)
     case user of
 
-         Just u @ AuthD.User { AuthD.userpass = salted } | Auth.checkSalt pwd salted == True -> do
+         Just Auth.User { Auth.userid = uid, Auth.userpass = salted } | Auth.checkSalt pwd salted == True -> do
 
-             -- skey <- update $ Auth.NewSession (AuthD.SessionData uid (AuthD.Username uname))
-             let u' = convert u
-             performLogin (60 * 60 * 24) u' $ do
-             Just skey <- getSessionKey
+             skey <- update $ Auth.NewSession (Auth.SessionData uid (Auth.Username uname))
+             -- let u' = convert u
+             -- performLogin (60 * 60 * 24) u' $ do
+             -- Just skey <- getSessionKey
              addCookie (MaxAge $ 60 * 60 * 24 * 31) -- 1 month
-                       (mkCookie "session-key" (let AuthD.SessionKey i = skey in show i))
+                       (mkCookie "session-key" (let Auth.SessionKey i = skey in show i))
 
              now  <- liftIO getClockTime
              host <- rqPeer `fmap` askRq

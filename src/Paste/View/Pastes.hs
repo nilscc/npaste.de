@@ -76,7 +76,6 @@ showWithSyntax' (p:ps) = do
         ids     <- query $ GetAllIds
         replies <- query $ GetAllReplies id
 
-        decodeBody queryPolicy
         showAllReplies <- getDataFn . queryString $ look "replies"
 
         cont <- liftIO $ getContent p

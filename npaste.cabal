@@ -35,14 +35,14 @@ executable npaste
         directory == 1.*,
         hsemail == 1.*,
         hsx == 0.*,
-        regex-compat == 0.92,
+        regex-compat == 0.93.*,
         happstack == 0.5.*,
         happstack-ixset == 0.5.*,
         happstack-server == 0.5.*,
         happstack-state == 0.5.*,
         happstack-data == 0.5.*,
         happstack-util == 0.5.*,
-        happstack-auth == 0.*,
+        happstack-auth == 0.1,
         json == 0.4.*,
         SMTPClient == 1.*
 
