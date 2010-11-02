@@ -52,15 +52,6 @@ data Info = Info { infoKey :: String
 infoHsp :: ClockTime -> [Info] -> HSP XML
 infoHsp date infos =
     <div id="main">
-        <h1>Status information</h1>
-        <p>Current status:</p>
-        <%
-            if null infos
-               then <p class="error">No information available.</p>
-               else <ul id="info"><% infos %></ul>
-        %>
-        <p>State: <% calendarTimeToString . toUTCTime $ date %></p>
-
         <h1>Terms of usage</h1>
         <p>npaste.de was created to help the open source community. Feel free
         to paste any code, error log or configuration file as long as you are
@@ -80,6 +71,15 @@ infoHsp date infos =
             <li>IRC: McManiaC on Freenode</li>
             <li>Follow me and send me patches on <a href="http://github.com/mcmaniac/npaste.de">github.com</a>!</li>
         </ul>
+
+        <h1>Status information</h1>
+        <p>Current status:</p>
+        <%
+            if null infos
+               then <p class="error">No information available.</p>
+               else <ul id="info"><% infos %></ul>
+        %>
+        <p>State: <% calendarTimeToString . toUTCTime $ date %></p>
     </div>
 
 
