@@ -25,7 +25,7 @@ faqHsp =
             <p>Just add an "/id/" to your paste description. Npaste.de will then automaticly detect if there is a valid paste with that ID and add a "Replies: ..." link to it.</p>
 
             <h2>Missing highlight?</h2>
-            <p>npaste.de is using the <a href="http://kate-editor.org/downloads/syntax_highlighting?kateversion=3.2">Kate highlighting</a> engine.
+            <p>npaste.de is using the <a href="http://kde-files.org/index.php?xcontentmode=680">Kate highlighting</a> engine.
                 If you think that support for some language/script is missing, feel free to <a href="/?view=info">contact me</a>.</p>
         </div>
     </div>
