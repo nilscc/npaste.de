@@ -1,35 +1,12 @@
 name:           npaste-state
 version:        0.2
-synopsis:       npaste.de - A pastebin written in haskell
+synopsis:       State functions for npaste.de
 author:         Nils Schweinsberg <mail@n-sch.de>
 maintainer:     Nils Schweinsberg <mail@n-sch.de>
 category:       Network
 
 build-type:     Simple
 cabal-version:  >= 1.8
-
--- executable sqldump
--- 
---     hs-source-dirs: src
---     main-is: Dumper.hs
---     build-depends:
---         base                    == 4.*,
---         bytestring              == 0.9.*,
---         old-time                == 1.*,
---         mtl                     == 2.*,
---         parsec                  == 3.*,
---         utf8-light              == 0.4.*,
---         containers              == 0.4.*,
---         HDBC                    == 2.*,
---         HDBC-postgresql         == 2.*,
---         happstack-auth          == 0.1,
---         happstack               == 6.*,
---         happstack-data          == 6.*,
---         happstack-ixset         == 6.*,
---         happstack-server        == 6.*,
---         happstack-state         == 6.*,
---         happstack-util          == 6.*,
---         npaste                  == 0.3
 
 library
 
