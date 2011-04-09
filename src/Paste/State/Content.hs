@@ -11,16 +11,17 @@ import qualified Codec.Binary.UTF8.Light as UTF8 (decode)
 
 import qualified Paste.State.Old.Content1 as Old
 
-$(deriveAll [''Show, ''Eq, ''Ord, ''Default]
-    [d|
+deriveAll [''Show, ''Eq, ''Ord, ''Default] [d|
 
-        -- | Way content is saved: either in a file or plain as a string
-        data Content = File  { filepath :: String }
-                     | Plain { plain    :: String }
+  -- | Way content is saved: either in a file or plain as a string
+  data Content
+    = File  { filepath :: String }
+    | Plain { plain    :: String }
 
-    |])
+  |]
 
-$(deriveSerialize ''Content)
+deriveSerialize ''Content
+
 instance Version Content where
     mode = extension 2 (Proxy :: Proxy Old.Content)
 

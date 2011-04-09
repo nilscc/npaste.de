@@ -10,19 +10,19 @@ import Users.State.PasteSettings
 
 import qualified Users.State.Old.UserData0 as Old
 
-$(deriveAll [''Show, ''Eq, ''Ord]
-  [d|
+deriveAll [''Show, ''Eq, ''Ord] [d|
 
-      -- | All informations about our user
-    data UserData = UserData
-        { userEmail             :: String                   -- ^ Current email
-        , userEmailRequested    :: Maybe (String,String)    -- ^ Requested new email + activation key
-        , defaultPasteSettings  :: PasteSettings
-        }
+  -- | All informations about our user
+  data UserData = UserData
+    { userEmail             :: String                   -- ^ Current email
+    , userEmailRequested    :: Maybe (String,String)    -- ^ Requested new email + activation key
+    , defaultPasteSettings  :: PasteSettings
+    }
 
-  |])
+  |]
 
-$(deriveSerialize ''UserData)
+deriveSerialize ''UserData
+
 instance Version UserData where
     mode = extension 1 (Proxy :: Proxy Old.UserData)
 

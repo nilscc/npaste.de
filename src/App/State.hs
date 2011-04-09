@@ -14,12 +14,13 @@ import qualified Happstack.Auth as Auth
 
 -- | top-level application state
 -- in this case, the top-level state itself does not contain any state
-$(deriveAll [''Show, ''Eq, ''Ord, ''Default]
-  [d|
-      data AppState = AppState
-  |])
+deriveAll [''Show, ''Eq, ''Ord, ''Default] [d|
 
-$(deriveSerialize ''AppState)
+  data AppState = AppState
+
+  |]
+
+deriveSerialize ''AppState
 
 instance Version AppState
 
@@ -30,4 +31,4 @@ instance Component AppState where
     initialValue = defaultValue
 
 -- create types for event serialization
-$(mkMethods ''AppState [])
+mkMethods ''AppState []

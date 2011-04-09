@@ -1,4 +1,4 @@
-name:           npaste
+name:           npaste-state
 version:        0.2
 synopsis:       npaste.de - A pastebin written in haskell
 author:         Nils Schweinsberg <mail@n-sch.de>
@@ -6,55 +6,89 @@ maintainer:     Nils Schweinsberg <mail@n-sch.de>
 category:       Network
 
 build-type:     Simple
-cabal-version:  >= 1.6
+cabal-version:  >= 1.8
 
-executable npaste
+-- executable sqldump
+-- 
+--     hs-source-dirs: src
+--     main-is: Dumper.hs
+--     build-depends:
+--         base                    == 4.*,
+--         bytestring              == 0.9.*,
+--         old-time                == 1.*,
+--         mtl                     == 2.*,
+--         parsec                  == 3.*,
+--         utf8-light              == 0.4.*,
+--         containers              == 0.4.*,
+--         HDBC                    == 2.*,
+--         HDBC-postgresql         == 2.*,
+--         happstack-auth          == 0.1,
+--         happstack               == 6.*,
+--         happstack-data          == 6.*,
+--         happstack-ixset         == 6.*,
+--         happstack-server        == 6.*,
+--         happstack-state         == 6.*,
+--         happstack-util          == 6.*,
+--         npaste                  == 0.3
 
-    main-is: Main.hs
+library
+
     hs-source-dirs: src
-    ghc-options: -threaded -Wall -fno-warn-orphans -fno-warn-name-shadowing -fno-warn-unused-do-bind
+    ghc-options: -Wall
 
     build-depends:
-        base == 4.*,
-        convertible == 1.*,
-        hslogger == 1.*,
-        containers == 0.3.*,
-        bytestring == 0.9.*,
-        mtl == 1.*,
-        old-time == 1.*,
-        old-locale == 1.*,
-        random == 1.*,
-        utf8-light == 0.4,
-        utf8-string == 0.3.*,
-        hsp == 0.5.*,
-        pandoc == 1.*,
-        xhtml == 3000.2.*,
-        highlighting-kate == 0.2.*,
-        parsec == 2.1.*,
-        filepath == 1.1.*,
-        directory == 1.*,
-        hsemail == 1.*,
-        hsx == 0.*,
-        regex-compat == 0.93.*,
-        happstack == 0.5.*,
-        happstack-ixset == 0.5.*,
-        happstack-server == 0.5.*,
-        happstack-state == 0.5.*,
-        happstack-data == 0.5.*,
-        happstack-util == 0.5.*,
-        happstack-auth == 0.1,
-        json == 0.4.*,
-        SMTPClient == 1.*
+        base                    == 4.*,
+        bytestring              == 0.9.*,
+        containers              == 0.4.*,
+        mtl                     == 2.*,
+        old-time                == 1.*,
+        utf8-light              == 0.4.*,
+        parsec                  == 3.*,
+        happstack-auth          == 0.1,
+        happstack               == 6.*,
+        happstack-data          == 6.*,
+        happstack-ixset         == 6.*,
+        happstack-server        == 6.*,
+        happstack-state         == 6.*,
+        happstack-util          == 6.*
 
--- executable npaste-client
-    -- main-is: Np.hs
-    -- hs-source-dirs: client
-    -- build-depends:
-        -- base == 4.*,
-        -- haskell98,
-        -- curl == 1.3.*,
-        -- network == 2.2.*
+    exposed-modules:
+        App.State
+        Paste.State
+        Users.State
+        Paste.State.Content
+        Paste.State.ID
+        Paste.State.IDType
+        Paste.State.Paste
+        Paste.State.PasteDB
+        Paste.State.PasteEntry
+        Paste.State.NewTypes
+        Users.State.PasteSettings
+        Users.State.UserData
+        Users.State.Users
 
-source-repository head
-    type:         git
-    location:     git://github.com/mcmaniac/npaste.de.git
+    other-modules:
+        Paste.State.Old.Content0
+        Paste.State.Old.Content1
+        Paste.State.Old.NewTypes0
+        Paste.State.Old.Paste1
+        Paste.State.Old.Paste2
+        Paste.State.Old.Paste3
+        Paste.State.Old.Paste4
+        Paste.State.Old.Paste5
+        Paste.State.Old.PasteEntry2
+        Paste.State.Old.PasteEntry3
+        Paste.State.Old.PasteEntry4
+        Paste.State.Old.PasteEntry5
+        Paste.State.Old.PasteEntry6
+        Paste.State.Old.PasteEntry7
+        Users.State.Old.Login
+        Users.State.Old.PasteSettings0
+        Users.State.Old.SessionID
+        Users.State.Old.User0
+        Users.State.Old.User1
+        Users.State.Old.User2
+        Users.State.Old.UserData0
+        Users.State.Old.Users0
+        Users.State.Old.Users1
+        Users.State.Old.Users2

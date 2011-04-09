@@ -21,19 +21,20 @@ import qualified Paste.State.Old.Paste5 as Old
 
 type Hostname = String
 
-$(deriveAll [''Show]
-    [d|
+deriveAll [''Show] [d|
 
-        -- | Paste: A list of all PasteEntry with the last used ID
-        data Paste = Paste { pasteDB            :: PasteDB
-                           , knownHosts         :: M.Map Hostname [ClockTime]
-                           , replies            :: M.Map ID [ID]
-                           , removedIds         :: S.Set ID
-                           }
+  -- | Paste: A list of all PasteEntry with the last used ID
+  data Paste = Paste
+    { pasteDB            :: PasteDB
+    , knownHosts         :: M.Map Hostname [ClockTime]
+    , replies            :: M.Map ID [ID]
+    , removedIds         :: S.Set ID
+    }
 
-    |])
+  |]
 
-$(deriveSerialize ''Paste)
+deriveSerialize ''Paste
+
 instance Version Paste where
     mode = extension 6 (Proxy :: Proxy Old.Paste)
 

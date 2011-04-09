@@ -4,18 +4,7 @@ module Paste.Parser.Description
     ) where
 
 import Control.Applicative
-import Control.Monad (MonadPlus(..), ap)
 import Text.ParserCombinators.Parsec hiding (many, optional, (<|>))
-
--- Every Monad is an Applicative.
-instance Applicative (GenParser s a) where
-    pure = return
-    (<*>) = ap
-
--- Every MonadPlus is an Alternative.
-instance Alternative (GenParser s a) where
-    empty = mzero
-    (<|>) = mplus
 
 -- Our data structure
 data DescVal = ID String

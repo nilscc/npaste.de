@@ -6,16 +6,6 @@
 module Paste.State.NewTypes
     ( PUser (..)
     , module Paste.State.Old.NewTypes0
-    {-
-    , PId (..)
-    , PDate (..)
-    , PContent (..)
-    , PHash (..)
-    , PFileType (..)
-    , PDescription (..)
-    , PHide (..)
-    , PTags (..)
-    -}
     ) where
 
 import Happstack.Data
@@ -28,15 +18,15 @@ import Paste.State.Old.NewTypes0 hiding (PUser (..))
 -- Migrate old PUser...
 import qualified Paste.State.Old.NewTypes0 as Old
 
-$(deriveAll [''Show, ''Eq, ''Ord]
-    [d|
+deriveAll [''Show, ''Eq, ''Ord] [d|
 
-        newtype PUser = PUser { unUser :: (Maybe Auth.UserId) }
+  newtype PUser = PUser { unUser :: (Maybe Auth.UserId) }
 
-    |])
+  |]
 
 -- newtype stuff
-$(deriveSerialize ''PUser)
+deriveSerialize ''PUser
+
 instance Version PUser where
     mode = extension 1 (Proxy :: Proxy Old.PUser)
 

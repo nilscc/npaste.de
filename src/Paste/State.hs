@@ -19,6 +19,7 @@ module Paste.State
 
     , AddResponse (..)
     , GetAllReplies (..)
+    , GetReplies (..)
     , RemoveReplies (..)
 
     , defaultId
@@ -335,6 +336,9 @@ removeReplies id = do
 getAllReplies :: ID -> Query Paste [ID]
 getAllReplies id' = ask >>= return . M.findWithDefault [] id' . replies
 
+getReplies :: Query Paste (M.Map ID [ID])
+getReplies = asks replies
+
 
 
 -- Generate methods
@@ -352,6 +356,7 @@ $(mkMethods ''Paste
     , 'getAllEntries
     , 'getAllIds
     , 'getAllReplies
+    , 'getReplies
     , 'removeReplies
     , 'addResponse
     ])

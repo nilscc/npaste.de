@@ -10,11 +10,11 @@ import Happstack.Data.IxSet
 import Paste.State.PasteEntry
 import Paste.State.NewTypes
 
-$(inferIxSet "PasteDB" ''PasteEntry 'noCalcs
-    [ ''PUser
-    , ''PId
-    , ''PDate
-    , ''PHash
-    , ''PHide
-    , ''PTags
-    ])
+inferIxSet "PasteDB" ''PasteEntry 'noCalcs
+  [ ''PUser
+  , ''PId
+  , ''PDate
+  , ''PHash
+  , ''PHide
+  , ''PTags
+  ]
