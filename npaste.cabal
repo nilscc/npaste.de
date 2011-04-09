@@ -20,7 +20,6 @@ library
         mtl                     == 2.*,
         old-time                == 1.*,
         utf8-light              == 0.4.*,
-        parsec                  == 3.*,
         happstack-auth          == 0.1,
         happstack               == 6.*,
         happstack-data          == 6.*,

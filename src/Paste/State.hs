@@ -20,7 +20,6 @@ module Paste.State
     , AddResponse (..)
     , GetAllReplies (..)
     , GetReplies (..)
-    , RemoveReplies (..)
 
     , defaultId
     , defaultIds
@@ -49,7 +48,6 @@ import Paste.State.IDType
 import Paste.State.Paste
 import Paste.State.PasteEntry
 import Paste.State.NewTypes
-import qualified Paste.Parser.Description as P
 
 import Happstack.Data.IxSet
 import Happstack.State
@@ -59,7 +57,6 @@ import qualified Happstack.Auth     as Auth
 
 import System.Time
 
-import Control.Monad
 import Control.Monad.Reader         (ask, asks)
 import Control.Monad.State          (modify)
 
@@ -304,32 +301,6 @@ addResponse from to = modify $ \paste ->
         addFrom _           = Just [from]
 
 
--- | Remove all replies of a paste. This function parses the description of the
--- paste 'id' and deletes all its own ID in the replie lists of those entries.
-removeReplies :: ID
-              -> Update Paste ()
-removeReplies id = do
-
-    mzero
-
-    -- Get paste with 'id'
-    PasteEntry { description = PDescription desc } <- maybe mzero return =<< runQuery (getPasteById id)
-
-    modify $ \paste -> paste { replies = removeIds (replies paste) (P.parseDesc $ fromMaybe "" desc) }
-
-
-  where
-
-        -- Walk through the list and modify the Map
-        removeIds m []          = m
-        removeIds m (P.ID i:is) = removeIds (removeId i m) is
-        removeIds m (_:is)      = removeIds m is
-
-        -- Remove 
-        removeId i m                = M.alter removeFromList (ID i) m
-        removeFromList (Just ids)   = Just $ filter (/= id) ids
-        removeFromList _            = Nothing
-
 
 
 -- | Get all responses of ID
@@ -357,6 +328,5 @@ $(mkMethods ''Paste
     , 'getAllIds
     , 'getAllReplies
     , 'getReplies
-    , 'removeReplies
     , 'addResponse
     ])
