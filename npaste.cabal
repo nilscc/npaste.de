@@ -1,6 +1,6 @@
-name:           npaste-state
-version:        0.2
-synopsis:       State functions for npaste.de
+name:           npaste
+version:        0.3
+synopsis:       npaste.de
 author:         Nils Schweinsberg <mail@n-sch.de>
 maintainer:     Nils Schweinsberg <mail@n-sch.de>
 category:       Network
@@ -18,8 +18,15 @@ library
         bytestring              == 0.9.*,
         containers              == 0.4.*,
         mtl                     == 2.*,
-        old-time                == 1.*,
-        utf8-light              == 0.4.*,
+        random                  == 1.*,
+        time                    == 1.*,
+        parsec                  == 3.*,
+        aeson                   == 0.3.*,
+        HDBC                    == 2.*,
+        HDBC-postgresql         == 2.*,
+        mstate                  == 0.2.*,
+        convertible             == 1.*,
+        monad-peel              == 0.1.*,
         happstack-auth          == 0.1,
         happstack               == 6.*,
         happstack-data          == 6.*,
@@ -29,42 +36,24 @@ library
         happstack-util          == 6.*
 
     exposed-modules:
-        App.State
-        Paste.State
-        Users.State
-        Paste.State.Content
-        Paste.State.ID
-        Paste.State.IDType
-        Paste.State.Paste
-        Paste.State.PasteDB
-        Paste.State.PasteEntry
-        Paste.State.NewTypes
-        Users.State.PasteSettings
-        Users.State.UserData
-        Users.State.Users
+        NPaste.Database
+        NPaste.Description
+        NPaste.Types
+        NPaste.Utils
 
     other-modules:
-        Paste.State.Old.Content0
-        Paste.State.Old.Content1
-        Paste.State.Old.NewTypes0
-        Paste.State.Old.Paste1
-        Paste.State.Old.Paste2
-        Paste.State.Old.Paste3
-        Paste.State.Old.Paste4
-        Paste.State.Old.Paste5
-        Paste.State.Old.PasteEntry2
-        Paste.State.Old.PasteEntry3
-        Paste.State.Old.PasteEntry4
-        Paste.State.Old.PasteEntry5
-        Paste.State.Old.PasteEntry6
-        Paste.State.Old.PasteEntry7
-        Users.State.Old.Login
-        Users.State.Old.PasteSettings0
-        Users.State.Old.SessionID
-        Users.State.Old.User0
-        Users.State.Old.User1
-        Users.State.Old.User2
-        Users.State.Old.UserData0
-        Users.State.Old.Users0
-        Users.State.Old.Users1
-        Users.State.Old.Users2
+        NPaste.Database.Posts.Content
+        NPaste.Database.Posts.Info
+        NPaste.Database.Posts.Replies
+        NPaste.Database.Posts.Tags
+        NPaste.Database.Connection
+        NPaste.Database.Posts
+        NPaste.Database.Users
+        NPaste.Types.Database.PostInfo
+        NPaste.Types.Database.PostSettings
+        NPaste.Types.Database.User
+        NPaste.Types.Error
+        NPaste.Types.Instances
+        NPaste.Types.NPaste
+        NPaste.Types.State
+
