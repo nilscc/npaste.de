@@ -1,21 +1,38 @@
-module NPaste.Database.Users where
+module NPaste.Database.Users
+  ( -- * Queries
+    getUserById
+  , getUserByName
+  , getAllUsers
+    -- * Updates
+  ) where
 
-import Control.Monad.Trans
 import Data.Maybe
 
 import NPaste.Database.Connection
 import NPaste.Types
 import NPaste.Utils
 
-getUserById :: MonadIO m => Int -> m (Maybe User)
-getUserById uid = do
-  res <- querySql "SELECT u_id, u_name, u_email FROM users \
-                  \WHERE u_id = ? AND u_id >= 0"
-                  [toSql uid]
-  return $ convertListToMaybe res
 
-getAllUsers :: (Functor m, MonadIO m) => m [User]
+--------------------------------------------------------------------------------
+-- Queries
+
+getUserById :: Int -> Query (Maybe User)
+getUserById uid = do
+  fmap convertListToMaybe $
+       querySql "SELECT * FROM HS_User WHERE u_id = ?"
+                [toSql uid]
+
+getUserByName :: String -> Query (Maybe User)
+getUserByName name =
+  fmap convertListToMaybe $
+       querySql "SELECT * FROM HS_User WHERE u_name = ?"
+                [toSql name]
+
+getAllUsers :: Query [User]
 getAllUsers = do
-  fmap (catMaybes . map convertMaybe)
-       (querySql "SELECT u_id, u_name, u_email FROM users \
-                 \WHERE u_id >= 0" [])
+  fmap (catMaybes . map convertMaybe) $
+       querySql "SELECT * FROM HS_User" []
+
+
+--------------------------------------------------------------------------------
+-- Updates
