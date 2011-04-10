@@ -1,5 +1,7 @@
 module NPaste.Database
-  ( module NPaste.Database.Users
+  ( -- * Users
+    module NPaste.Database.Users
+    -- * Posts
   , module NPaste.Database.Posts
   ) where
 

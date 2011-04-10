@@ -42,13 +42,13 @@ library
         NPaste.Utils
 
     other-modules:
+        NPaste.Database.Connection
+        NPaste.Database.Users
+        NPaste.Database.Posts
         NPaste.Database.Posts.Content
         NPaste.Database.Posts.Info
         NPaste.Database.Posts.Replies
         NPaste.Database.Posts.Tags
-        NPaste.Database.Connection
-        NPaste.Database.Posts
-        NPaste.Database.Users
         NPaste.Types.Database.PostInfo
         NPaste.Types.Database.PostSettings
         NPaste.Types.Database.User

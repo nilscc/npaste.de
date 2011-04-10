@@ -24,14 +24,14 @@ import Database.HDBC.PostgreSQL
 
 import qualified Database.HDBC as H
 
-type Query  a = (Functor m, MonadPeelIO m) => m a
-type Update a = (Functor m, MonadPeelIO m) => m a
+import NPaste.Types
 
 conStr :: String
 conStr = "host=localhost user=npaste dbname=npaste password=1234"
 
 withConnection :: MonadIO m => (Connection -> IO a) -> m a
 withConnection = liftIO . withPostgreSQL conStr
+
 
 --------------------------------------------------------------------------------
 -- SQL

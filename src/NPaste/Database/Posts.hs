@@ -1,7 +1,13 @@
 {-# LANGUAGE NamedFieldPuns, RankNTypes, ViewPatterns, TupleSections #-}
 
 module NPaste.Database.Posts
-  ( addPost
+  (
+    -- ** Queries
+    getPostById
+  , getRecentPosts
+  , getPostsByUser
+    -- ** Updates
+  , addPost
   ) where
 
 import Control.Monad.IO.Peel

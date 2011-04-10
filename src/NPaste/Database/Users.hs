@@ -1,9 +1,9 @@
 module NPaste.Database.Users
-  ( -- * Queries
+  ( -- ** Queries
     getUserById
   , getUserByName
-  , getAllUsers
-    -- * Updates
+  -- , getAllUsers
+    -- ** Updates
   ) where
 
 import Data.Maybe
