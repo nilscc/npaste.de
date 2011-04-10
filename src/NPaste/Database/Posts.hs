@@ -1,6 +1,6 @@
 {-# LANGUAGE NamedFieldPuns, RankNTypes, ViewPatterns, TupleSections #-}
 
-module NPaste.Database.Post
+module NPaste.Database.Posts
   ( addPost
   ) where
 
@@ -15,10 +15,10 @@ import Happstack.Crypto.MD5 (md5)
 import System.Random
 
 import NPaste.Database.Connection
-import NPaste.Database.Post.Info
-import NPaste.Database.Post.Content
-import NPaste.Database.Post.Replies
-import NPaste.Database.Post.Tags
+import NPaste.Database.Posts.Info
+import NPaste.Database.Posts.Content
+import NPaste.Database.Posts.Replies
+import NPaste.Database.Posts.Tags
 import NPaste.Database.Users
 
 import qualified NPaste.Description as P

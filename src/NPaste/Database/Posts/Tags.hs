@@ -1,6 +1,6 @@
 {-# LANGUAGE NamedFieldPuns #-}
 
-module NPaste.Database.Post.Tags
+module NPaste.Database.Posts.Tags
   ( -- * Queries
     -- * Updates
     addTags

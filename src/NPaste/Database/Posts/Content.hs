@@ -1,4 +1,4 @@
-module NPaste.Database.Post.Content
+module NPaste.Database.Posts.Content
   ( -- * Queries
     getContent
 

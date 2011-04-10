@@ -9,6 +9,7 @@ module NPaste.Types
     -- * Database types
   , module NPaste.Types.Database.User
   , module NPaste.Types.Database.PostInfo
+  , module NPaste.Types.Database.PostSettings
 
     -- * Convenient types
   , Json
@@ -26,6 +27,7 @@ import NPaste.Types.Instances ()
 
 import NPaste.Types.Database.User
 import NPaste.Types.Database.PostInfo
+import NPaste.Types.Database.PostSettings
 
 import Control.Concurrent.MState
 import Control.Monad.Error

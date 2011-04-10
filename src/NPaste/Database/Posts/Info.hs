@@ -1,6 +1,6 @@
 {-# LANGUAGE NamedFieldPuns, RankNTypes #-}
 
-module NPaste.Database.Post.Info
+module NPaste.Database.Posts.Info
   ( -- * Queries
     Query
   , getPostById

@@ -1,6 +1,6 @@
 {-# LANGUAGE NamedFieldPuns #-}
 
-module NPaste.Database.Post.Replies
+module NPaste.Database.Posts.Replies
   ( -- * Queries
     getReplies
     -- * Updates

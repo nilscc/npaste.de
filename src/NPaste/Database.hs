@@ -1,7 +1,7 @@
 module NPaste.Database
   ( module NPaste.Database.Users
-  , module NPaste.Database.PostInfo
+  , module NPaste.Database.Posts
   ) where
 
 import NPaste.Database.Users
-import NPaste.Database.PostInfo
+import NPaste.Database.Posts
