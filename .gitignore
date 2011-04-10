@@ -1,3 +1,5 @@
+backup
+_darcs/*
 dist/*
 n-sch.de/*
 pastes/*
@@ -10,5 +12,4 @@ happstack
 *.hi
 *.o
 *.swp
-backup
-_darcs/*
+*~
