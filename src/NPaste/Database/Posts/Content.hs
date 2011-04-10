@@ -9,7 +9,6 @@ module NPaste.Database.Posts.Content
 import Data.ByteString (ByteString)
 
 import NPaste.Database.Connection
-import NPaste.Utils
 import NPaste.Types
 
 --------------------------------------------------------------------------------

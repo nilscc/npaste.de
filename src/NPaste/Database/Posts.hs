@@ -6,8 +6,9 @@ module NPaste.Database.Posts
     getPostById
   , getRecentPosts
   , getPostsByUser
+
     -- ** Updates
-  , addPost
+  , newPost
   ) where
 
 import Control.Monad.IO.Peel
@@ -35,18 +36,6 @@ import NPaste.Utils
 --------------------------------------------------------------------------------
 -- Errors
 
-data AddPostError
-  = APE_UserRequired
-  | APE_InvalidCustomId String
-  | APE_AlreadyExists (Maybe User) String
-  | APE_Other String
-  deriving Show
-
-instance Error AddPostError where
-  strMsg = APE_Other
-
-type AddPost a = (MonadPeelIO m, Functor m) => ErrorT AddPostError m a
-
 -- | Convert SQL exceptions to APE errors
 sqlErrorToAPE :: Maybe User
               -> ByteString     -- ^ MD5 hash
@@ -60,7 +49,7 @@ sqlErrorToAPE mu hash e =
              (APE_Other $ show e)
              (APE_AlreadyExists mu . p_id)
              mpi
-         | otherwise            ->
+         | otherwise ->
            throwError $ APE_Other (show e)
 
 
@@ -73,6 +62,10 @@ data IdSetting
   | IdPrivate
   | IdPrivateCustom String
 
+data ID
+  = ID String
+  | PrivateID User String
+
 reservedIds :: [String]
 reservedIds =
   [ "user", "filter", "api", "bin" ]
@@ -81,14 +74,15 @@ reservedIds =
 --------------------------------------------------------------------------------
 -- Add a new post
 
-addPost :: Maybe User               -- ^ optional user of paste
+-- | Adds a new post and eventually returns the `ID` or an `AddPostError`
+newPost :: Maybe User               -- ^ optional user of paste
         -> Maybe String             -- ^ file type
         -> Maybe String             -- ^ description
         -> Bool                     -- ^ hidden?
         -> IdSetting
         -> ByteString               -- ^ content
-        -> Update (Either AddPostError ())
-addPost muser mtype mdesc hide id_settings content = runErrorT $ do
+        -> Update (Either AddPostError ID)
+newPost muser mtype mdesc hide id_settings content = runErrorT $ do
     
   let hash = B.concat . toChunks . md5 $ fromChunks [content]
 
@@ -130,6 +124,11 @@ addPost muser mtype mdesc hide id_settings content = runErrorT $ do
       -- add tags
       let tags = P.tagsOnly descVals
       addTags muser pid tags
+
+    return $
+      case muser of
+           Just u | pid_is_global -> PrivateID u pid
+           _                      -> ID pid
 
 
 --------------------------------------------------------------------------------

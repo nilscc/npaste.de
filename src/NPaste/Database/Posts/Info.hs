@@ -43,8 +43,8 @@ getPostByMD5 mu hash =
                 [toSql (maybe (-1) u_id mu), byteaPack hash]
 
 getRecentPosts :: Maybe User
-               -> Int          -- ^ LIMIT
-               -> Int          -- ^ OFFSET
+               -> Int          -- ^ limit
+               -> Int          -- ^ offset
                -> Query [PostInfo]
 getRecentPosts Nothing limit offset =
   fmap (catMaybes . map convertMaybe)
@@ -59,8 +59,8 @@ getRecentPosts (Just u) limit offset =
                  [toSql (u_id u), toSql limit, toSql offset])
 
 getPostsByUser :: User
-               -> Int          -- ^ LIMIT
-               -> Int          -- ^ OFFSET
+               -> Int          -- ^ limit
+               -> Int          -- ^ offset
                -> Query [PostInfo]
 getPostsByUser User{u_name} limit offset =
   fmap (catMaybes . map convertMaybe)

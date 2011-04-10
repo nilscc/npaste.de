@@ -27,7 +27,7 @@ library
         mstate                  == 0.2.*,
         convertible             == 1.*,
         monad-peel              == 0.1.*,
-        happstack-auth          == 0.1,
+        Crypto                  == 4.*,
         happstack               == 6.*,
         happstack-data          == 6.*,
         happstack-ixset         == 6.*,
