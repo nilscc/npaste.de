@@ -44,16 +44,20 @@ library
     other-modules:
         NPaste.Database.Connection
         NPaste.Database.Users
+        NPaste.Database.Users.Password
         NPaste.Database.Posts
         NPaste.Database.Posts.Content
         NPaste.Database.Posts.Info
         NPaste.Database.Posts.Replies
         NPaste.Database.Posts.Tags
+        NPaste.Types.Database
         NPaste.Types.Database.PostInfo
         NPaste.Types.Database.PostSettings
         NPaste.Types.Database.User
         NPaste.Types.Error
+        NPaste.Types.Error.AddPost
+        NPaste.Types.Error.AddUser
+        NPaste.Types.Error.NPaste
         NPaste.Types.Instances
         NPaste.Types.NPaste
         NPaste.Types.State
-
