@@ -1,4 +1,4 @@
-.PHONY: all build conf doc haddock clean install
+.PHONY: all build conf doc haddock clean install run
 
 all: conf build
 
@@ -10,11 +10,15 @@ build:
 
 clean:
 	cabal clean
+	-rm npaste.de
 
 doc: haddock
 
-haddock:
+haddock: conf
 	cabal haddock --hyperlink-source
 
 install:
 	cabal install --bindir=.
+
+run: install
+	./npaste.de
