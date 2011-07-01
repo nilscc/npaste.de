@@ -6,12 +6,13 @@ maintainer:     Nils Schweinsberg <mail@n-sch.de>
 category:       Network
 
 build-type:     Simple
-cabal-version:  >= 1.8
+cabal-version:  >= 1.10
 
 library
 
     hs-source-dirs: src
     ghc-options: -Wall
+    default-language: Haskell2010
 
     build-depends:
         base                    == 4.*,
@@ -39,6 +40,8 @@ library
     exposed-modules:
         NPaste
         NPaste.Database
+        NPaste.Html
+        NPaste.Routes
         NPaste.Tools
         NPaste.Types
         NPaste.Utils
@@ -53,6 +56,11 @@ library
         NPaste.Database.Posts.Replies
         NPaste.Database.Posts.Tags
 
+        NPaste.Html.Index
+        NPaste.Html.MainFrame
+
+        NPaste.Routes.Index
+
         NPaste.Tools.Description
 
         NPaste.Types.Database
@@ -66,10 +74,12 @@ library
         NPaste.Types.Instances
         NPaste.Types.NPaste
         NPaste.Types.State
+        NPaste.Types.Pastes
 
 executable npaste.de
     hs-source-dirs: src
     main-is: Main.hs
+    default-language: Haskell2010
 
     build-depends:
         npaste                  == 0.3,
