@@ -21,4 +21,4 @@ install:
 	cabal install --bindir=.
 
 run: install
-	./npaste.de
+	-./npaste.de
