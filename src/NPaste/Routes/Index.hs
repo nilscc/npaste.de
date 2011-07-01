@@ -7,19 +7,14 @@ import NPaste.Types
 
 
 indexR :: ServerPart Html
-indexR = msum
-  [ do methodM POST
-       pdata <- getIndexPostData
-       return $ mainFrame $ nullBody
-         { css = ["index.css"]
-         , html = indexHtml pdata
-         }
-  , do methodM GET
-       return $ mainFrame $ nullBody
-         { css = ["index.css"]
-         , html = indexHtml nullPostData
-         }
-  ]
+indexR = do
+  pdata <- msum
+    [ methodM POST >> getIndexPostData
+    , return nullPostData ]
+  return $ mainFrame $ nullBody
+    { css = ["index.css"]
+    , html = indexHtml pdata
+    }
 
 
 --------------------------------------------------------------------------------
@@ -27,7 +22,7 @@ indexR = msum
 
 getIndexPostData :: ServerPart IndexPostData
 getIndexPostData = do
-  decodeBody (defaultBodyPolicy "/tmp/" 4096 4096 4096)
+  decodeBody (defaultBodyPolicy "/tmp/npaste.de/" 4096 4096 4096)
   fmap IndexPostData $ body lookPairs
 
 nullPostData :: IndexPostData
