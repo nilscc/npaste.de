@@ -1,0 +1,3 @@
+module NPaste.Tools
+  (
+  ) where
