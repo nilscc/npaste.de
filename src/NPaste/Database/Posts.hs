@@ -27,7 +27,7 @@ import NPaste.Database.Posts.Replies
 import NPaste.Database.Posts.Tags
 import NPaste.Database.Users
 
-import qualified NPaste.Description as P
+import qualified NPaste.Tools.Description as P
 import NPaste.Types
 import NPaste.Utils
 

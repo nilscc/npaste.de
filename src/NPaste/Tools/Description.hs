@@ -1,4 +1,4 @@
-module NPaste.Description
+module NPaste.Tools.Description
     ( parseDesc
     , DescVal (..)
     , tagsOnly

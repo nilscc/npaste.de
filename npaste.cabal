@@ -39,7 +39,7 @@ library
     exposed-modules:
         NPaste
         NPaste.Database
-        NPaste.Description
+        NPaste.Tools
         NPaste.Types
         NPaste.Utils
 
@@ -52,6 +52,9 @@ library
         NPaste.Database.Posts.Info
         NPaste.Database.Posts.Replies
         NPaste.Database.Posts.Tags
+
+        NPaste.Tools.Description
+
         NPaste.Types.Database
         NPaste.Types.Database.PostInfo
         NPaste.Types.Database.PostSettings
