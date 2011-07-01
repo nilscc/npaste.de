@@ -11,7 +11,6 @@ module NPaste.Database.Posts
   , newPost
   ) where
 
-import Control.Monad.IO.Peel
 import Data.ByteString (ByteString)
 import qualified Data.ByteString as B
 import Data.ByteString.Lazy (fromChunks, toChunks)
@@ -55,16 +54,6 @@ sqlErrorToAPE mu hash e =
 
 --------------------------------------------------------------------------------
 -- Settings
-
-data IdSetting
-  = IdDefault
-  | IdRandom
-  | IdPrivate
-  | IdPrivateCustom String
-
-data ID
-  = ID String
-  | PrivateID User String
 
 reservedIds :: [String]
 reservedIds =
