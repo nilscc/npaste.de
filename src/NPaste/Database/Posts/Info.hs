@@ -49,13 +49,13 @@ getRecentPosts :: Maybe User
 getRecentPosts Nothing limit offset =
   fmap (catMaybes . map convertMaybe)
        (querySql "SELECT * FROM HS_PostInfo \
-                 \ORDER BY p_date DESC LIMIT ? OFFSET ?"
+                 \ ORDER BY p_date DESC LIMIT ? OFFSET ?"
                  [toSql limit, toSql offset])
 getRecentPosts (Just u) limit offset =
   fmap (catMaybes . map convertMaybe)
        (querySql "SELECT * FROM HS_PostInfo \
-                 \WHERE p_user_id = ? \
-                 \ORDER BY p_date DESC LIMIT ? OFFSET ?"
+                 \ WHERE p_user_id = ? \
+                 \ ORDER BY p_date DESC LIMIT ? OFFSET ?"
                  [toSql (u_id u), toSql limit, toSql offset])
 
 getPostsByUser :: User
@@ -65,8 +65,8 @@ getPostsByUser :: User
 getPostsByUser User{u_name} limit offset =
   fmap (catMaybes . map convertMaybe)
        (querySql "SELECT * FROM HS_PostInfo \
-                 \WHERE p_user_id IN ( SELECT u_id FROM users WHERE u_name = ? ) \
-                 \ORDER BY p_date DESC LIMIT ? OFFSET ?"
+                 \ WHERE p_user_id IN ( SELECT u_id FROM users WHERE u_name = ? ) \
+                 \ ORDER BY p_date DESC LIMIT ? OFFSET ?"
                  [toSql u_name, toSql limit, toSql offset])
 
 --
@@ -77,7 +77,7 @@ getGlobalIds :: Query [String]
 getGlobalIds =
   fmap (catMaybes . map toStr)
        (querySql "SELECT p_id FROM posts \
-                 \WHERE p_id_is_global = 'true'" -- include removed
+                 \ WHERE p_id_is_global = 'true'" -- include removed
                  [])
  where
   toStr [sql] = Just $ fromSql sql
@@ -87,7 +87,7 @@ getPrivateIds :: User -> Query [String]
 getPrivateIds User{ u_id } =
   fmap (catMaybes . map toStr)
        (querySql "SELECT p_id FROM posts \
-                 \WHERE p_user_id = ? AND p_id_is_global = 'false'" -- include removed
+                 \ WHERE p_user_id = ? AND p_id_is_global = 'false'" -- include removed
                  [toSql u_id])
  where
   toStr [sql] = Just $ fromSql sql
@@ -97,7 +97,7 @@ checkCustomId :: User -> String -> Query Bool
 checkCustomId User{ u_id } pid =
   fmap (null)
        (querySql "SELECT p_id FROM posts \
-                 \WHERE p_id = ? AND p_user_id = ?" -- include removed
+                 \ WHERE p_id = ? AND p_user_id = ?" -- include removed
                  [toSql pid, toSql u_id])
 
 
@@ -115,7 +115,7 @@ addPostInfo md5 p@PostInfo{ p_id, p_user_id, p_date, p_type, p_description, p_hi
 updatePostInfo :: PostInfo -> Update ()
 updatePostInfo PostInfo { p_id, p_user_id, p_type, p_description, p_hidden } =
   updateSql_ "UPDATE posts SET p_type = ?, p_description = ?, p_hidden = ? \
-             \WHERE p_id = ? AND p_user_id = ?"
+             \ WHERE p_id = ? AND p_user_id = ?"
              [ toSql p_type, toSql p_description, toSql p_hidden
              , toSql p_id, toSql p_user_id ]
 
