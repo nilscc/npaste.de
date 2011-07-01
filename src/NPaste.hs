@@ -3,8 +3,7 @@ module NPaste
   ) where
 
 import NPaste.Types
-
-import Text.Blaze
+import NPaste.Routes
 
 npaste :: ServerPart Html
-npaste = undefined
+npaste = npasteR

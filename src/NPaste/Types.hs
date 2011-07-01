@@ -12,6 +12,9 @@ module NPaste.Types
   , module NPaste.Types.Database.PostInfo
   , module NPaste.Types.Database.PostSettings
 
+    -- * HTML types
+  , module NPaste.Types.Html
+
     -- * Errors
   , module NPaste.Types.Error
 
@@ -26,6 +29,7 @@ module NPaste.Types
 
 import NPaste.Types.NPaste
 import NPaste.Types.Error
+import NPaste.Types.Html
 import NPaste.Types.State
 import NPaste.Types.Pastes
 import NPaste.Types.Instances ()

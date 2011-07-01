@@ -1,3 +1,0 @@
-module NPaste.Route
-  (
-  ) where
