@@ -1,4 +1,4 @@
-.PHONY: all build conf haddock clean install
+.PHONY: all build conf doc haddock clean install
 
 all: conf build
 
@@ -10,6 +10,8 @@ build:
 
 clean:
 	cabal clean
+
+doc: haddock
 
 haddock:
 	cabal haddock --hyperlink-source
