@@ -33,9 +33,11 @@ library
         happstack-ixset         == 6.*,
         happstack-server        == 6.*,
         happstack-state         == 6.*,
-        happstack-util          == 6.*
+        happstack-util          == 6.*,
+        blaze-html              == 0.4.*
 
     exposed-modules:
+        NPaste
         NPaste.Database
         NPaste.Description
         NPaste.Types
@@ -61,3 +63,32 @@ library
         NPaste.Types.Instances
         NPaste.Types.NPaste
         NPaste.Types.State
+
+executable npaste.de
+    hs-source-dirs: src
+    main-is: Main.hs
+
+    build-depends:
+        npaste                  == 0.3,
+        base                    == 4.*,
+        bytestring              == 0.9.*,
+        containers              == 0.4.*,
+        mtl                     == 2.*,
+        random                  == 1.*,
+        time                    == 1.*,
+        parsec                  == 3.*,
+        aeson                   == 0.3.*,
+        HDBC                    == 2.*,
+        HDBC-postgresql         == 2.*,
+        mstate                  == 0.2.*,
+        convertible             == 1.*,
+        monad-peel              == 0.1.*,
+        Crypto                  == 4.*,
+        happstack               == 6.*,
+        happstack-data          == 6.*,
+        happstack-ixset         == 6.*,
+        happstack-server        == 6.*,
+        happstack-state         == 6.*,
+        happstack-util          == 6.*,
+        blaze-html              == 0.4.*,
+        hslogger                == 1.*
