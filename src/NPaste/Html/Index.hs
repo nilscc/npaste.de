@@ -23,12 +23,29 @@ languages =
 indexHtml :: IndexPostData -> Html
 indexHtml pdata = do
   H.h1 "New post"
+
   H.form ! A.method "post" ! A.action "/" $ do
-    H.input ! A.type_ "text" ! A.name "desc" ! A.value (pdata ? "desc")
-    H.select ! A.name "lang" $
-      forM_ languages $ \l ->
-        if l == getValue pdata "lang" then
-          H.option ! A.selected "selected" ! A.value (toValue l) $ toHtml l
-         else
-          H.option                         ! A.value (toValue l) $ toHtml l
-    H.input ! A.type_ "submit" ! A.name "submit" ! A.value "OK"
+
+    H.div ! A.id "settings" $ do
+
+      let desc    = getValue pdata "desc"
+          defdesc = "Enter description..."
+      if null desc || desc == defdesc then
+        H.input !  A.id "desc"
+                ! A.type_ "text"
+                ! A.name "desc"
+                ! A.value (toValue defdesc)
+                ! A.class_ "new-desc"
+       else
+        H.input ! A.id "desc" ! A.type_ "text" ! A.name "desc" ! A.value (toValue desc)
+
+      H.select ! A.id "lang" ! A.name "lang" $
+        forM_ languages $ \l ->
+          if l == getValue pdata "lang" then
+            H.option ! A.selected "selected" ! A.value (toValue l) $ toHtml l
+           else
+            H.option                         ! A.value (toValue l) $ toHtml l
+      H.input ! A.id "submit" ! A.type_ "submit" ! A.name "submit" ! A.value "OK"
+
+    H.textarea ! A.id "content" ! A.name "content" $
+      toHtml $ getValue pdata "content"

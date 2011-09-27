@@ -1,0 +1,291 @@
+body
+{
+    margin: 0;
+    padding: 0;
+    background: #fff;
+    color: #666;
+    font-size: 12pt;
+    font-family: 'Ubuntu', sans-serif;
+}
+
+a
+{
+    color: #088;
+    text-decoration: none;
+}
+
+a:hover
+{
+    text-decoration: underline;
+}
+
+li
+{
+    font-size: 9pt;
+}
+
+section, menu, header, div
+{
+    margin: 0;
+    padding: 0;
+}
+
+
+/* {{{ Logo */
+
+header
+{
+    margin: 100px auto 50px;
+    width: 500px;
+    font-size: 20pt;
+}
+ 
+    header p#left a#n3
+    {
+      text-decoration: none;
+      position: relative;
+      left: 6px;
+    }
+    header p#left a#n3 sup
+    {
+      font-size: 12pt;
+      position: relative;
+      top: -4px;
+      right: 3px;
+    }
+
+    header p#left
+    {
+        padding: 0;
+        margin: 0;
+        display: inline-block;
+        font-weight: bold;
+        text-align: right;
+        width: 210px;
+    }
+ 
+    header p#center
+    {
+        padding: 0;
+        margin: 0;
+        display: inline-block;
+        text-align: center;
+        color: #999;
+        font-size: 22pt;
+ 
+        width: 68px; /* hmm... to align stuff correctly */
+    }
+ 
+    header p#right
+    {
+        padding: 0;
+        margin: 0;
+        display: inline-block;
+        text-align: left;
+        color: #999;
+ 
+        width: 210px;
+    }
+ 
+    header p#info
+    {
+        width: 500px;
+        text-align: center;
+        font-size: 12pt;
+    }
+
+/* }}} */
+
+
+/* {{{ Menu */
+
+menu
+{
+    float: left;
+    margin: 100px 20px auto;
+    padding: 40px 0 40px;
+    list-style-type: none;
+    position: absolute;
+    top: 100px;
+    left: 20px;
+    vertical-align: middle;
+    background-color: #666;
+    -moz-border-radius: 5px;
+    -webkit-border-radius: 5px;
+    -o-border-radius: 5px;
+}
+    menu li
+    {
+        padding: 5px;
+        width: 170px;
+        background-color: #666;
+        color: #ccc;
+        text-align: center;
+    }
+
+    menu li:hover
+    {
+        background-color: #777;
+    }
+
+    menu li p
+    {
+        display: inline;
+    }
+
+    menu li a      { color: #fff; }
+
+    menu hr
+    {
+        width: 80%;
+        border: 0;
+        height: 2px;
+        color: #555;
+        background-color: #555;
+    }
+
+
+/* }}} */
+
+section#main
+{
+    margin: 20px 20px 0 270px;
+    width: 760px;
+}
+
+    section#main .error
+    {
+        font-weight: bold;
+        color: #c20;
+    }
+
+    section#main .success
+    {
+        font-weight: bold;
+        font-style: italic;
+    }
+
+    section#main .info
+    {
+        font-weight: bold;
+        font-style: italic;
+    }
+
+    section#main pre
+    {
+        margin: 10px 30px 10px;
+        font-weight: bold;
+    }
+
+    section#main p.moreless
+    {
+        text-align: right;
+    }
+
+/* {{{ Recent pastes -> read.css */
+
+
+    section#main div.recentpaste
+    {
+        background-color: #eee;
+        margin: 10px 0 10px;
+        padding: 5px;
+        text-align: right;
+    }
+
+        section#main div.recentpaste p.paste-info,
+        section#main div.recentpaste p.paste-info *,
+        section#main div.recentpaste p.paste-date
+        {
+            display: inline;
+        }
+
+        section#main div.recentpaste p.paste-date
+        {
+        }
+
+        section#main div.recentpaste p.paste-info
+        {
+            float: left;
+            text-align: left;
+            margin: 0;
+            padding: 0;
+        }
+
+        section#main div.recentpaste pre
+        {
+            clear: both;
+            text-align: left;
+            overflow: hidden;
+        }
+
+/* }}} */
+
+/* {{{ FAQ -> about.css */
+
+    section#main div#faq p.faq-question
+    {
+        font-weight: bold;
+        display: inline;
+    }
+
+    section#main div#faq p.faq-answer
+    {
+        margin: 0.5em auto auto;
+        padding: 0;
+    }
+
+/* }}} */
+
+/* {{{ Registration -> login.css */
+
+    section#main form#registration-form p span.desc
+    {
+        display: inline-block;
+        font-weight: bold;
+        width: 200px;
+    }
+
+    section#main form#registration-form p input
+    {
+        display: inline-block;
+    }
+
+/* }}} */
+
+/* {{{ Login -> login.css */
+
+    section#main form#login-form p span.desc
+    {
+        display: inline-block;
+        font-weight: bold;
+        width: 200px;
+    }
+
+    section#main form#login-form p input
+    {
+        display: inline-block;
+    }
+
+/* }}} */
+
+/* {{{ Profile -> profile.css */
+
+    section#main form#profile-form p span.desc
+    {
+        display: inline-block;
+        font-weight: bold;
+        width: 200px;
+    }
+
+    section#main form#profile-form p.radio
+    {
+        font-weight: bold;
+    }
+
+    section#main form#profile-form p input
+    {
+        display: inline-block;
+    }
+
+/* }}} */

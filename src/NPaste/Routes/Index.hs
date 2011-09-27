@@ -6,12 +6,12 @@ import NPaste.Html
 import NPaste.Types
 
 
-indexR :: ServerPart Html
+indexR :: ServerPart Response
 indexR = do
   pdata <- msum
     [ methodM POST >> getIndexPostData
     , return nullPostData ]
-  return $ mainFrame $ nullBody
+  return . toResponse . mainFrame $ nullBody
     { css = ["index.css"]
     , html = indexHtml pdata
     }

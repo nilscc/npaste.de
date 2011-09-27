@@ -36,24 +36,33 @@ mainFrame htmlbody = H.docTypeHtml $ do
         H.script ! A.type_ "text/javascript" ! A.src (toValue $ "/js/" ++ s) $ return ()
 
     -- load css
-    let cssFiles = css htmlbody ++ ["main.css"]
+    let cssFiles = css htmlbody ++ ["main.css", "fonts.css"]
     forM_ cssFiles $ \c ->
       H.link ! A.type_ "text/css" ! A.href (toValue $ "/css/" ++ c) ! A.rel "stylesheet"
 
   H.body $ do
     H.header $ mainHeader
     H.menu   $ mainMenu (section htmlbody)
-    html htmlbody
+    H.section ! A.id "main" $
+      html htmlbody
 
 
 --------------------------------------------------------------------------------
 -- Header
 
 mainHeader :: Html
-mainHeader =
-  H.h1 $ do
-    "npaste.de"
-    H.sup "3"
+mainHeader = do
+  H.p ! A.id "left" $ do
+    H.a ! A.id "n3" ! A.href "/about" $ do
+      "n"
+      H.sup "3"
+    "paste.de"
+  H.p ! A.id "center" $
+    "::"
+  H.p ! A.id "right" $
+    "IO String"
+  H.p ! A.id "info" $
+    "a haskell happstack pastebin"
   
 
 --------------------------------------------------------------------------------
@@ -62,7 +71,7 @@ mainHeader =
 mainMenu :: MenuSection -> Html
 mainMenu active = sequence_ $ do
   -- list monad
-  s <- [M_AddNewPaste, M_Read, M_Settings]
+  s <- [ M_AddNewPaste, M_Read, M_Settings]
   return $ H.li $
     if (active == s) then
       H.a ! A.href (sectionToUrl s) ! A.class_ "menu-item active" $ (sectionToTitle s)
@@ -77,6 +86,6 @@ sectionToUrl s = case s of
 
 sectionToTitle :: MenuSection -> Html
 sectionToTitle s = case s of
-  M_AddNewPaste -> "New"
-  M_Read        -> "Read"
-  M_Settings    -> "Settings"
+  M_AddNewPaste -> "New paste"
+  M_Read        -> "Read recent pastes"
+  M_Settings    -> "My settings"

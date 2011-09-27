@@ -2,8 +2,8 @@ module NPaste
   ( npaste
   ) where
 
-import NPaste.Types
+import Happstack.Server
 import NPaste.Routes
 
-npaste :: ServerPart Html
+npaste :: ServerPart Response
 npaste = npasteR

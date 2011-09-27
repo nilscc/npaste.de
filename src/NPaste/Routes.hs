@@ -6,9 +6,10 @@ import Happstack.Server
 
 import NPaste.Types
 import NPaste.Routes.Index
+import NPaste.Routes.Static
 
-npasteR :: ServerPart Html
+npasteR :: ServerPart Response
 npasteR = msum
-  [ do nullDir
-       indexR
+  [ nullDir >> indexR
+  , staticR
   ]

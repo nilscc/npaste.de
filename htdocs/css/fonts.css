@@ -1,0 +1,28 @@
+/* link to fonts */
+
+@media screen {
+@font-face {
+  font-family: 'Ubuntu';
+  font-style: normal;
+  font-weight: normal;
+  src: local('Ubuntu'), url('/css/Ubuntu-Regular.woff') format('woff');
+}
+}
+
+@media screen {
+@font-face {
+  font-family: 'Just Another Hand';
+  font-style: normal;
+  font-weight: normal;
+  src: local('Just Another Hand'), local('JustAnotherHand-Regular'), url('/css/JustAnotherHand.woff') format('woff');
+}
+}
+
+@media screen {
+@font-face {
+  font-family: 'Ubuntu';
+  font-style: normal;
+  font-weight: 500;
+  src: local('Ubuntu Medium'), local('Ubuntu-Medium'), url('/css/Ubuntu-Medium.woff') format('woff');
+}
+}
