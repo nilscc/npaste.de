@@ -14,7 +14,6 @@ module NPaste.Database.Posts
 import Data.ByteString (ByteString)
 import qualified Data.ByteString as B
 import Data.ByteString.Lazy (fromChunks, toChunks)
-import Data.Maybe
 import Data.Time
 import Database.HDBC.PostgreSQL
 import Happstack.Crypto.MD5 (md5)
@@ -55,9 +54,9 @@ sqlErrorToAPE mu hash e =
 --------------------------------------------------------------------------------
 -- Settings
 
-reservedIds :: [String]
-reservedIds =
-  [ "user", "filter", "api", "bin" ]
+-- reservedIds :: [String]
+-- reservedIds =
+--   [ "user", "filter", "api", "bin" ]
 
 
 --------------------------------------------------------------------------------
@@ -78,9 +77,9 @@ newPost muser mtype mdesc hide id_settings content = runErrorT $ do
   -- aquire new ID
   (pid, pid_is_global, pid_is_custom) <-
     case id_settings of
-         IdRandom           -> getRandomId 10
-         IdDefault          -> getNextId muser True
-         IdPrivate          -> getNextId muser False
+         IdRandom           -> getRandomId 8
+         -- IdDefault          -> getNextId muser True
+         -- IdPrivate          -> getNextId muser False
          IdPrivateCustom c  -> getCustom muser c
 
   handleSql (sqlErrorToAPE muser hash) $ do
@@ -131,7 +130,7 @@ getRandomId :: Int
 getRandomId m = do
 
   ids   <- getGlobalIds
-  n     <- liftIO $ randomRIO (5,m)
+  n     <- liftIO $ randomRIO (4,m)
   iList <- rnds n (0,length validChars - 1) []
 
   let pid = map (validChars !!) iList
@@ -149,26 +148,26 @@ getRandomId m = do
 getCustom :: Maybe User
           -> String
           -> AddPost (String, Bool, Bool)
-getCustom Nothing _ = throwError APE_UserRequired
+getCustom Nothing _  = throwError APE_UserRequired
 getCustom (Just u) c = do
   available <- checkCustomId u c
   unless available $
     throwError (APE_InvalidCustomId c)
   return (c, False, True)
 
-getNextId :: Maybe User
-          -> Bool
-          -> AddPost (String, Bool, Bool)
-getNextId mUser global = do
-  let global' = global || isNothing mUser
-  ids <- if global'
-             then getGlobalIds
-             else getPrivateIds (fromJust mUser)
-  let pid = head $
-        dropWhile (\pid' -> pid' `elem` reservedIds || pid' `elem` ids)
-                  everything
-  return (pid, global', False)
- where
-  everything  = concat $ iterate func chars
-  func list   = concatMap (\char -> map (char ++) list) chars
-  chars       = map (:[]) validChars
+-- getNextId :: Maybe User
+--           -> Bool
+--           -> AddPost (String, Bool, Bool)
+-- getNextId mUser global = do
+--   let global' = global || isNothing mUser
+--   ids <- if global'
+--              then getGlobalIds
+--              else getPrivateIds (fromJust mUser)
+--   let pid = head $
+--         dropWhile (\pid' -> pid' `elem` reservedIds || pid' `elem` ids)
+--                   everything
+--   return (pid, global', False)
+--  where
+--   everything  = concat $ iterate func chars
+--   func list   = concatMap (\char -> map (char ++) list) chars
+--   chars       = map (:[]) validChars

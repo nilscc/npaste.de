@@ -7,9 +7,9 @@ import NPaste.Types.Database.User
 -- IDs
 
 data IdSetting
-  = IdDefault
-  | IdRandom
-  | IdPrivate
+  -- = IdDefault
+  = IdRandom
+  -- | IdPrivate
   | IdPrivateCustom String
 
 data ID
