@@ -3,56 +3,92 @@
 /*******************************************************************************
  * Paste form                                                                 */
 
-section#main div#settings
+section#main .settings
 {
-  background-color: #888;
-  padding: 1px;
-  margin: 0;
+  background-color: #999;
+  border: 1px solid #666;
   width: 650px;
+  margin: 0;
+  padding: 5px 1px 5px;
+  -moz-border-radius: 3px;
+  -webkit-border-radius: 3px;
+  -o-border-radius: 3px;
+}
+
+section#main ul.settings
+{
+  list-style: none;
+}
+
+section#main ul.settings li
+{
+  display: inline;
+  margin-right: 15px;
+}
+
+section#main .settings p
+{
+  font-size: 11px;
+  color: white;
+  display: inline-block;
+  margin: 5px;
 }
 
 section#main input#desc,
 section#main select#lang
 {
-  margin: 0;
+  margin: 1px 0 1px;
   padding: 0;
   font-size: 11px;
   height: 20px;
   border: 0;
 }
 
-section#main input#desc
+section#main input[type=checkbox]
 {
-  width: 500px;
+  margin: 0;
+  position: relative;
+  top: 2px;
 }
 
-section#main input#desc.new-desc
+section#main input#desc
 {
-  color: #999;
+  min-width: 400px;
+  margin: 1px 0 1px;
 }
 
 section#main select#lang
 {
   width: 100px;
-  height: 20px;
   text-align: right;
-}
-
-section#main input#submit
-{
-  height: 20px;
-  width: 40px;
-  background-color: none;
-  color: #088;
-  font-family: 'Ubuntu', sans-serif;
-  border: 0;
-  margin: 0;
 }
 
 section#main textarea
 {
   display: block;
-  margin: 5px 0 0;
-  width: 654px;
+  margin: 5px 0 5px;
+  padding: 0;
+  width: 652px;
   height: 400px;
+}
+
+section#main input#submit
+{
+  background-color: #777;
+  color: white;
+  border: 1px solid #666;
+  font-family: 'Ubuntu', sans-serif;
+  font-weight: bold;
+  padding: 10px;
+  margin: 5px 0 5px;
+  -moz-border-radius: 3px;
+  -webkit-border-radius: 3px;
+  -o-border-radius: 3px;
+  display: block;
+}
+
+section#main input#submit:hover
+{
+  cursor: pointer;
+  text-decoration: underline;
 }

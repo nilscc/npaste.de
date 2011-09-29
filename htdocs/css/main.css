@@ -24,6 +24,11 @@ li
     font-size: 9pt;
 }
 
+input.inputDesc
+{
+  color: #999;
+}
+
 section, menu, header, div
 {
     margin: 0;
