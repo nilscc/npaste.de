@@ -115,9 +115,7 @@ menu
     left: 20px;
     vertical-align: middle;
     background-color: #666;
-    -moz-border-radius: 5px;
-    -webkit-border-radius: 5px;
-    -o-border-radius: 5px;
+    border-radius: 5px;
 }
     menu li
     {
