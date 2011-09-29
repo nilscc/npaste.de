@@ -29,18 +29,18 @@ import NPaste.Utils
 -- Queries
 
 getPostById :: Maybe User -> String -> Query (Maybe PostInfo)
-getPostById mu pid =
+getPostById mu pid = do
   fmap convertListToMaybe $
        querySql "SELECT * FROM HS_PostInfo WHERE p_id = ? AND p_user_id = ?"
                 [toSql pid, toSql (maybe (-1) u_id mu)]
+  
 
 getPostByMD5 :: Maybe User -> ByteString -> Query (Maybe PostInfo)
-getPostByMD5 mu hash =
+getPostByMD5 mu hash = do
   fmap convertListToMaybe $
-       querySql "SELECT p_id, p_user_id, p_date, p_type, p_description, p_hidden, p_id_is_global, p_id_is_custom \
-                \  FROM posts \
-                \ WHERE p_user_id = ? AND p_md5 = ?"
-                [toSql (maybe (-1) u_id mu), byteaPack hash]
+    querySql "SELECT p_id, p_user_id, p_date, p_type, p_description, p_hidden, p_id_is_global, p_id_is_custom \
+             \  FROM posts WHERE p_user_id = ? AND p_md5 = ?"
+             [toSql (maybe (-1) u_id mu), byteaPack hash]
 
 getRecentPosts :: Maybe User
                -> Int          -- ^ limit
@@ -105,8 +105,7 @@ checkCustomId User{ u_id } pid =
 -- Updates
 
 addPostInfo :: ByteString -> PostInfo -> Update ()
-addPostInfo md5 p@PostInfo{ p_id, p_user_id, p_date, p_type, p_description, p_hidden, p_id_is_global, p_id_is_custom } = do
-  liftIO $ print p
+addPostInfo md5 PostInfo{ p_id, p_user_id, p_date, p_type, p_description, p_hidden, p_id_is_global, p_id_is_custom } =
   updateSql_ "INSERT INTO posts (p_id, p_user_id, p_date, p_type, p_description, p_md5, p_hidden, p_id_is_global, p_id_is_custom) \
              \VALUES            (?   , ?        , ?     , ?     , ?            , ?    , ?       , ?             , ?             )"
              [ toSql p_id, toSql p_user_id, toSql p_date, toSql p_type

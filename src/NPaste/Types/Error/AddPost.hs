@@ -9,6 +9,7 @@ import NPaste.Types.Database.User
 
 data AddPostError
   = APE_UserRequired
+  | APE_NoContent
   | APE_InvalidCustomId String
   | APE_AlreadyExists (Maybe User) String
   | APE_Other String

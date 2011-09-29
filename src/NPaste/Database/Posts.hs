@@ -6,6 +6,7 @@ module NPaste.Database.Posts
     getPostById
   , getRecentPosts
   , getPostsByUser
+  , getContent
 
     -- ** Updates
   , newPost
@@ -72,6 +73,8 @@ newPost :: Maybe User               -- ^ optional user of paste
         -> Update (Either AddPostError ID)
 newPost muser mtype mdesc hide id_settings content = runErrorT $ do
     
+  when (B.null content) $ throwError APE_NoContent
+
   let hash = B.concat . toChunks . md5 $ fromChunks [content]
 
   -- aquire new ID
@@ -99,7 +102,7 @@ newPost muser mtype mdesc hide id_settings content = runErrorT $ do
   
     -- add post content
     addContent muser pid content
-  
+
     -- Add tags & replies if a description is given
     withJust mdesc $ \(P.parseDesc -> descVals) -> do
 

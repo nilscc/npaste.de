@@ -36,7 +36,7 @@ import qualified Database.HDBC as H
 import NPaste.Types
 
 conStr :: String
-conStr = "host=localhost user=npaste dbname=npaste password=1234"
+conStr = "host=localhost user=nils dbname=npaste password=1234"
 
 withConnection :: MonadIO m => (Connection -> IO a) -> m a
 withConnection = liftIO . withPostgreSQL conStr
