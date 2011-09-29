@@ -14,7 +14,7 @@ indexR = do
   return . toResponse . mainFrame $ nullBody
     { css    = ["index.css"]
     -- , script = ["index.js"]
-    , html = indexHtml pdata
+    , html   = indexHtml pdata
     }
 
 
