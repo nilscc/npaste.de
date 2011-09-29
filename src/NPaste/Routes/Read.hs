@@ -4,6 +4,10 @@ import Happstack.Server
 import Control.Monad.Trans
 
 import NPaste.Database
+import NPaste.Html
+import NPaste.Types
+
+import NPaste.Html.Read
 
 readR :: ServerPart Response
 readR = path $ \pId -> do
@@ -11,4 +15,8 @@ readR = path $ \pId -> do
   pinfo <- getPostById mu pId
   pcont <- getContent  mu pId
   liftIO $ print pinfo
-  return . toResponse $ show pcont
+
+  return . toResponse . mainFrame $ nullBody
+    { css    = ["compact.css"]
+    , html   = readHtml pinfo pcont
+    }

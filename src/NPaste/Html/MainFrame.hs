@@ -36,7 +36,7 @@ mainFrame htmlbody = H.docTypeHtml $ do
         H.script ! A.type_ "text/javascript" ! A.src (toValue $ "/js/" ++ s) $ return ()
 
     -- load css
-    let cssFiles = css htmlbody ++ ["main.css", "fonts.css"]
+    let cssFiles = css htmlbody ++ ["fonts.css"]
     forM_ cssFiles $ \c ->
       H.link ! A.type_ "text/css" ! A.href (toValue $ "/css/" ++ c) ! A.rel "stylesheet"
 

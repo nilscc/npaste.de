@@ -42,7 +42,7 @@ indexR = do
           in seeOther url (toResponse $ "Paste already exists at: http://npaste.de" ++ url)
        Left err -> 
          return . toResponse . mainFrame $ nullBody
-           { css    = ["index.css"]
+           { css    = ["main.css", "index.css"]
            -- , script = ["index.js"]
            , html   = indexHtml pdata err
            }
