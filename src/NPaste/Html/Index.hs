@@ -12,7 +12,8 @@ import NPaste.Types
 -- todo :)
 languages :: [String]
 languages =
-  [ "C"
+  [ "Plain text"
+  , "C"
   , "Haskell"
   , "HTML"
   , "JavaScript"
@@ -22,30 +23,36 @@ languages =
 
 indexHtml :: IndexPostData -> Html
 indexHtml pdata = do
-  H.h1 "New post"
+  H.h1 "New paste"
 
   H.form ! A.method "post" ! A.action "/" $ do
 
-    H.div ! A.id "settings" $ do
+    H.div ! A.class_ "settings" $ do
 
-      let desc    = getValue pdata "desc"
-          defdesc = "Enter description..."
-      if null desc || desc == defdesc then
-        H.input !  A.id "desc"
-                ! A.type_ "text"
-                ! A.name "desc"
-                ! A.value (toValue defdesc)
-                ! A.class_ "new-desc"
-       else
-        H.input ! A.id "desc" ! A.type_ "text" ! A.name "desc" ! A.value (toValue desc)
-
-      H.select ! A.id "lang" ! A.name "lang" $
-        forM_ languages $ \l ->
-          if l == getValue pdata "lang" then
-            H.option ! A.selected "selected" ! A.value (toValue l) $ toHtml l
-           else
-            H.option                         ! A.value (toValue l) $ toHtml l
-      H.input ! A.id "submit" ! A.type_ "submit" ! A.name "submit" ! A.value "OK"
+      H.p "Description:"
+      let desc = getValue pdata "desc"
+      H.input ! A.id "desc" ! A.type_ "text" ! A.name "desc" ! A.value (toValue desc)
 
     H.textarea ! A.id "content" ! A.name "content" $
       toHtml $ getValue pdata "content"
+
+    H.ul ! A.class_ "settings" $ do
+
+      H.li $ do
+        H.p "Language:"
+        H.select ! A.id "lang" ! A.name "lang" $
+          forM_ languages $ \l ->
+            if l == getValue pdata "lang" then
+              H.option ! A.selected "selected" ! A.value (toValue l) $ toHtml l
+             else
+              H.option                         ! A.value (toValue l) $ toHtml l
+
+      H.li $ do
+        H.p "Hide from recent pastes:"
+        if getValue pdata "hidden" == "on" then
+          H.input ! A.type_ "checkbox" ! A.id "hidden" ! A.name "hidden"
+                  ! A.checked "checked"
+         else
+          H.input ! A.type_ "checkbox" ! A.id "hidden" ! A.name "hidden"
+
+    H.input ! A.id "submit" ! A.type_ "submit" ! A.name "submit" ! A.value "Add paste"

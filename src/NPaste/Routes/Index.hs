@@ -12,7 +12,8 @@ indexR = do
     [ methodM POST >> getIndexPostData
     , return nullPostData ]
   return . toResponse . mainFrame $ nullBody
-    { css = ["index.css"]
+    { css    = ["index.css"]
+    -- , script = ["index.js"]
     , html = indexHtml pdata
     }
 
