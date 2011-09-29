@@ -1,20 +1,24 @@
--- DROP TABLE IF EXISTS post_settings;
--- DROP TABLE IF EXISTS post_contents;
--- DROP TABLE IF EXISTS replies;
--- DROP TABLE IF EXISTS tags;
--- DROP TABLE IF EXISTS posts;
--- DROP TABLE IF EXISTS users;
+DROP VIEW IF EXISTS HS_PostInfo;
+
+DROP TABLE IF EXISTS post_settings;
+DROP TABLE IF EXISTS post_contents;
+DROP TABLE IF EXISTS replies;
+DROP TABLE IF EXISTS tags;
+DROP TABLE IF EXISTS posts;
+DROP TABLE IF EXISTS users;
 
 -- USERS & USER SETTINGS -------------------------------------------------------
 
 CREATE TABLE users (
   u_id                integer,
-  u_name              varchar(100),
+  u_name              varchar(100) UNIQUE,
   u_password          bytea NOT NULL,
   u_email             varchar(100),
 
   PRIMARY KEY (u_id)
 );
+
+INSERT INTO users (u_id, u_password) VALUES (-1, '');
 
 CREATE TABLE post_settings (
   ps_user_id          integer,
@@ -31,7 +35,7 @@ CREATE TABLE post_settings (
 CREATE TABLE posts (
   p_id              varchar(40),
   p_user_id         integer DEFAULT -1,
-  p_date            timestamp,
+  p_date            timestamp with time zone,
   p_type            varchar(100),
   p_description     varchar(250),
   p_md5             bytea UNIQUE NOT NULL,
@@ -43,10 +47,14 @@ CREATE TABLE posts (
   FOREIGN KEY (p_user_id) REFERENCES users(u_id) ON DELETE SET DEFAULT
 );
 
+CREATE VIEW HS_PostInfo AS
+  SELECT p_id, p_user_id, p_date, p_type, p_description, p_hidden, p_id_is_global, p_id_is_custom
+    FROM posts;
+
 CREATE TABLE post_contents (
   pc_post_id          varchar(40),
   pc_post_user_id     integer DEFAULT -1,
-  pc_content          bytea,
+  pc_content          bytea NOT NULL,
 
   PRIMARY KEY (pc_post_id),
   FOREIGN KEY (pc_post_id)      REFERENCES posts(p_id) ON DELETE CASCADE,
