@@ -20,10 +20,13 @@ indexR = do
   r <- if pdata == nullPostData then
          return $ Left Nothing
         else do
-         let nothingIfEmpty s | null s    = Nothing
-                              | otherwise = Just s
-             filetype  = nothingIfEmpty $ getValue pdata "lang"
-             desc      = nothingIfEmpty $ getValue pdata "desc"
+         let filetype  = case getValue pdata "lang" of
+                              t | t == "Plain text" -> Nothing
+                                | null t            -> Nothing
+                                | otherwise         -> Just t
+             desc      = case getValue pdata "desc" of
+                              d | null d    -> Nothing
+                                | otherwise -> Just d
              hidden    = getValue pdata "hidden" == "on"
              idSetting = IdRandom
              content   = pack $ cutTrailingSpaces $ getValue pdata "content"

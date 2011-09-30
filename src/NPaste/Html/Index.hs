@@ -5,21 +5,9 @@ module NPaste.Html.Index where
 
 import Text.Blaze.Html5             as H
 import Text.Blaze.Html5.Attributes  as A
+import Text.Highlighting.Kate (languages)
 
 import NPaste.Types
-
-
--- todo :)
-languages :: [String]
-languages =
-  [ "Plain text"
-  , "C"
-  , "Haskell"
-  , "HTML"
-  , "JavaScript"
-  , "Python"
-  ]
-
 
 indexHtml :: IndexPostData -> Maybe AddPostError -> Html
 indexHtml pdata err = do
@@ -57,7 +45,7 @@ indexHtml pdata err = do
       H.li $ do
         H.p "Language:"
         H.select ! A.id "lang" ! A.name "lang" $
-          forM_ languages $ \l ->
+          forM_ ("Plain text" : languages) $ \l ->
             if l == getValue pdata "lang" then
               H.option ! A.selected "selected" ! A.value (toValue l) $ toHtml l
              else
