@@ -63,8 +63,8 @@ infoHtml PostInfo{ p_id, p_date, p_description } =
   H.div ! A.class_ "postInfo" $ do
     H.p $ do
       "Paste: "
-      H.a ! A.href (toValue $ "/r/" ++ p_id) $
-        toHtml $ "/r/" ++ p_id ++ "/"
+      H.a ! A.href (toValue $ "/" ++ p_id) $
+        toHtml $ "/" ++ p_id ++ "/"
       " ("
       toHtml $ formatTime defaultTimeLocale "%H:%M - %a %Y.%m.%d" p_date
       ")"

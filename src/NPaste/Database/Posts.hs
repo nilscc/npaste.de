@@ -80,7 +80,7 @@ newPost muser mtype mdesc hide id_settings content = runErrorT $ do
   -- aquire new ID
   (pid, pid_is_global, pid_is_custom) <-
     case id_settings of
-         IdRandom           -> getRandomId 8
+         IdRandom           -> getRandomId 4
          -- IdDefault          -> getNextId muser True
          -- IdPrivate          -> getNextId muser False
          IdPrivateCustom c  -> getCustom muser c
@@ -133,7 +133,7 @@ getRandomId :: Int
 getRandomId m = do
 
   ids   <- getGlobalIds
-  n     <- liftIO $ randomRIO (4,m)
+  n     <- liftIO $ randomRIO (2,m)
   iList <- rnds n (0,length validChars - 1) []
 
   let pid = map (validChars !!) iList

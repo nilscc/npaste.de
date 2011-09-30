@@ -33,12 +33,12 @@ mainFrame htmlbody = H.docTypeHtml $ do
     unless (null $ script htmlbody) $ do
       let scripts = ["jquery-1.6.2.min.js"] ++ script htmlbody
       forM_ scripts $ \s ->
-        H.script ! A.type_ "text/javascript" ! A.src (toValue $ "/js/" ++ s) $ return ()
+        H.script ! A.type_ "text/javascript" ! A.src (toValue $ "/s/js/" ++ s) $ return ()
 
     -- load css
     let cssFiles = css htmlbody ++ ["main.css","fonts.css"]
     forM_ cssFiles $ \c ->
-      H.link ! A.type_ "text/css" ! A.href (toValue $ "/css/" ++ c) ! A.rel "stylesheet"
+      H.link ! A.type_ "text/css" ! A.href (toValue $ "/s/css/" ++ c) ! A.rel "stylesheet"
 
   H.body $ do
     H.header $ mainHeader
@@ -53,7 +53,7 @@ mainFrame htmlbody = H.docTypeHtml $ do
 mainHeader :: Html
 mainHeader = do
   H.p ! A.id "left" $ do
-    H.a ! A.id "n3" ! A.href "/about" $ do
+    H.a ! A.id "n3" ! A.href "/a" $ do
       "n"
       H.sup "3"
     "paste.de"
@@ -82,10 +82,10 @@ sectionToUrl :: MenuSection -> AttributeValue
 sectionToUrl s = case s of
   M_AddNewPaste -> "/"
   M_Read        -> "/r"
-  M_Settings    -> "/settings"
+  M_Settings    -> "/s"
 
 sectionToTitle :: MenuSection -> Html
 sectionToTitle s = case s of
   M_AddNewPaste -> "New paste"
-  M_Read        -> "Read recent pastes"
+  M_Read        -> "Show recent pastes"
   M_Settings    -> "My settings"
