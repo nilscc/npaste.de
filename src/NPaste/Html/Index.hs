@@ -59,4 +59,8 @@ indexHtml pdata err = do
          else
           H.input ! A.type_ "checkbox" ! A.id "hidden" ! A.name "hidden"
 
+    -- spam checker, this shouldn't be visible at all. not sure if it's really
+    -- a good method to do that, but it's better than nothing :)
+    H.input ! A.id "email" ! A.type_ "text" ! A.name "email"
+
     H.input ! A.id "submit" ! A.type_ "submit" ! A.name "submit" ! A.value "Add paste"

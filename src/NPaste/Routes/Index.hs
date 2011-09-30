@@ -30,6 +30,10 @@ indexR = do
              hidden    = getValue pdata "hidden" == "on"
              idSetting = IdRandom
              content   = pack $ cutTrailingSpaces $ getValue pdata "content"
+             spam      = not . null $ getValue pdata "email" -- should always be null!
+
+         when spam $ error "Are you human?" -- TODO: throw APE error instead of 'error'
+
          e <- newPost Nothing   -- no user lookup function yet TODO
                       filetype desc hidden idSetting content
          return $

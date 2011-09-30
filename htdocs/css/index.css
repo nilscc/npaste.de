@@ -85,3 +85,8 @@ section#main input#submit
     cursor: pointer;
     text-decoration: underline;
   }
+
+  section#main input#email
+  {
+    display: none;
+  }
