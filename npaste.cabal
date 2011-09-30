@@ -36,7 +36,8 @@ library
         happstack-server        == 6.*,
         happstack-state         == 6.*,
         happstack-util          == 6.*,
-        blaze-html              == 0.4.*
+        blaze-html              == 0.4.*,
+        highlighting-kate       == 0.2.*
 
     exposed-modules:
         NPaste
@@ -106,4 +107,5 @@ executable npaste.de
         happstack-state         == 6.*,
         happstack-util          == 6.*,
         blaze-html              == 0.4.*,
-        hslogger                == 1.*
+        hslogger                == 1.*,
+        highlighting-kate       == 0.2.*

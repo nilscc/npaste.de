@@ -35,6 +35,11 @@ section, menu, header, div
     padding: 0;
 }
 
+pre
+{
+  font-size: 10pt;
+}
+
 
 /* {{{ Logo */
 
@@ -159,6 +164,11 @@ section#main
     section#main .error
     {
         font-weight: bold;
+        color: #c20;
+    }
+
+    section#main .warning
+    {
         color: #c20;
     }
 

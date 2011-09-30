@@ -1,7 +1,7 @@
 module NPaste.Routes.Read where
 
 import Happstack.Server
-import Control.Monad.Trans
+-- import Control.Monad.Trans
 
 import NPaste.Database
 import NPaste.Html
@@ -14,9 +14,7 @@ readR = path $ \pId -> do
   let mu = Nothing -- TODO
   pinfo <- getPostById mu pId
   pcont <- getContent  mu pId
-  liftIO $ print pinfo
-
   return . toResponse . mainFrame $ nullBody
-    { css    = ["compact.css"]
+    { css    = ["code/hk-pyg.css", "code.css"]
     , html   = readHtml pinfo pcont
     }

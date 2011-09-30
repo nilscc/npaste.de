@@ -1,0 +1,31 @@
+/* Loosely based on pygment's default colors */
+div.sourceCode, div.sourceCode pre, div.lineNumbers {
+  margin: 0;
+  padding: 0;
+  border: 0;
+  vertical-align: baseline;
+  border: none;
+}
+div.lineNumbers {
+  border-right: 1px solid #AAAAAA;
+  text-align: right;
+  color: #AAAAAA;
+  padding-right: 5px;
+  padding-left: 5px;
+}
+div.sourceCode {
+  padding-left: 5px;
+}
+div.sourceCode span.kw { color: #007020; font-weight: bold; }
+div.sourceCode span.dt { color: #902000; }
+div.sourceCode span.dv { color: #40a070; }
+div.sourceCode span.bn { color: #40a070; }
+div.sourceCode span.fl { color: #40a070; }
+div.sourceCode span.ch { color: #4070a0; }
+div.sourceCode span.st { color: #4070a0; }
+div.sourceCode span.co { color: #60a0b0; font-style: italic; }
+div.sourceCode span.ot { color: #007020; }
+div.sourceCode span.al { color: red; font-weight: bold; }
+div.sourceCode span.fu { color: #06287e; }
+div.sourceCode span.re { }
+div.sourceCode span.er { color: red; font-weight: bold; }

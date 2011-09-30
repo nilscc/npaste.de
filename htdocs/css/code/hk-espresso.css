@@ -1,0 +1,37 @@
+/* Based on ultraviolet's espresso_libre.css */
+
+div.sourceCode, div.sourceCode pre, div.lineNumbers {
+  margin: 0;
+  padding: 0;
+  border: 0;
+  vertical-align: baseline;
+  border: none;
+}
+
+div.lineNumbers {
+  border-right: 1px solid #AAAAAA;
+  text-align: right;
+  color: #AAAAAA;
+  padding-right: 5px;
+  padding-left: 5px;
+}
+
+div.sourceCode {
+  background-color: #2A211C;
+  color: #BDAE9D;
+  padding-left: 5px;
+}
+
+div.sourceCode span.kw { color: #43A8ED; font-weight: bold; }
+div.sourceCode span.dt { text-decoration: underline; }
+div.sourceCode span.dv { color: #44AA43; }
+div.sourceCode span.bn { color: #44AA43; }
+div.sourceCode span.fl { color: #44AA43; }
+div.sourceCode span.ch { color: #049B0A; }
+div.sourceCode span.st { color: #049B0A; }
+div.sourceCode span.co { color: #0066FF; font-style: italic; }
+div.sourceCode span.ot { }
+div.sourceCode span.al { color: yellow; font-weight: bold; }
+div.sourceCode span.fu { color: #FF9358; font-weight: bold; }
+div.sourceCode span.re { }
+div.sourceCode span.er { color: yellow; font-weight: bold; }
