@@ -1,4 +1,5 @@
 DROP VIEW IF EXISTS HS_PostInfo;
+DROP VIEW IF EXISTS HS_User;
 
 DROP TABLE IF EXISTS post_settings;
 DROP TABLE IF EXISTS post_contents;
@@ -19,6 +20,10 @@ CREATE TABLE users (
 );
 
 INSERT INTO users (u_id, u_password) VALUES (-1, '');
+
+CREATE VIEW HS_User AS
+  SELECT u_id, u_name, u_email
+    FROM users;
 
 CREATE TABLE post_settings (
   ps_user_id          integer,
