@@ -1,6 +1,28 @@
+div.postInfo {
+  background-color: #999;
+  border: 1px solid #666;
+  width: 650px;
+  padding: 5px;
+  border-radius: 3px;
+  color: white;
+  font-size: 11px;
+}
+
+div.postInfo p {
+  margin: 5px;
+}
+
+div.postInfo p a {
+  color: #055;
+}
+
+div.postInfo p.desc {
+  font-style: italic;
+}
+
 div.formatedCode {
   display: table;
-  margin: 0;
+  margin: 5px 0 15px 0;
   padding: 0;
 }
 

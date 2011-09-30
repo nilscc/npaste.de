@@ -3,6 +3,7 @@
 module NPaste.Database.Users
   ( -- ** Queries
     getUserByName
+  , getUserById
   , checkPassword
 
     -- ** Updates
@@ -21,13 +22,11 @@ import NPaste.Utils
 --------------------------------------------------------------------------------
 -- Queries
 
-{-
 getUserById :: Int -> Query (Maybe User)
 getUserById uid =
   fmap convertListToMaybe $
        querySql "SELECT * FROM HS_User WHERE u_id = ?"
                 [toSql uid]
--}
 
 getUserByName :: String -> Query (Maybe User)
 getUserByName name =
