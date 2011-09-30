@@ -72,8 +72,6 @@ infoHtml PostInfo{ p_id, p_date, p_description } =
       case p_description of
            Just d  -> toHtml d
            Nothing -> "No description."
-    
-
 
 -- | Show recent posts
 recentHtml :: [(PostInfo, Maybe ByteString)] -> Html
