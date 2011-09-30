@@ -67,7 +67,7 @@ indexR = do
 
 getIndexPostData :: ServerPart IndexPostData
 getIndexPostData = do
-  decodeBody (defaultBodyPolicy "/tmp/npaste.de/" 4096 4096 4096)
+  decodeBody (defaultBodyPolicy "/tmp/npaste.de/" 1000000 1000000 1000000)
   fmap IndexPostData $ body lookPairs
 
 nullPostData :: IndexPostData
