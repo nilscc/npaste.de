@@ -26,7 +26,7 @@ readR "r" = do
                 mu <- getUserById p_user_id
                 getContent mu p_id
   return . toResponse . mainFrame $ nullBody
-    { css    = ["code/hk-pyg.css", "code.css"]
+    { css    = ["code/hk-pyg.css", "code.css", "recent.css"]
     , html   = recentHtml $ zip posts contents
     }
 readR _ = mzero

@@ -1,3 +1,6 @@
+
+/* INFO / DESCRIPTION BOX */
+
 div.postInfo {
   background-color: #999;
   border: 1px solid #666;
@@ -32,6 +35,8 @@ div.postInfo p.language {
   width: 150px;
   text-align: right;
 }
+
+/* PASTE CONTENT */
 
 div.formatedCode {
   display: table;

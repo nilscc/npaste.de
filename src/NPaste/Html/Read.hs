@@ -17,16 +17,18 @@ import NPaste.Types
 readHtml :: Maybe PostInfo -> Maybe ByteString -> Html
 readHtml (Just p@PostInfo{ p_type = Just lang}) (Just cont) = do
   infoHtml p
-  let cont' = unpack cont
-  case highlightAs lang cont' of
-       Right source -> formatCode source
-       Left  err    -> do
-         H.p ! A.class_ "warning" $ toHtml err
-         H.pre $ toHtml cont'
+  H.div ! A.class_ "formatedCode" $ do
+    let cont' = unpack cont
+    case highlightAs lang cont' of
+         Right source -> formatCode p source
+         Left  err    -> do
+           H.p ! A.class_ "warning" $ toHtml err
+           formatPlain p cont'
 
 readHtml (Just p) (Just cont) = do
   infoHtml p
-  H.pre $ toHtml (unpack cont)
+  H.div ! A.class_ "formatedCode" $
+    formatPlain p $ unpack cont
 
 readHtml mp _ = do
   case mp of
@@ -34,13 +36,17 @@ readHtml mp _ = do
        _      -> return ()
   H.h3 ! A.class_ "error" $ "Paste not found."
 
+
 -- | Turn source lines into HTML
-formatCode :: [SourceLine]      -- ^ Source lines to format
+formatCode :: PostInfo
+           -> [SourceLine]      -- ^ Source lines to format
            -> Html
-formatCode source = H.div ! A.class_ "formatedCode" $ do
+formatCode PostInfo{p_id} source = do
   H.div ! A.class_ "lineNumbers" $ H.pre $
     sequence_ . intersperse br . for [1..length source] $ \(show->n) ->
-      H.a ! A.href (toValue $ "#line" ++ n) ! A.name (toValue $ "line" ++ n) $ toHtml n
+      let name = "line-" ++ n
+          url  = "/" ++ p_id ++ "#" ++ name
+       in H.a ! A.href (toValue url) ! A.name (toValue name) $ toHtml n
   H.div ! A.class_ "sourceCode" $
     H.pre $ sequence_ . intersperse br $ L.map sourceLineToHtml source
  where
@@ -56,6 +62,18 @@ sourceLineToHtml ((labs,txt):r) = do
      else H.span ! A.class_ (toValue $ intercalate " " atts) $ toHtml txt
   sourceLineToHtml r
 
+-- | Format plain text without highlighting
+formatPlain :: PostInfo -> String -> Html
+formatPlain PostInfo{p_id} cont = do
+  let l = lines cont
+  H.div ! A.class_ "lineNumbers" $ H.pre $
+    sequence_ . intersperse br . for [1..length l] $ \(show->n) ->
+      let name = "line-" ++ n
+          url  = "/" ++ p_id ++ "#" ++ name
+       in H.a ! A.href (toValue url) ! A.name (toValue name) $ toHtml n
+  H.pre ! A.class_ "plainText" $ toHtml cont
+ where
+  for = flip L.map
 
 -- | Show a nice header with all kind of informations about our paste
 infoHtml :: PostInfo -> Html
@@ -82,16 +100,17 @@ recentHtml []               =
   return ()
 recentHtml ((p, Just c):r)  = do
   infoHtml p
-  let cont = unlines . take 20 . lines $ unpack c
-      lang = p_type p
-  case lang of
-       Nothing -> H.pre $ toHtml cont
-       Just l  ->
-         case highlightAs l cont of
-             Right source -> formatCode source
-             Left  err    -> do
-               H.p ! A.class_ "warning" $ toHtml err
-               H.pre $ toHtml cont
+  H.div ! A.class_ "formatedCode" $ do
+    let cont = unlines . take 20 . lines $ unpack c
+        lang = p_type p
+    case lang of
+         Nothing -> formatPlain p cont
+         Just l  ->
+           case highlightAs l cont of
+               Right source -> formatCode p source
+               Left  err    -> do
+                 H.p ! A.class_ "warning" $ toHtml err
+                 formatPlain p cont
   recentHtml r
 recentHtml ((p, Nothing):r) = do
   infoHtml p

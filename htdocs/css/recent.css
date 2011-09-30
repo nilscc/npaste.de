@@ -1,0 +1,5 @@
+div.formatedCode div.sourceCode pre,
+div.formatedCode pre.plainText {
+  max-width: 540px;
+  overflow-x: auto;
+}
