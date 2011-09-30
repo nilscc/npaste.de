@@ -45,7 +45,7 @@ pre
 
 header
 {
-    margin: 100px auto 50px;
+    margin: 100px auto 40px;
     width: 500px;
     font-size: 20pt;
 }
@@ -112,10 +112,10 @@ header
 menu
 {
     float: left;
-    margin: 100px 20px auto;
+    margin: 107px 20px auto;
     padding: 40px 0 40px;
     list-style-type: none;
-    position: absolute;
+    position: fixed;
     top: 100px;
     left: 20px;
     vertical-align: middle;
