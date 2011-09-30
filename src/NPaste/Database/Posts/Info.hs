@@ -45,18 +45,19 @@ getPostByMD5 mu hash = do
 getRecentPosts :: Maybe User
                -> Int          -- ^ limit
                -> Int          -- ^ offset
+               -> Bool         -- ^ show hidden pastes?
                -> Query [PostInfo]
-getRecentPosts Nothing limit offset =
+getRecentPosts Nothing limit offset hidden =
   fmap (catMaybes . map convertMaybe)
-       (querySql "SELECT * FROM HS_PostInfo \
+       (querySql "SELECT * FROM HS_PostInfo WHERE p_hidden = ?\
                  \ ORDER BY p_date DESC LIMIT ? OFFSET ?"
-                 [toSql limit, toSql offset])
-getRecentPosts (Just u) limit offset =
+                 [toSql hidden, toSql limit, toSql offset])
+getRecentPosts (Just u) limit offset hidden =
   fmap (catMaybes . map convertMaybe)
-       (querySql "SELECT * FROM HS_PostInfo \
+       (querySql "SELECT * FROM HS_PostInfo WHERE p_hidden = ?\
                  \ WHERE p_user_id = ? \
                  \ ORDER BY p_date DESC LIMIT ? OFFSET ?"
-                 [toSql (u_id u), toSql limit, toSql offset])
+                 [toSql hidden, toSql (u_id u), toSql limit, toSql offset])
 
 getPostsByUser :: User
                -> Int          -- ^ limit
