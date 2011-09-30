@@ -48,16 +48,11 @@ sqlErrorToAPE mu hash e =
              (APE_Other $ show e)
              (APE_AlreadyExists mu . p_id)
              mpi
+         | l == stringDataRightTruncation -> do
+           throwError APE_DescTooLong
          | otherwise ->
            throwError $ APE_Other (show e)
 
-
---------------------------------------------------------------------------------
--- Settings
-
--- reservedIds :: [String]
--- reservedIds =
---   [ "user", "filter", "api", "bin" ]
 
 
 --------------------------------------------------------------------------------

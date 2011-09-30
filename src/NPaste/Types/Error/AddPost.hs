@@ -13,6 +13,7 @@ data AddPostError
   | APE_InvalidCustomId String
   | APE_AlreadyExists (Maybe User) String
   | APE_Other String
+  | APE_DescTooLong
   deriving Show
 
 instance Error AddPostError where

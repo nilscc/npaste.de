@@ -44,9 +44,9 @@ indexR = do
   case r of
        Left (Just (APE_AlreadyExists mu pId)) ->
          let url = case mu of
+                        Nothing           -> "/" ++ pId
                         Just User{u_name} -> "/u/" ++ u_name ++ "/" ++ pId
-                        Nothing           -> "/r/" ++ pId
-          in seeOther url (toResponse $ "Paste already exists at: http://npaste.de" ++ url)
+          in seeOther url (toResponse $ "Paste already exists at: http://npaste.de" ++ url ++ "\n")
        Left err -> 
          return . toResponse . mainFrame $ nullBody
            { css    = ["index.css"]
@@ -55,9 +55,9 @@ indexR = do
            }
        Right pId -> do
          let url = case pId of
-                        ID pId'                     -> "/r/" ++ pId'
+                        ID pId'                     -> "/" ++ pId'
                         PrivateID User{u_name} pId' -> "/u/" ++ u_name ++ "/" ++ pId'
-         seeOther url (toResponse $ "New paste added: http://npaste.de" ++ url)
+         seeOther url (toResponse $ "New paste added: http://npaste.de" ++ url ++ "\n")
  where
   cutTrailingSpaces :: String -> String
   cutTrailingSpaces = unlines . map (reverse . dropWhile isSpace . reverse) . lines

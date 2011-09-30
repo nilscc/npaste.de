@@ -9,7 +9,8 @@ div.postInfo {
 }
 
 div.postInfo p {
-  margin: 5px;
+  margin: 0;
+  padding: 2px;
 }
 
 div.postInfo p a {
@@ -18,6 +19,18 @@ div.postInfo p a {
 
 div.postInfo p.desc {
   font-style: italic;
+}
+
+div.postInfo p.timestamp {
+  float: right;
+  width: 150px;
+  text-align: right;
+}
+div.postInfo p.language {
+  clear: right;
+  float: right;
+  width: 150px;
+  text-align: right;
 }
 
 div.formatedCode {

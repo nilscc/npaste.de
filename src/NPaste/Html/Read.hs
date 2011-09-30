@@ -59,15 +59,18 @@ sourceLineToHtml ((labs,txt):r) = do
 
 -- | Show a nice header with all kind of informations about our paste
 infoHtml :: PostInfo -> Html
-infoHtml PostInfo{ p_id, p_date, p_description } =
+infoHtml PostInfo{ p_id, p_date, p_description, p_type } =
   H.div ! A.class_ "postInfo" $ do
+    H.p ! A.class_ "timestamp" $
+      toHtml $ formatTime defaultTimeLocale "%H:%M - %a %Y.%m.%d" p_date
+    H.p ! A.class_ "language" $
+      case p_type of
+           Nothing -> "Plain text"
+           Just t  -> toHtml t
     H.p $ do
       "Paste: "
       H.a ! A.href (toValue $ "/" ++ p_id) $
         toHtml $ "/" ++ p_id ++ "/"
-      " ("
-      toHtml $ formatTime defaultTimeLocale "%H:%M - %a %Y.%m.%d" p_date
-      ")"
     H.p ! A.class_ "desc" $
       case p_description of
            Just d  -> toHtml d
