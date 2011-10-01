@@ -43,13 +43,26 @@ library
     exposed-modules:
         NPaste
         NPaste.Database
+
         NPaste.Html
+        NPaste.Html.Frames
+        NPaste.Html.Index
+        NPaste.Html.Read
+
         NPaste.Routes
+        NPaste.Routes.Index
+        NPaste.Routes.Read
+
         NPaste.Tools
         NPaste.Types
+        NPaste.Types.Database
+        NPaste.Types.Error
+        NPaste.Types.Html
         NPaste.Utils
 
     other-modules:
+        Happstack.Server.Internal.MonadPeelIO
+
         NPaste.Database.Connection
         NPaste.Database.Users
         NPaste.Database.Users.Password
@@ -59,26 +72,24 @@ library
         NPaste.Database.Pastes.Replies
         NPaste.Database.Pastes.Tags
 
-        NPaste.Html.Frames
-        NPaste.Html.Index
-        NPaste.Html.Read
-
-        NPaste.Routes.Index
-        NPaste.Routes.Read
         NPaste.Routes.Static
 
         NPaste.Tools.Description
 
-        NPaste.Types.Database
         NPaste.Types.Database.PasteInfo
         NPaste.Types.Database.PasteSettings
         NPaste.Types.Database.User
-        NPaste.Types.Error
         NPaste.Types.Error.AddPaste
         NPaste.Types.Error.AddUser
         NPaste.Types.Error.NPaste
+        NPaste.Types.Html.Body
+        NPaste.Types.Html.Index
+        NPaste.Types.Html.Menu
+        NPaste.Types.Html.Valued
         NPaste.Types.Instances
         NPaste.Types.NPaste
+        NPaste.Types.ID
+        NPaste.Types.State
 
 executable npaste.de
     hs-source-dirs: src
