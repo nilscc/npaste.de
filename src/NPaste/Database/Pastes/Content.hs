@@ -1,4 +1,4 @@
-module NPaste.Database.Posts.Content
+module NPaste.Database.Pastes.Content
   ( -- * Queries
     getContent
 
@@ -21,8 +21,8 @@ getContent mu pid =
   fmap (\c -> case c of
                    [[sql]] -> Just $ byteaUnpack sql
                    _       -> Nothing)
-       (querySql "SELECT pc_content FROM post_contents \
-                 \WHERE pc_post_id = ? AND pc_post_user_id = ?"
+       (querySql "SELECT pc_content FROM Paste_contents \
+                 \WHERE pc_Paste_id = ? AND pc_Paste_user_id = ?"
                  [toSql pid, toSql (maybe (-1) u_id mu)])
 
 
@@ -35,6 +35,6 @@ addContent :: Maybe User
            -> Update ()
 addContent mu pid t =
   fmap (const ())
-       (updateSql "INSERT INTO post_contents (pc_post_id, pc_post_user_id, pc_content) \
+       (updateSql "INSERT INTO Paste_contents (pc_Paste_id, pc_Paste_user_id, pc_content) \
                   \VALUES (?, ?, ?)"
                   [toSql pid, toSql (maybe (-1) u_id mu), byteaPack t])

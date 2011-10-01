@@ -34,7 +34,7 @@ indexR = do
 
          when spam $ error "Are you human?" -- TODO: throw APE error instead of 'error'
 
-         e <- newPost Nothing   -- no user lookup function yet TODO
+         e <- newPaste Nothing   -- no user lookup function yet TODO
                       filetype desc hidden idSetting content
          return $
            case e of

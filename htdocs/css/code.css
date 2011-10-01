@@ -1,41 +1,4 @@
 
-/* INFO / DESCRIPTION BOX */
-
-div.postInfo {
-  background-color: #999;
-  border: 1px solid #666;
-  width: 650px;
-  padding: 5px;
-  border-radius: 3px;
-  color: white;
-  font-size: 11px;
-}
-
-div.postInfo p {
-  margin: 0;
-  padding: 2px;
-}
-
-div.postInfo p a {
-  color: #055;
-}
-
-div.postInfo p.desc {
-  font-style: italic;
-}
-
-div.postInfo p.timestamp {
-  float: right;
-  width: 150px;
-  text-align: right;
-}
-div.postInfo p.language {
-  clear: right;
-  float: right;
-  width: 150px;
-  text-align: right;
-}
-
 /* PASTE CONTENT */
 
 div.formatedCode {

@@ -3,14 +3,11 @@
 module NPaste.Types
   ( module NPaste.Types.NPaste
   , module NPaste.Types.State
-  , module NPaste.Types.Pastes
+  , module NPaste.Types.ID
   , module NPaste.Types.Instances
 
     -- * Database types
   , module NPaste.Types.Database
-  , module NPaste.Types.Database.User
-  , module NPaste.Types.Database.PostInfo
-  , module NPaste.Types.Database.PostSettings
 
     -- * HTML types
   , module NPaste.Types.Html
@@ -29,15 +26,13 @@ module NPaste.Types
 
 import NPaste.Types.NPaste
 import NPaste.Types.Error
-import NPaste.Types.Html
 import NPaste.Types.State
-import NPaste.Types.Pastes
+import NPaste.Types.ID
 import NPaste.Types.Instances ()
 
 import NPaste.Types.Database
-import NPaste.Types.Database.User
-import NPaste.Types.Database.PostInfo
-import NPaste.Types.Database.PostSettings
+
+import NPaste.Types.Html
 
 import Control.Concurrent.MState
 import Control.Monad.Error

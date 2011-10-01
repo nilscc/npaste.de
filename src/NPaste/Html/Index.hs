@@ -9,7 +9,7 @@ import Text.Highlighting.Kate (languages)
 
 import NPaste.Types
 
-indexHtml :: IndexPostData -> Maybe AddPostError -> Html
+indexHtml :: IndexPostData -> Maybe AddPasteError -> Html
 indexHtml pdata err = do
   H.h1 "New paste"
 
@@ -31,7 +31,7 @@ indexHtml pdata err = do
          H.p ! A.class_ "error" $ "Your description is too long (250 char max)."
        Nothing   -> return ()
 
-  H.form ! A.method "post" ! A.action "/" $ do
+  H.form ! A.method "Paste" ! A.action "/" $ do
 
     H.div ! A.class_ "settings" $ do
 

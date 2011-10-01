@@ -53,11 +53,11 @@ library
         NPaste.Database.Connection
         NPaste.Database.Users
         NPaste.Database.Users.Password
-        NPaste.Database.Posts
-        NPaste.Database.Posts.Content
-        NPaste.Database.Posts.Info
-        NPaste.Database.Posts.Replies
-        NPaste.Database.Posts.Tags
+        NPaste.Database.Pastes
+        NPaste.Database.Pastes.Content
+        NPaste.Database.Pastes.Info
+        NPaste.Database.Pastes.Replies
+        NPaste.Database.Pastes.Tags
 
         NPaste.Html.Frames
         NPaste.Html.Index
@@ -70,17 +70,15 @@ library
         NPaste.Tools.Description
 
         NPaste.Types.Database
-        NPaste.Types.Database.PostInfo
-        NPaste.Types.Database.PostSettings
+        NPaste.Types.Database.PasteInfo
+        NPaste.Types.Database.PasteSettings
         NPaste.Types.Database.User
         NPaste.Types.Error
-        NPaste.Types.Error.AddPost
+        NPaste.Types.Error.AddPaste
         NPaste.Types.Error.AddUser
         NPaste.Types.Error.NPaste
         NPaste.Types.Instances
         NPaste.Types.NPaste
-        NPaste.Types.State
-        NPaste.Types.Pastes
 
 executable npaste.de
     hs-source-dirs: src

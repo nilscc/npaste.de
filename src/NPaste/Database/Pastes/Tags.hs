@@ -1,6 +1,6 @@
 {-# LANGUAGE NamedFieldPuns #-}
 
-module NPaste.Database.Posts.Tags
+module NPaste.Database.Pastes.Tags
   ( -- * Queries
     -- * Updates
     addTags
@@ -28,6 +28,6 @@ addTags :: Maybe User
         -> Update ()
 addTags mu pid tags =
   forM_ tags $ \t ->
-    updateSql_ "INSERT INTO tags (t_post_id, t_post_user_id, t_tag) \
+    updateSql_ "INSERT INTO tags (t_Paste_id, t_Paste_user_id, t_tag) \
                \VALUES (?, ?, ?)"
                [ toSql pid, toSql (maybe (-1) u_id mu), toSql t ]

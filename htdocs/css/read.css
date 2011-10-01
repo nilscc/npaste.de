@@ -1,0 +1,26 @@
+header div#compactMenu p,
+header div#compactMenu form {
+  display: inline-block;
+  margin-right: 15px;
+}
+
+  header div#compactMenu div.postInfo {
+    display: block;
+  }
+
+  header div#compactMenu p.desc {
+    font-style: italic;
+    margin: 0 15px 0;
+  }
+  header p#logo { clear: right; }
+
+  header div#compactMenu p.timestamp:before { content: "("; }
+  header div#compactMenu p.timestamp:after  { content: ")"; }
+
+  header div#compactMenu form select {
+    disply: inline-block;
+  }
+
+  header div#compactMenu form input {
+    display: none;
+  }

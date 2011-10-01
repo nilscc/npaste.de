@@ -1,9 +1,9 @@
 module NPaste.Database
   ( -- * Users
     module NPaste.Database.Users
-    -- * Posts
-  , module NPaste.Database.Posts
+    -- * Pastes
+  , module NPaste.Database.Pastes
   ) where
 
 import NPaste.Database.Users
-import NPaste.Database.Posts
+import NPaste.Database.Pastes

@@ -1,6 +1,6 @@
 {-# LANGUAGE NamedFieldPuns #-}
 
-module NPaste.Database.Posts.Replies
+module NPaste.Database.Pastes.Replies
   ( -- * Queries
     getReplies
     -- * Updates
@@ -11,6 +11,7 @@ import Control.Monad
 import Data.Maybe
 
 import NPaste.Database.Connection
+import NPaste.Database.Users
 import NPaste.Types
 import NPaste.Utils
 
@@ -18,13 +19,25 @@ import NPaste.Utils
 --------------------------------------------------------------------------------
 -- Queries
 
-getReplies :: PostInfo -> Query [PostInfo]
-getReplies PostInfo{ p_id, p_user_id } =
+getReplies :: PasteInfo -> Query [ID]
+getReplies pinfo = do
+  rpi <- getReplies' pinfo
+  forM rpi $ \PasteInfo{ p_id, p_user_id, p_id_is_global } ->
+    if p_id_is_global then do
+      return $ ID p_id
+     else do
+      u <- getUserById p_user_id
+      return $ case u of
+                    Just u' -> PrivateID u' p_id
+                    _       -> ID p_id
+
+getReplies' :: PasteInfo -> Query [PasteInfo]
+getReplies' PasteInfo{ p_id, p_user_id } =
   fmap (catMaybes . map convertMaybe) $
-       querySql "SELECT * FROM HS_PostInfo \
-                \WHERE (p_id, p_user_id) IN ( SELECT r_reply_post_id, r_reply_post_user_id \
+       querySql "SELECT * FROM HS_PasteInfo \
+                \WHERE (p_id, p_user_id) IN ( SELECT r_Paste_id, r_Paste_user_id \
                 \                               FROM replies \
-                \                              WHERE r_post_id = ? AND r_post_user_id = ? \
+                \                              WHERE r_reply_Paste_id = ? AND r_reply_Paste_user_id = ? \
                 \                           )"
                 [ toSql p_id, toSql p_user_id ]
 
@@ -38,7 +51,7 @@ addReplies :: Maybe User
            -> Update ()
 addReplies mu pid rpls =
   forM_ rpls $ \(mru, mpid) ->
-    updateSql_ "INSERT INTO replies (r_post_id, r_post_user_id, r_reply_post_id, r_reply_post_user_id) \
+    updateSql_ "INSERT INTO replies (r_Paste_id, r_Paste_user_id, r_reply_Paste_id, r_reply_Paste_user_id) \
                \VALUES (?, ?, ?, ?)"
                [ toSql pid,  toSql (maybe (-1) u_id mu)
                , toSql mpid, toSql (maybe (-1) u_id mru) ]

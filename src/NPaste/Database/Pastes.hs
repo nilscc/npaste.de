@@ -1,15 +1,16 @@
 {-# LANGUAGE NamedFieldPuns, RankNTypes, ViewPatterns, TupleSections #-}
 
-module NPaste.Database.Posts
+module NPaste.Database.Pastes
   (
     -- ** Queries
-    getPostById
-  , getRecentPosts
-  , getPostsByUser
+    getPasteById
+  , getRecentPastes
+  , getPastesByUser
   , getContent
+  , getReplies
 
     -- ** Updates
-  , newPost
+  , newPaste
   ) where
 
 import Data.ByteString (ByteString)
@@ -21,10 +22,10 @@ import Happstack.Crypto.MD5 (md5)
 import System.Random
 
 import NPaste.Database.Connection
-import NPaste.Database.Posts.Info
-import NPaste.Database.Posts.Content
-import NPaste.Database.Posts.Replies
-import NPaste.Database.Posts.Tags
+import NPaste.Database.Pastes.Info
+import NPaste.Database.Pastes.Content
+import NPaste.Database.Pastes.Replies
+import NPaste.Database.Pastes.Tags
 import NPaste.Database.Users
 
 import qualified NPaste.Tools.Description as P
@@ -39,11 +40,11 @@ import NPaste.Utils
 sqlErrorToAPE :: Maybe User
               -> ByteString     -- ^ MD5 hash
               -> SqlError
-              -> AddPost a
+              -> AddPaste a
 sqlErrorToAPE mu hash e =
   case seState e of
        l | l == uniqueViolation -> do
-           mpi <- getPostByMD5 mu hash
+           mpi <- getPasteByMD5 mu hash
            throwError $ maybe
              (APE_Other $ show e)
              (APE_AlreadyExists mu . p_id)
@@ -56,17 +57,17 @@ sqlErrorToAPE mu hash e =
 
 
 --------------------------------------------------------------------------------
--- Add a new post
+-- Add a new Paste
 
--- | Adds a new post and eventually returns the `ID` or an `AddPostError`
-newPost :: Maybe User               -- ^ optional user of paste
+-- | Adds a new Paste and eventually returns the `ID` or an `AddPasteError`
+newPaste :: Maybe User               -- ^ optional user of paste
         -> Maybe String             -- ^ file type
         -> Maybe String             -- ^ description
         -> Bool                     -- ^ hidden?
         -> IdSetting
         -> ByteString               -- ^ content
-        -> Update (Either AddPostError ID)
-newPost muser mtype mdesc hide id_settings content = runErrorT $ do
+        -> Update (Either AddPasteError ID)
+newPaste muser mtype mdesc hide id_settings content = runErrorT $ do
     
   when (B.null content) $ throwError APE_NoContent
 
@@ -82,9 +83,9 @@ newPost muser mtype mdesc hide id_settings content = runErrorT $ do
 
   handleSql (sqlErrorToAPE muser hash) $ do
   
-    -- add post info
+    -- add Paste info
     now <- liftIO getCurrentTime
-    addPostInfo hash $ PostInfo
+    addPasteInfo hash $ PasteInfo
       { p_id           = pid
       , p_user_id      = maybe (-1) u_id muser
       , p_date         = now
@@ -95,7 +96,7 @@ newPost muser mtype mdesc hide id_settings content = runErrorT $ do
       , p_id_is_custom = pid_is_custom
       }
   
-    -- add post content
+    -- add Paste content
     addContent muser pid content
 
     -- Add tags & replies if a description is given
@@ -124,7 +125,7 @@ validChars :: [Char]
 validChars = ['0'..'9'] ++ ['A'..'Z'] ++ ['a'..'z']
 
 getRandomId :: Int
-            -> AddPost (String, Bool, Bool)
+            -> AddPaste (String, Bool, Bool)
 getRandomId m = do
 
   ids   <- getGlobalIds
@@ -137,7 +138,7 @@ getRandomId m = do
      else return (pid, True, False)
 
  where
-  rnds :: Int -> (Int, Int) -> [Int] -> AddPost [Int]
+  rnds :: Int -> (Int, Int) -> [Int] -> AddPaste [Int]
   rnds 0 _ akk = return akk
   rnds n r akk = do
     random' <- liftIO $ randomRIO r
@@ -145,7 +146,7 @@ getRandomId m = do
 
 getCustom :: Maybe User
           -> String
-          -> AddPost (String, Bool, Bool)
+          -> AddPaste (String, Bool, Bool)
 getCustom Nothing _  = throwError APE_UserRequired
 getCustom (Just u) c = do
   available <- checkCustomId u c
@@ -155,7 +156,7 @@ getCustom (Just u) c = do
 
 -- getNextId :: Maybe User
 --           -> Bool
---           -> AddPost (String, Bool, Bool)
+--           -> AddPaste (String, Bool, Bool)
 -- getNextId mUser global = do
 --   let global' = global || isNothing mUser
 --   ids <- if global'

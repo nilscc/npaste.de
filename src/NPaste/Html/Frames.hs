@@ -3,6 +3,7 @@
 
 module NPaste.Html.Frames
   ( mainFrame
+  , compactFrame
   , nullBody
   ) where
 
@@ -22,12 +23,8 @@ nullBody = HtmlBody
   , html = return ()
   }
 
---------------------------------------------------------------------------------
--- Main frame
-
-mainFrame :: HtmlBody
-          -> Html
-mainFrame htmlbody = H.docTypeHtml $ do
+htmlHeader :: HtmlBody -> Html
+htmlHeader htmlbody =
   H.head $ do
     H.title . toHtml $
       maybe "npaste.de" ("npaste.de - " ++) (title htmlbody)
@@ -39,9 +36,17 @@ mainFrame htmlbody = H.docTypeHtml $ do
         H.script ! A.type_ "text/javascript" ! A.src (toValue $ "/s/js/" ++ s) $ return ()
 
     -- load css
-    let cssFiles = css htmlbody ++ ["main.css","fonts.css"]
+    let cssFiles = css htmlbody ++ ["fonts.css"]
     forM_ cssFiles $ \c ->
       H.link ! A.type_ "text/css" ! A.href (toValue $ "/s/css/" ++ c) ! A.rel "stylesheet"
+
+--------------------------------------------------------------------------------
+-- Main frame
+
+mainFrame :: HtmlBody
+          -> Html
+mainFrame htmlbody = H.docTypeHtml $ do
+  htmlHeader htmlbody{ css = css htmlbody ++ ["main.css"] }
 
   H.body $ do
     H.header $ mainHeader
@@ -89,3 +94,25 @@ sectionToTitle s = case s of
   M_AddNewPaste -> "New paste"
   M_Read        -> "Show recent pastes"
   M_Settings    -> "My settings"
+
+
+--------------------------------------------------------------------------------
+-- Compact frame
+
+compactFrame :: Html -> HtmlBody -> Html
+compactFrame compH  htmlbody = H.docTypeHtml $ do
+  htmlHeader htmlbody{ css = css htmlbody ++ ["compact.css"] }
+  H.body $ do
+    H.header $ compactHeader compH
+    H.section ! A.id "main" $
+      html htmlbody
+
+-- | Header
+compactHeader :: Html -> Html
+compactHeader compH = do
+  H.div ! A.id "compactMenu" $ compH
+  H.p ! A.id "logo" $ H.a ! A.href "/" $ do
+    H.span ! A.id "n3" $ do
+      "n"
+      H.sup "3"
+    "paste.de"

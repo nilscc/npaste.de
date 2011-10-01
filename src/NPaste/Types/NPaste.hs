@@ -1,4 +1,9 @@
-module NPaste.Types.NPaste where
+module NPaste.Types.NPaste
+  ( NPaste
+  , runNPaste, evalNPaste, execNPaste
+  , OutputM
+  , runOutputM, evalOutputM, execOutputM
+  ) where
 
 import Control.Concurrent.MState
 import Control.Monad.Error

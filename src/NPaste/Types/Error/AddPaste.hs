@@ -1,13 +1,13 @@
 {-# LANGUAGE RankNTypes #-}
 
-module NPaste.Types.Error.AddPost where
+module NPaste.Types.Error.AddPaste where
 
 import Control.Monad.Error
 import Control.Monad.IO.Peel
 
 import NPaste.Types.Database.User
 
-data AddPostError
+data AddPasteError
   = APE_UserRequired
   | APE_NoContent
   | APE_InvalidCustomId String
@@ -16,7 +16,7 @@ data AddPostError
   | APE_DescTooLong
   deriving Show
 
-instance Error AddPostError where
+instance Error AddPasteError where
   strMsg = APE_Other
 
-type AddPost a = (MonadPeelIO m, Functor m) => ErrorT AddPostError m a
+type AddPaste a = (MonadPeelIO m, Functor m) => ErrorT AddPasteError m a

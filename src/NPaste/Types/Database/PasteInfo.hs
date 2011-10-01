@@ -1,7 +1,7 @@
 {-# LANGUAGE FlexibleInstances, MultiParamTypeClasses, DeriveDataTypeable #-}
 
-module NPaste.Types.Database.PostInfo
-  ( PostInfo (..)
+module NPaste.Types.Database.PasteInfo
+  ( PasteInfo (..)
   ) where
 
 import Control.Applicative
@@ -10,7 +10,7 @@ import Data.Convertible
 import Data.Time
 import Data.Typeable
 
-data PostInfo = PostInfo
+data PasteInfo = PasteInfo
   { p_id            :: String
   , p_user_id       :: Int
   , p_date          :: UTCTime
@@ -22,14 +22,14 @@ data PostInfo = PostInfo
   }
   deriving (Show, Typeable, Eq)
 
-instance Convertible [SqlValue] PostInfo where
+instance Convertible [SqlValue] PasteInfo where
   safeConvert [i,u,d,t,de,h,g,c] =
-    PostInfo <$> safeConvert i
-             <*> safeConvert u
-             <*> safeConvert d
-             <*> optional (safeConvert t)
-             <*> optional (safeConvert de)
-             <*> safeConvert h
-             <*> safeConvert g
-             <*> safeConvert c
+    PasteInfo <$> safeConvert i
+              <*> safeConvert u
+              <*> safeConvert d
+              <*> optional (safeConvert t)
+              <*> optional (safeConvert de)
+              <*> safeConvert h
+              <*> safeConvert g
+              <*> safeConvert c
   safeConvert a = convError "" a

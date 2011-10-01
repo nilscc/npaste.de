@@ -1,0 +1,136 @@
+body {
+  margin: 0;
+  padding: 0 0 50px;
+  background: #fff;
+  color: #666;
+  font-size: 12pt;
+  font-family: 'Ubuntu', sans-serif;
+  height: 100%;
+}
+
+a {
+  color: #088;
+  text-decoration: none;
+}
+
+  a:hover {
+    text-decoration: underline;
+  }
+
+li {
+  font-size: 9pt;
+}
+
+input.inputDesc {     /* JS class */
+  color: #999;
+}
+
+section, menu, header, div {
+  margin: 0;
+  padding: 0;
+}
+
+pre
+{
+  line-height: 12pt;
+  font-size: 10pt;
+}
+
+
+/**  HEADER  ******************************************************************/
+
+header {
+  background-color: #666;
+  /* position: fixed;
+  top: 0;
+  left: 0;
+  z-index: 5; */
+  padding: 10px;
+  width: 100%;
+  font-size: 16px;
+  border-bottom: 1px solid #444;
+  box-shadow: 0 3px 10px #444;
+  overflow: hidden;
+}
+
+  header a {
+    color: #00b9b9;
+  }
+
+  header p#logo {
+    padding: 0;
+    margin: 5px 25px 5px 10px;
+    display: inline-block;
+    font-weight: bold;
+    text-align: right;
+  }
+
+  header p#logo a {
+    color: white;
+  }
+
+  header p#logo a:hover {
+    text-decoration: none;
+  }
+
+  header p#logo a span#n3 {
+    color: #00b9b9;
+    text-decoration: none;
+    position: relative;
+    left: 2px;
+  }
+
+  header p#logo a span#n3 sup {
+    font-size: 10px;
+    position: relative;
+    top: -2px;
+    right: 1px;
+  }
+
+  header div#compactMenu {
+    color: white;
+    font-size: 11px;
+    float: right;
+    padding: 0 10px 0 25px;
+    margin: 0;
+    max-width: 50%;
+    text-align: right;
+  }
+
+
+/**  MAIN SECTION  ************************************************************/
+
+section#main {
+  margin: 20px 20px 0 20px;
+  height: 80%;
+  overflow: hidden;
+  display: block;
+}
+
+  section#main .error {
+    font-weight: bold;
+    color: #c20;
+  }
+
+  section#main .warning {
+    color: #c20;
+  }
+
+  section#main .success {
+    font-weight: bold;
+    font-style: italic;
+  }
+
+  section#main .info {
+    font-weight: bold;
+    font-style: italic;
+  }
+
+  section#main pre {
+    margin: 10px 30px 10px;
+    font-weight: bold;
+  }
+
+  section#main p.moreless {
+    text-align: right;
+  }
