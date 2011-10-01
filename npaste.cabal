@@ -59,10 +59,13 @@ library
         NPaste.Database.Posts.Replies
         NPaste.Database.Posts.Tags
 
+        NPaste.Html.Frames
         NPaste.Html.Index
-        NPaste.Html.MainFrame
+        NPaste.Html.Read
 
         NPaste.Routes.Index
+        NPaste.Routes.Read
+        NPaste.Routes.Static
 
         NPaste.Tools.Description
 

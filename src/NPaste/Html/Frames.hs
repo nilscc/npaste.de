@@ -1,7 +1,10 @@
 {-# LANGUAGE OverloadedStrings #-}
 {-# OPTIONS -fno-warn-unused-do-bind #-}
 
-module NPaste.Html.MainFrame where
+module NPaste.Html.Frames
+  ( mainFrame
+  , nullBody
+  ) where
 
 import Text.Blaze (toHtml, toValue, (!))
 import qualified Text.Blaze.Html5             as H
@@ -20,7 +23,7 @@ nullBody = HtmlBody
   }
 
 --------------------------------------------------------------------------------
--- Main HTML
+-- Main frame
 
 mainFrame :: HtmlBody
           -> Html
@@ -47,9 +50,7 @@ mainFrame htmlbody = H.docTypeHtml $ do
       html htmlbody
 
 
---------------------------------------------------------------------------------
--- Header
-
+-- | Header
 mainHeader :: Html
 mainHeader = do
   H.p ! A.id "left" $ do
@@ -65,9 +66,8 @@ mainHeader = do
     "a haskell happstack pastebin"
   
 
---------------------------------------------------------------------------------
--- Menu
 
+-- | Menu
 mainMenu :: MenuSection -> Html
 mainMenu active = sequence_ $ do
   -- list monad

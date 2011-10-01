@@ -7,7 +7,6 @@ import Happstack.Server
 
 import NPaste.Database
 import NPaste.Html
-import NPaste.Html.Read
 import NPaste.Types
 
 
