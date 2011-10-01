@@ -1,11 +1,11 @@
 DROP VIEW IF EXISTS HS_PasteInfo;
 DROP VIEW IF EXISTS HS_User;
 
-DROP TABLE IF EXISTS Paste_settings;
-DROP TABLE IF EXISTS Paste_contents;
+DROP TABLE IF EXISTS paste_settings;
+DROP TABLE IF EXISTS paste_contents;
 DROP TABLE IF EXISTS replies;
 DROP TABLE IF EXISTS tags;
-DROP TABLE IF EXISTS Pastes;
+DROP TABLE IF EXISTS pastes;
 DROP TABLE IF EXISTS users;
 
 -- USERS & USER SETTINGS -------------------------------------------------------
@@ -25,7 +25,7 @@ CREATE VIEW HS_User AS
   SELECT u_id, u_name, u_email
     FROM users;
 
-CREATE TABLE Paste_settings (
+CREATE TABLE paste_settings (
   ps_user_id          integer,
   ps_default_hidden   boolean DEFAULT FALSE,
   ps_default_random   boolean DEFAULT FALSE,
@@ -35,9 +35,9 @@ CREATE TABLE Paste_settings (
   FOREIGN KEY (ps_user_id) REFERENCES users(u_id) ON DELETE CASCADE
 );
 
--- PasteS -----------------------------------------------------------------------
+-- PASTES ----------------------------------------------------------------------
 
-CREATE TABLE Pastes (
+CREATE TABLE pastes (
   p_id              varchar(40),
   p_user_id         integer DEFAULT -1,
   p_date            timestamp with time zone,
@@ -54,37 +54,37 @@ CREATE TABLE Pastes (
 
 CREATE VIEW HS_PasteInfo AS
   SELECT p_id, p_user_id, p_date, p_type, p_description, p_hidden, p_id_is_global, p_id_is_custom
-    FROM Pastes;
+    FROM pastes;
 
-CREATE TABLE Paste_contents (
-  pc_Paste_id         varchar(40),
-  pc_Paste_user_id    integer DEFAULT -1,
+CREATE TABLE paste_contents (
+  pc_paste_id         varchar(40),
+  pc_paste_user_id    integer DEFAULT -1,
   pc_content          bytea NOT NULL,
 
-  PRIMARY KEY (pc_Paste_id),
-  FOREIGN KEY (pc_Paste_id)      REFERENCES Pastes(p_id) ON DELETE CASCADE,
-  FOREIGN KEY (pc_Paste_user_id) REFERENCES users(u_id) ON DELETE SET DEFAULT
+  PRIMARY KEY (pc_paste_id),
+  FOREIGN KEY (pc_paste_id)      REFERENCES pastes(p_id) ON DELETE CASCADE,
+  FOREIGN KEY (pc_paste_user_id) REFERENCES users(u_id) ON DELETE SET DEFAULT
 );
 
 CREATE TABLE replies (
-  r_Paste_id             varchar(40),
-  r_Paste_user_id        integer DEFAULT -1,
-  r_reply_Paste_id       varchar(40),
-  r_reply_Paste_user_id  integer DEFAULT -1,
+  r_paste_id             varchar(40),
+  r_paste_user_id        integer DEFAULT -1,
+  r_reply_paste_id       varchar(40),
+  r_reply_paste_user_id  integer DEFAULT -1,
 
-  PRIMARY KEY (r_Paste_id),
-  FOREIGN KEY (r_Paste_id)            REFERENCES Pastes(p_id) ON DELETE CASCADE,
-  FOREIGN KEY (r_Paste_user_id)       REFERENCES users(u_id) ON DELETE SET DEFAULT,
-  FOREIGN KEY (r_reply_Paste_id)      REFERENCES Pastes(p_id) ON DELETE CASCADE,
-  FOREIGN KEY (r_reply_Paste_user_id) REFERENCES users(u_id) ON DELETE SET DEFAULT
+  PRIMARY KEY (r_paste_id),
+  FOREIGN KEY (r_paste_id)            REFERENCES pastes(p_id) ON DELETE CASCADE,
+  FOREIGN KEY (r_paste_user_id)       REFERENCES users(u_id) ON DELETE SET DEFAULT,
+  FOREIGN KEY (r_reply_paste_id)      REFERENCES pastes(p_id) ON DELETE CASCADE,
+  FOREIGN KEY (r_reply_paste_user_id) REFERENCES users(u_id) ON DELETE SET DEFAULT
 );
 
 CREATE TABLE tags (
-  t_Paste_id         varchar(40),
-  t_Paste_user_id    integer DEFAULT -1,
+  t_paste_id         varchar(40),
+  t_paste_user_id    integer DEFAULT -1,
   t_tag             varchar(100),
 
-  PRIMARY KEY (t_Paste_id),
-  FOREIGN KEY (t_Paste_id)      REFERENCES Pastes(p_id) ON DELETE CASCADE,
-  FOREIGN KEY (t_Paste_user_id) REFERENCES users(u_id) ON DELETE SET DEFAULT
+  PRIMARY KEY (t_paste_id),
+  FOREIGN KEY (t_paste_id)      REFERENCES pastes(p_id) ON DELETE CASCADE,
+  FOREIGN KEY (t_paste_user_id) REFERENCES users(u_id) ON DELETE SET DEFAULT
 );

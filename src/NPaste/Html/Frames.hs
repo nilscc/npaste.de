@@ -99,8 +99,10 @@ sectionToTitle s = case s of
 --------------------------------------------------------------------------------
 -- Compact frame
 
-compactFrame :: Html -> HtmlBody -> Html
-compactFrame compH  htmlbody = H.docTypeHtml $ do
+compactFrame :: Html        -- ^ header content
+             -> HtmlBody    -- ^ HTML body
+             -> Html
+compactFrame compH htmlbody = H.docTypeHtml $ do
   htmlHeader htmlbody{ css = css htmlbody ++ ["compact.css"] }
   H.body $ do
     H.header $ compactHeader compH

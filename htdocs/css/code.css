@@ -13,12 +13,3 @@ div.formatedCode div.sourceCode {
   margin: 0;
   padding: 0;
 }
-
-div.formatedCode div.lineNumbers pre,
-div.formatedCode div.sourceCode pre {
-  padding: 0;
-  margin: 0;
-  line-height: 12pt;
-  font-size: 10pt;
-  overflow-x: auto;
-}

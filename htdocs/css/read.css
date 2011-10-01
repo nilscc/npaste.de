@@ -14,9 +14,6 @@ header div#compactMenu form {
   }
   header p#logo { clear: right; }
 
-  header div#compactMenu p.timestamp:before { content: "("; }
-  header div#compactMenu p.timestamp:after  { content: ")"; }
-
   header div#compactMenu form select {
     disply: inline-block;
   }

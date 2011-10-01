@@ -50,7 +50,7 @@ readInfo (Just p) r = do
            in H.a ! A.href (toValue url) $ toHtml url
     H.p ! A.class_ "timestamp" $
       toHtml $ formatTime defaultTimeLocale "%H:%M - %a %Y.%m.%d" (p_date p)
-    H.form ! A.class_ "languageSelector" ! A.method "Paste" $ do
+    H.form ! A.class_ "languageSelector" ! A.method "post" $ do
       H.select ! A.id "lang" ! A.name "lang" $
         forM_ ("Plain text" : languages) $ \l ->
           if Just l == p_type p then -- TODO
@@ -58,10 +58,9 @@ readInfo (Just p) r = do
            else
             H.option                         ! A.value (toValue l) $ toHtml l
       H.input ! A.type_ "submit" ! A.value "Change language" ! A.name "submit"
-  H.p ! A.class_ "desc" $
-    case p_description p of
-         Just d | not (null d) -> toHtml d
-         _                     -> "No description."
+  case p_description p of
+       Just d | not (null d) -> H.p ! A.class_ "desc" $ toHtml d
+       _                     -> return ()
  where
   for = flip L.map
 
@@ -92,7 +91,7 @@ recentHtml ((p, Nothing):r) = do
 -- | Show a nice header with all kind of informations about our paste
 recentInfo :: PasteInfo -> Html
 recentInfo PasteInfo{ p_id, p_date, p_description, p_type } =
-  H.div ! A.class_ "PasteInfo" $ do
+  H.div ! A.class_ "pasteInfo" $ do
     H.p ! A.class_ "timestamp" $
       toHtml $ formatTime defaultTimeLocale "%H:%M - %a %Y.%m.%d" p_date
     H.p ! A.class_ "language" $

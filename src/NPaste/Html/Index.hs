@@ -22,16 +22,17 @@ indexHtml pdata err = do
            "Registered users only, "
            H.a ! A.href "/register" $ "register now!"
        Just (APE_InvalidCustomId _) ->
-         H.p ! A.class_ "error" $ "You custom ID is invalid."
+         H.p ! A.class_ "error" $ "Your custom ID is invalid."
        Just (APE_AlreadyExists _ _) ->
          H.p ! A.class_ "error" $ "Your paste already exists."
-       Just (APE_Other s) ->
-         H.p ! A.class_ "error" $ toHtml $ "An error occured: " ++ s
        Just (APE_DescTooLong) ->
          H.p ! A.class_ "error" $ "Your description is too long (250 char max)."
+       Just (APE_Other s) ->
+         -- TODO: report this error
+         H.p ! A.class_ "error" $ toHtml $ "An error occured: " ++ s
        Nothing   -> return ()
 
-  H.form ! A.method "Paste" ! A.action "/" $ do
+  H.form ! A.method "post" ! A.action "/" $ do
 
     H.div ! A.class_ "settings" $ do
 

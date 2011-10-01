@@ -1,7 +1,7 @@
 
 /* INFO / DESCRIPTION BOX */
 
-div.postInfo {
+div.pasteInfo {
   background-color: #999;
   border: 1px solid #666;
   width: 650px;
@@ -11,27 +11,41 @@ div.postInfo {
   font-size: 11px;
 }
 
-div.postInfo p {
+div.pasteInfo p {
   margin: 0;
   padding: 2px;
 }
 
-div.postInfo p a {
+div.pasteInfo p a {
   color: #055;
 }
 
-div.postInfo p.desc {
+div.pasteInfo p.desc {
   font-style: italic;
 }
 
-div.postInfo p.timestamp {
+div.pasteInfo p.timestamp {
   float: right;
   width: 150px;
   text-align: right;
 }
-div.postInfo p.language {
+div.pasteInfo p.language {
   clear: right;
   float: right;
   width: 150px;
   text-align: right;
+}
+
+
+/* PASTE CONTENT */
+
+div.formatedCode pre.plainText,
+div.formatedCode div.lineNumbers pre,
+div.formatedCode div.sourceCode pre {
+  padding: 0;
+  margin: 0;
+  line-height: 12pt;
+  font-size: 10pt;
+  max-width: 540px;
+  overflow-x: auto;
 }

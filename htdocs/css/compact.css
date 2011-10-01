@@ -1,11 +1,10 @@
 body {
   margin: 0;
-  padding: 0 0 50px;
+  padding: 0;
   background: #fff;
   color: #666;
   font-size: 12pt;
   font-family: 'Ubuntu', sans-serif;
-  height: 100%;
 }
 
 a {
@@ -46,7 +45,6 @@ header {
   left: 0;
   z-index: 5; */
   padding: 10px;
-  width: 100%;
   font-size: 16px;
   border-bottom: 1px solid #444;
   box-shadow: 0 3px 10px #444;
@@ -101,10 +99,7 @@ header {
 /**  MAIN SECTION  ************************************************************/
 
 section#main {
-  margin: 20px 20px 0 20px;
-  height: 80%;
-  overflow: hidden;
-  display: block;
+  margin: 20px 0 0 0;
 }
 
   section#main .error {
