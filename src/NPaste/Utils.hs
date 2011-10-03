@@ -1,10 +1,20 @@
 {-# LANGUAGE OverloadedStrings #-}
 
-module NPaste.Utils where
+module NPaste.Utils
+  ( -- * Convenient helper functions
+    convertMaybe
+  , convertListToMaybe
+  , withJust
+
+    -- * Description
+  , module NPaste.Utils.Description
+  ) where
 
 import Control.Monad
 import Data.Convertible
 import Data.Maybe
+
+import NPaste.Utils.Description
 
 convertMaybe :: Convertible a b => a ->  Maybe b
 convertMaybe = either (const Nothing) Just . safeConvert

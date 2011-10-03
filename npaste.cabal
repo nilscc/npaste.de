@@ -53,7 +53,6 @@ library
         NPaste.Routes.Index
         NPaste.Routes.Read
 
-        NPaste.Tools
         NPaste.Types
         NPaste.Types.Database
         NPaste.Types.Error
@@ -74,8 +73,6 @@ library
 
         NPaste.Routes.Static
 
-        NPaste.Tools.Description
-
         NPaste.Types.Database.PasteInfo
         NPaste.Types.Database.PasteSettings
         NPaste.Types.Database.User
@@ -90,6 +87,8 @@ library
         NPaste.Types.NPaste
         NPaste.Types.ID
         NPaste.Types.State
+
+        NPaste.Utils.Description
 
 executable npaste.de
     hs-source-dirs: src

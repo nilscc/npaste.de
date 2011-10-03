@@ -28,7 +28,7 @@ import NPaste.Database.Pastes.Replies
 import NPaste.Database.Pastes.Tags
 import NPaste.Database.Users
 
-import qualified NPaste.Tools.Description as P
+import qualified NPaste.Utils.Description as P
 import NPaste.Types
 import NPaste.Utils
 

@@ -1,4 +1,4 @@
-module NPaste.Tools.Description
+module NPaste.Utils.Description
     ( parseDesc
     , DescVal (..)
     , Description
@@ -14,23 +14,23 @@ import Text.ParserCombinators.Parsec hiding (many, optional, (<|>))
 type Description = [DescVal]
 
 -- Elements
-data DescVal = ID String (Maybe String)
-             | Username String
-             | Tag String
-             | Text String
+data DescVal = DescID String (Maybe String)
+             | DescUsername String
+             | DescTag String
+             | DescText String
              deriving (Eq)
 
 --------------------------------------------------------------------------------
 -- DescVal selectors
 
 tagsOnly :: Description -> [String]
-tagsOnly vals = [ t | Tag t <- vals ]
+tagsOnly vals = [ t | DescTag t <- vals ]
 
 idsOnly :: Description -> [(String, Maybe String)]
-idsOnly vals = [ (i,mu) | ID i mu <- vals ]
+idsOnly vals = [ (i,mu) | DescID i mu <- vals ]
 
 usernamesOnly :: Description -> [String]
-usernamesOnly vals = [ u | Username u <- vals ]
+usernamesOnly vals = [ u | DescUsername u <- vals ]
 
 
 --------------------------------------------------------------------------------
@@ -45,21 +45,21 @@ parseDesc = either (const []) id . parse parseAll "description"
 pasteId, userName, tag, descVal :: Parser DescVal
 
 pasteId  = try $ char '/' *> fmap newId    (many1 alphaNum) <* char '/'
- where newId i = ID i Nothing
-userName = try $ char '@' *> fmap Username (many1 alphaNum)
-tag      = try $ char '#' *> fmap Tag      (many1 alphaNum)
+ where newId i = DescID i Nothing
+userName = try $ char '@' *> fmap DescUsername (many1 alphaNum)
+tag      = try $ char '#' *> fmap DescTag      (many1 alphaNum)
 
 descVal = pasteId <|> userName <|> tag
 
 -- put everything together
 parseAll :: Parser Description
-parseAll = concatDV <$> (descVal  <|> Text `fmap` pure `fmap` anyChar)
+parseAll = concatDV <$> (descVal  <|> DescText `fmap` pure `fmap` anyChar)
                     <*> (parseAll <|> return [])
 
-  where concatDV (Text a)       (Text b     : rest) =
-          Text (a++b) : rest
-        concatDV (ID i Nothing) (Username u : rest) =
-          ID i (Just u) : rest
+  where concatDV (DescText a)       (DescText b     : rest) =
+          DescText (a++b) : rest
+        concatDV (DescID i Nothing) (DescUsername u : rest) =
+          DescID i (Just u) : rest
         concatDV a rest = a : rest
 
 --------------------------------------------------------------------------------
