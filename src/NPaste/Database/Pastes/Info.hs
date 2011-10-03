@@ -1,16 +1,18 @@
-{-# LANGUAGE NamedFieldPuns, RankNTypes #-}
+{-# LANGUAGE NamedFieldPuns, RankNTypes, ViewPatterns #-}
 
 module NPaste.Database.Pastes.Info
   ( -- * Queries
     Query
-  , getPasteById
-  , getPasteByMD5
-  , getRecentPastes
-  , getPastesByUser
+  , getPasteInfoById
+  , getPasteInfoByMD5
+  , getRecentPasteInfos
+  , getPasteInfosByUser
+
   , getGlobalIds
   , getPrivateIds
 
-  , checkCustomId
+  , checkExistingId
+  , filterExistingIds
 
     -- * Updates
   , Update
@@ -22,48 +24,53 @@ import Data.Maybe
 import Data.ByteString (ByteString)
 
 import NPaste.Database.Connection
+import NPaste.Database.Users
 import NPaste.Types
+import NPaste.Types.Database
 import NPaste.Utils
+
+idToTuple :: ID -> (String, Int)
+idToTuple (ID pid)                   = (pid,-1)
+idToTuple (PrivateID User{u_id} pid) = (pid,u_id)
 
 --------------------------------------------------------------------------------
 -- Queries
 
-getPasteById :: Maybe User -> String -> Query (Maybe PasteInfo)
-getPasteById mu pid = do
+getPasteInfoById :: ID -> Query (Maybe PasteInfo)
+getPasteInfoById (idToTuple->(pid,pu)) = do
   fmap convertListToMaybe $
        querySql "SELECT * FROM HS_PasteInfo WHERE p_id = ? AND p_user_id = ?"
-                [toSql pid, toSql (maybe (-1) u_id mu)]
-  
+                [toSql pid, toSql pu]
 
-getPasteByMD5 :: Maybe User -> ByteString -> Query (Maybe PasteInfo)
-getPasteByMD5 mu hash = do
+getPasteInfoByMD5 :: Maybe User -> ByteString -> Query (Maybe PasteInfo)
+getPasteInfoByMD5 mu hash = do
   fmap convertListToMaybe $
     querySql "SELECT p_id, p_user_id, p_date, p_type, p_description, p_hidden, p_id_is_global, p_id_is_custom \
              \  FROM Pastes WHERE p_user_id = ? AND p_md5 = ?"
              [toSql (maybe (-1) u_id mu), byteaPack hash]
 
-getRecentPastes :: Maybe User
-               -> Int          -- ^ limit
-               -> Int          -- ^ offset
-               -> Bool         -- ^ show hidden pastes?
-               -> Query [PasteInfo]
-getRecentPastes Nothing limit offset hidden =
+getRecentPasteInfos :: Maybe User
+                    -> Int          -- ^ limit
+                    -> Int          -- ^ offset
+                    -> Bool         -- ^ show hidden pastes?
+                    -> Query [PasteInfo]
+getRecentPasteInfos Nothing limit offset hidden =
   fmap (catMaybes . map convertMaybe)
        (querySql "SELECT * FROM HS_PasteInfo WHERE p_hidden = ?\
                  \ ORDER BY p_date DESC LIMIT ? OFFSET ?"
                  [toSql hidden, toSql limit, toSql offset])
-getRecentPastes (Just u) limit offset hidden =
+getRecentPasteInfos (Just u) limit offset hidden =
   fmap (catMaybes . map convertMaybe)
        (querySql "SELECT * FROM HS_PasteInfo WHERE p_hidden = ?\
                  \ WHERE p_user_id = ? \
                  \ ORDER BY p_date DESC LIMIT ? OFFSET ?"
                  [toSql hidden, toSql (u_id u), toSql limit, toSql offset])
 
-getPastesByUser :: User
-               -> Int          -- ^ limit
-               -> Int          -- ^ offset
-               -> Query [PasteInfo]
-getPastesByUser User{u_name} limit offset =
+getPasteInfosByUser :: User
+                    -> Int          -- ^ limit
+                    -> Int          -- ^ offset
+                    -> Query [PasteInfo]
+getPasteInfosByUser User{u_name} limit offset =
   fmap (catMaybes . map convertMaybe)
        (querySql "SELECT * FROM HS_PasteInfo \
                  \ WHERE p_user_id IN ( SELECT u_id FROM users WHERE u_name = ? ) \
@@ -74,33 +81,50 @@ getPastesByUser User{u_name} limit offset =
 -- IDs
 --
 
-getGlobalIds :: Query [String]
+getGlobalIds :: Query [ID]
 getGlobalIds =
-  fmap (catMaybes . map toStr)
-       (querySql "SELECT p_id FROM Pastes \
+  fmap (catMaybes . map toId)
+       (querySql "SELECT p_id FROM pastes \
                  \ WHERE p_id_is_global = 'true'" -- include removed
                  [])
  where
-  toStr [sql] = Just $ fromSql sql
-  toStr _     = Nothing
+  toId [sql] = Just $ ID $ fromSql sql
+  toId _     = Nothing
 
-getPrivateIds :: User -> Query [String]
-getPrivateIds User{ u_id } =
-  fmap (catMaybes . map toStr)
-       (querySql "SELECT p_id FROM Pastes \
-                 \ WHERE p_user_id = ? AND p_id_is_global = 'false'" -- include removed
-                 [toSql u_id])
+getPrivateIds :: User -> Query [ID]
+getPrivateIds User{ u_id } = do
+  t <- fmap (catMaybes . map toTuple)
+            (querySql "SELECT p_id, p_user_id FROM pastes \
+                      \ WHERE p_user_id = ? AND p_id_is_global = 'false'" -- include removed
+                      [toSql u_id])
+  forM t $ \(pid,uid) -> do
+    Just u <- getUserById uid
+    return $ PrivateID u pid
  where
-  toStr [sql] = Just $ fromSql sql
-  toStr _     = Nothing
+  toTuple [s_pid,s_uid] = Just $ (fromSql s_pid, fromSql s_uid)
+  toTuple _             = Nothing
 
-checkCustomId :: User -> String -> Query Bool
-checkCustomId User{ u_id } pid =
-  fmap (null)
-       (querySql "SELECT p_id FROM Pastes \
-                 \ WHERE p_id = ? AND p_user_id = ?" -- include removed
-                 [toSql pid, toSql u_id])
+-- checkCustomId :: User -> String -> Query Bool
+-- checkCustomId User{ u_id } pid =
+--   fmap (null)
+--        (querySql "SELECT p_id FROM Pastes \
+--                  \ WHERE p_id = ? AND p_user_id = ?" -- include removed
+--                  [toSql pid, toSql u_id])
 
+-- | See if a ID does exist
+checkExistingId :: ID -> Query Bool
+checkExistingId pId =
+  fmap (not . null)
+       (querySql "SELECT p_id FROM pastes \
+                 \ WHERE p_id = ? AND p_user_id = ?"
+                 [toSql pid, toSql puserid])
+ where
+  (pid, puserid) = case pId of
+                        ID                     i -> (i, -1)
+                        PrivateID User{ u_id } i -> (i, u_id)
+
+filterExistingIds :: [ID] -> Query [ID]
+filterExistingIds = filterM checkExistingId
 
 --------------------------------------------------------------------------------
 -- Updates

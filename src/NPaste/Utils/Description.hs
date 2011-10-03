@@ -11,14 +11,7 @@ module NPaste.Utils.Description
 import Control.Applicative
 import Text.ParserCombinators.Parsec hiding (many, optional, (<|>))
 
-type Description = [DescVal]
-
--- Elements
-data DescVal = DescID String (Maybe String)
-             | DescUsername String
-             | DescTag String
-             | DescText String
-             deriving (Eq)
+import NPaste.Types
 
 --------------------------------------------------------------------------------
 -- DescVal selectors
@@ -42,14 +35,14 @@ parseDesc :: String -> Description
 parseDesc = either (const []) id . parse parseAll "description"
 
 -- parse different DescVals:
-pasteId, userName, tag, descVal :: Parser DescVal
+pasteId', userName, tag, descVal :: Parser DescVal
 
-pasteId  = try $ char '/' *> fmap newId    (many1 alphaNum) <* char '/'
+pasteId' = try $ char '/' *> fmap newId    (many1 alphaNum) <* char '/'
  where newId i = DescID i Nothing
 userName = try $ char '@' *> fmap DescUsername (many1 alphaNum)
 tag      = try $ char '#' *> fmap DescTag      (many1 alphaNum)
 
-descVal = pasteId <|> userName <|> tag
+descVal = pasteId' <|> userName <|> tag
 
 -- put everything together
 parseAll :: Parser Description

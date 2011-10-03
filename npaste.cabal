@@ -54,9 +54,6 @@ library
         NPaste.Routes.Read
 
         NPaste.Types
-        NPaste.Types.Database
-        NPaste.Types.Error
-        NPaste.Types.Html
         NPaste.Utils
 
     other-modules:
@@ -73,12 +70,15 @@ library
 
         NPaste.Routes.Static
 
+        NPaste.Types.Database
         NPaste.Types.Database.PasteInfo
         NPaste.Types.Database.PasteSettings
         NPaste.Types.Database.User
+        NPaste.Types.Error
         NPaste.Types.Error.AddPaste
         NPaste.Types.Error.AddUser
         NPaste.Types.Error.NPaste
+        NPaste.Types.Html
         NPaste.Types.Html.Body
         NPaste.Types.Html.Index
         NPaste.Types.Html.Menu

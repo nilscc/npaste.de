@@ -12,7 +12,7 @@ DROP TABLE IF EXISTS users;
 
 CREATE TABLE users (
   u_id                integer,
-  u_name              varchar(100) UNIQUE,
+  u_name              varchar(100) UNIQUE NOT NULL,
   u_password          bytea NOT NULL,
   u_email             varchar(100),
 

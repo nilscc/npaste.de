@@ -22,12 +22,15 @@ import NPaste.Types
 --------------------------------------------------------------------------------
 -- Updates
 
-addTags :: Maybe User
-        -> String
+addTags :: ID
         -> [String]
         -> Update ()
-addTags mu pid tags =
+addTags pid tags =
   forM_ tags $ \t ->
     updateSql_ "INSERT INTO tags (t_Paste_id, t_Paste_user_id, t_tag) \
                \VALUES (?, ?, ?)"
-               [ toSql pid, toSql (maybe (-1) u_id mu), toSql t ]
+               [ toSql p_id, toSql p_u, toSql t ]
+ where
+  (p_id, p_u) = case pid of
+                     ID                   pid' -> (pid',-1)
+                     PrivateID User{u_id} pid' -> (pid',u_id)

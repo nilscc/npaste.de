@@ -23,7 +23,8 @@ import NPaste.Utils
 -- Queries
 
 getUserById :: Int -> Query (Maybe User)
-getUserById uid =
+getUserById (-1) = return Nothing
+getUserById uid  =
   fmap convertListToMaybe $
        querySql "SELECT * FROM HS_User WHERE u_id = ?"
                 [toSql uid]

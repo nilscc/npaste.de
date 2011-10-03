@@ -5,6 +5,7 @@ module NPaste.Utils
     convertMaybe
   , convertListToMaybe
   , withJust
+  , withJust_
 
     -- * Description
   , module NPaste.Utils.Description
@@ -23,8 +24,14 @@ convertListToMaybe :: Convertible a b => [a] -> Maybe b
 convertListToMaybe = join . fmap convertMaybe . listToMaybe
 
 
-withJust :: Monad m => Maybe a -> (a -> m ()) -> m ()
+withJust :: Monad m => Maybe a -> (a -> m (Maybe b)) -> m (Maybe b)
 withJust m s =
+  case m of
+       Just a   -> s a
+       Nothing  -> return Nothing
+
+withJust_ :: Monad m => Maybe a -> (a -> m ()) -> m ()
+withJust_ m s =
   case m of
        Just a   -> s a
        Nothing  -> return ()

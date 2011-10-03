@@ -17,4 +17,4 @@ data IdSetting
 data ID
   = ID String
   | PrivateID User String
-  deriving Show
+  deriving (Show, Eq)
