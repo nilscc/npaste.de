@@ -27,8 +27,7 @@ indexHtml pdata err = do
          H.p ! A.class_ "error" $ "Your paste already exists."
        Just (APE_DescTooLong) ->
          H.p ! A.class_ "error" $ "Your description is too long (250 char max)."
-       Just (APE_Other s) ->
-         -- TODO: report this error
+       Just (APE_Other s) ->    -- TODO: report this error
          H.p ! A.class_ "error" $ toHtml $ "An error occured: " ++ s
        Nothing   -> return ()
 

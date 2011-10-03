@@ -143,7 +143,7 @@ newPaste muser mtype mdesc hide id_settings content = runErrorT $ do
   -- aquire new ID
   pid <-
     case id_settings of
-         _ -> getRandomId 4 -- TODO
+         _ -> getRandomId 4 -- TODO: support more than just random IDs
          -- IdRandom           -> getRandomId 4
          -- IdDefault          -> getNextId muser True
          -- IdPrivate          -> getNextId muser False
@@ -160,7 +160,7 @@ newPaste muser mtype mdesc hide id_settings content = runErrorT $ do
       , p_type         = mtype
       , p_description  = mdesc
       , p_hidden       = hide
-      , p_id_is_global = True     -- TODO
+      , p_id_is_global = True     -- TODO: add private IDs
       }
   
     -- add Paste content

@@ -38,7 +38,7 @@ indexR = do
          if asReply then
             return $ Left Nothing
           else do
-            e <- newPaste Nothing   -- no user lookup function yet TODO
+            e <- newPaste Nothing   -- TODO: no user lookup function/support yet
                           filetype desc hidden idSetting content
             return $
               case e of

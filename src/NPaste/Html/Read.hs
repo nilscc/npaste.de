@@ -21,7 +21,7 @@ formatDesc d =
     case dval of
          DescText     t -> toHtml t
          DescUsername u -> H.a ! A.href (toValue $ "/u/" ++ u) ! A.class_ "descUser" $ toHtml u
-         DescTag      t -> toHtml t -- TODO
+         DescTag      t -> toHtml t -- TODO: support for tags
          DescID    i mu -> let url = maybe ("/" ++ i ++ "/") (\u -> "/u/" ++ u ++ "/" ++ i ++ "/") mu
                             in H.a ! A.href (toValue url) ! A.class_ "descID" $ toHtml url
  where
@@ -65,7 +65,7 @@ readInfo (Just p) r = do
     H.form ! A.class_ "languageSelector" ! A.method "post" $ do
       H.select ! A.id "lang" ! A.name "lang" $
         forM_ ("Plain text" : languages) $ \l ->
-          if Just l == pasteType p then -- TODO different highlighting languages
+          if Just l == pasteType p then -- TODO: different highlighting languages
             H.option ! A.selected "selected" ! A.value (toValue l) $ toHtml l
            else
             H.option                         ! A.value (toValue l) $ toHtml l
