@@ -5,6 +5,8 @@ module NPaste.Routes.Index where
 import Happstack.Server
 import Data.ByteString.Char8 (pack)
 import Data.Char
+import Data.Maybe
+import Text.Highlighting.Kate
 
 import NPaste.Database
 import NPaste.Html
@@ -20,10 +22,7 @@ indexR = do
   r <- if pdata == nullPostData then
          return $ Left Nothing
         else do
-         let filetype  = case getValue pdata "lang" of
-                              t | t == "Plain text" -> Nothing
-                                | null t            -> Nothing
-                                | otherwise         -> Just t
+         let filetype  = lookupLanguage $ getValue pdata "lang"
              desc      = case getValue pdata "desc" of
                               d | null d    -> Nothing
                                 | otherwise -> Just d
@@ -62,6 +61,13 @@ indexR = do
  where
   cutTrailingSpaces :: String -> String
   cutTrailingSpaces = unlines . map (reverse . dropWhile isSpace . reverse) . lines
+
+  lookupLanguage :: String -> Maybe String
+  lookupLanguage t =
+    -- pick one of the following:
+    listToMaybe $ [ l | l <- languages, map toLower l == map toLower t ]
+               ++ languagesByExtension t
+               ++ languagesByFilename t
 
 --------------------------------------------------------------------------------
 -- Post data
