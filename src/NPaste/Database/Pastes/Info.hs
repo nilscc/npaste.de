@@ -61,8 +61,8 @@ getRecentPasteInfos Nothing limit offset hidden =
                  [toSql hidden, toSql limit, toSql offset])
 getRecentPasteInfos (Just u) limit offset hidden =
   fmap (catMaybes . map convertMaybe)
-       (querySql "SELECT * FROM HS_PasteInfo WHERE p_hidden = ?\
-                 \ WHERE p_user_id = ? \
+       (querySql "SELECT * FROM HS_PasteInfo \
+                 \ WHERE p_hidden = ? AND p_user_id = ? \
                  \ ORDER BY p_date DESC LIMIT ? OFFSET ?"
                  [toSql hidden, toSql (u_id u), toSql limit, toSql offset])
 

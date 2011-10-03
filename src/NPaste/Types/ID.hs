@@ -1,3 +1,5 @@
+{-# LANGUAGE NamedFieldPuns #-}
+
 module NPaste.Types.ID
   ( IdSetting (..)
   , ID (..)
@@ -17,4 +19,8 @@ data IdSetting
 data ID
   = ID String
   | PrivateID User String
-  deriving (Show, Eq)
+  deriving (Eq)
+
+instance Show ID where
+  show (ID pid) = "/" ++ pid ++ "/"
+  show (PrivateID User{u_name} pid) = "/u/" ++ u_name ++ "/" ++ pid ++ "/"

@@ -55,11 +55,8 @@ readInfo (Just p) r = do
   H.div ! A.class_ "pasteInfo" $ do
     unless (null r) $ H.p ! A.class_ "replies" $ do
       "Replies: "
-      sequence_ . intersperse " " . for r $ \pId ->
-        let url = case pId of
-                       ID pId'                     -> "/" ++ pId' ++ "/"
-                       PrivateID User{u_name} pId' -> "/u/" ++ u_name ++ "/" ++ pId' ++ "/"
-         in H.a ! A.href (toValue url) $ toHtml url
+      sequence_ . intersperse " " . for r $ \pid ->
+         H.a ! A.href (toValue $ show pid) $ toHtml (show pid)
     H.form ! A.action "/" ! A.method "post" ! A.class_ "addReply" $ do
       H.input ! A.type_ "hidden" ! A.name "desc" ! A.value (toValue $ "Reply to " ++ p_id)
       H.input ! A.type_ "submit" ! A.name "asreply" ! A.value "New reply"
@@ -135,11 +132,7 @@ formatCode Paste{pasteId} source = do
   H.div ! A.class_ "lineNumbers" $ H.pre $
     sequence_ . intersperse br . for [1..length source] $ \(show->n) ->
       let name = "line-" ++ n
-          p_id = "/" ++ case pasteId of
-                             ID                     i -> i
-                             PrivateID User{u_name} i -> "u/" ++ u_name ++ "/" ++ i
-                     ++ "/"
-          url  = init p_id ++ "#" ++ name
+          url  = init (show pasteId) ++ "#" ++ name
        in H.a ! A.href (toValue url) ! A.name (toValue name) $ toHtml n
   H.div ! A.class_ "sourceCode" $
     H.pre $ sequence_ . intersperse br $ L.map sourceLineToHtml source
@@ -163,8 +156,7 @@ formatPlain Paste{pasteId} cont = do
   H.div ! A.class_ "lineNumbers" $ H.pre $
     sequence_ . intersperse br . for [1..length l] $ \(show->n) ->
       let name = "line-" ++ n
-          p_id = case pasteId of ID i -> i; PrivateID User{u_name} i -> "u/" ++ u_name ++ "/" ++ i
-          url  = "/" ++ p_id ++ "#" ++ name
+          url  = init (show pasteId) ++ "#" ++ name
        in H.a ! A.href (toValue url) ! A.name (toValue name) $ toHtml n
   H.pre ! A.class_ "plainText" $ toHtml cont
  where

@@ -30,6 +30,7 @@ getUserById uid  =
                 [toSql uid]
 
 getUserByName :: String -> Query (Maybe User)
+getUserByName ""   = return Nothing
 getUserByName name =
   fmap convertListToMaybe $
        querySql "SELECT * FROM HS_User WHERE u_name = ?"
