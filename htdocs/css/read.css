@@ -8,6 +8,12 @@ header div#compactMenu form {
     display: block;
   }
 
+  header div#compactMenu p.desc {
+    font-style: italic;
+    font-size: 12px;
+    margin: 0 15px 0;
+  }
+
   header div#compactMenu p.replies {
     margin-right: 10px;
   }
@@ -23,7 +29,7 @@ header div#compactMenu form {
       font-family: sans-serif;
       font-weight: normal;
       display: inline-block;
-      vertical-align: middle;
+      vertical-align: baseline;
       cursor: pointer;
     }
 
@@ -36,6 +42,7 @@ header div#compactMenu form {
       margin-left: 5px;
       margin-right: 5px;
       color: #055;
+      font-size: 12px;
     }
 
     header div#compactMenu form.addReply input[type=submit] {
@@ -45,12 +52,6 @@ header div#compactMenu form {
     header div#compactMenu form.addReply input[type=submit]:hover {
       text-decoration: underline;
     }
-
-  header div#compactMenu p.desc {
-    font-style: italic;
-    font-size: 12px;
-    margin: 0 15px 0;
-  }
 
   header div#compactMenu form.languageSelector select {
     disply: inline-block;
