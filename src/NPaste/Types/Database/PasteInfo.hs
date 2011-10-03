@@ -18,12 +18,11 @@ data PasteInfo = PasteInfo
   , p_description   :: Maybe String
   , p_hidden        :: Bool
   , p_id_is_global  :: Bool
-  , p_id_is_custom  :: Bool
   }
   deriving (Show, Typeable, Eq)
 
 instance Convertible [SqlValue] PasteInfo where
-  safeConvert [i,u,d,t,de,h,g,c] =
+  safeConvert [i,u,d,t,de,h,g] =
     PasteInfo <$> safeConvert i
               <*> safeConvert u
               <*> safeConvert d
@@ -31,5 +30,4 @@ instance Convertible [SqlValue] PasteInfo where
               <*> optional (safeConvert de)
               <*> safeConvert h
               <*> safeConvert g
-              <*> safeConvert c
   safeConvert a = convError "" a

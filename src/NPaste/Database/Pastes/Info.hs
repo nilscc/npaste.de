@@ -45,7 +45,7 @@ getPasteInfoById (idToTuple->(pid,pu)) = do
 getPasteInfoByMD5 :: Maybe User -> ByteString -> Query (Maybe PasteInfo)
 getPasteInfoByMD5 mu hash = do
   fmap convertListToMaybe $
-    querySql "SELECT p_id, p_user_id, p_date, p_type, p_description, p_hidden, p_id_is_global, p_id_is_custom \
+    querySql "SELECT p_id, p_user_id, p_date, p_type, p_description, p_hidden, p_id_is_global \
              \  FROM Pastes WHERE p_user_id = ? AND p_md5 = ?"
              [toSql (maybe (-1) u_id mu), byteaPack hash]
 
@@ -130,11 +130,11 @@ filterExistingIds = filterM checkExistingId
 -- Updates
 
 addPasteInfo :: ByteString -> PasteInfo -> Update ()
-addPasteInfo md5 PasteInfo{ p_id, p_user_id, p_date, p_type, p_description, p_hidden, p_id_is_global, p_id_is_custom } =
-  updateSql_ "INSERT INTO Pastes (p_id, p_user_id, p_date, p_type, p_description, p_md5, p_hidden, p_id_is_global, p_id_is_custom) \
-             \VALUES            (?   , ?        , ?     , ?     , ?            , ?    , ?       , ?             , ?             )"
+addPasteInfo md5 PasteInfo{ p_id, p_user_id, p_date, p_type, p_description, p_hidden, p_id_is_global } =
+  updateSql_ "INSERT INTO Pastes (p_id, p_user_id, p_date, p_type, p_description, p_md5, p_hidden, p_id_is_global) \
+             \ VALUES            (?   , ?        , ?     , ?     , ?            , ?    , ?       , ?             )"
              [ toSql p_id, toSql p_user_id, toSql p_date, toSql p_type
-             , toSql p_description, byteaPack md5, toSql p_hidden, toSql p_id_is_global, toSql p_id_is_custom ]
+             , toSql p_description, byteaPack md5, toSql p_hidden, toSql p_id_is_global ]
 
 updatePasteInfo :: PasteInfo -> Update ()
 updatePasteInfo PasteInfo { p_id, p_user_id, p_type, p_description, p_hidden } =

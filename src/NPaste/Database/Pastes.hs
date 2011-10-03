@@ -62,7 +62,7 @@ sqlErrorToAPE mu hash e =
 getPasteById :: ID -> Query (Maybe Paste)
 getPasteById pid = do
   mpi <- getPasteInfoById pid
-  withJust mpi $ \p_i@(PasteInfo _i ui d t de h _g _c) -> do
+  withJust mpi $ \p_i@(PasteInfo _i ui d t de h _g) -> do
     p_id <- buildPasteId p_i
     mu   <- getUserById ui
 
@@ -161,7 +161,6 @@ newPaste muser mtype mdesc hide id_settings content = runErrorT $ do
       , p_description  = mdesc
       , p_hidden       = hide
       , p_id_is_global = True     -- TODO
-      , p_id_is_custom = False
       }
   
     -- add Paste content

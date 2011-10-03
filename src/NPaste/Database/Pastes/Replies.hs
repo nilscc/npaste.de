@@ -57,8 +57,7 @@ addReplies pId rpls =
   forM_ rpls $ \(idToTuple->(r_pid, r_u)) ->
     updateSql_ "INSERT INTO replies (r_Paste_id, r_Paste_user_id, r_reply_Paste_id, r_reply_Paste_user_id) \
                \VALUES (?, ?, ?, ?)"
-               [ toSql p_pid, toSql p_u
-               , toSql r_pid, toSql r_u ]
+               [ toSql p_pid, toSql p_u, toSql r_pid, toSql r_u ]
  where
   idToTuple (ID pid)                   = (pid,-1)
   idToTuple (PrivateID User{u_id} pid) = (pid,u_id)
