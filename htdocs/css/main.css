@@ -1,42 +1,39 @@
-body
-{
-    margin: 0;
-    padding: 0 0 50px;
-    background: #fff;
-    color: #666;
-    font-size: 12pt;
-    font-family: 'Ubuntu', sans-serif;
+body {
+  margin: 0;
+  padding: 0;
+  background: #fff;
+  color: #666;
+  font-size: 12pt;
+  font-family: sans-serif;
 }
 
-a
-{
-    color: #088;
-    text-decoration: none;
+h1,h2,h3,h4,h5,h6,header,menu {
+  font-family: 'Ubuntu', sans-serif;
 }
 
-a:hover
-{
-    text-decoration: underline;
+a {
+  color: #088;
+  text-decoration: none;
 }
 
-li
-{
-    font-size: 9pt;
+a:hover {
+  text-decoration: underline;
 }
 
-input.inputDesc
-{
+li {
+  font-size: 9pt;
+}
+
+input.inputDesc {
   color: #999;
 }
 
-section, menu, header, div
-{
-    margin: 0;
-    padding: 0;
+section, menu, header, div {
+  margin: 0;
+  padding: 0;
 }
 
-pre
-{
+pre {
   line-height: 12pt;
   font-size: 10pt;
 }

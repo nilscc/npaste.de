@@ -27,4 +27,4 @@ npasteR = msum
 notFoundR :: ServerPart Response
 notFoundR = do
   notFound . toResponse . mainFrame $ nullBody
-    { html = H.h2 ! A.class_ "error" $ "Your requested page was not found." }
+    { html = H.h2 ! A.class_ "error" $ "The page you requested was not found." }

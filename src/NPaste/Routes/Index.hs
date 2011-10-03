@@ -31,15 +31,19 @@ indexR = do
              idSetting = IdRandom
              content   = pack $ cutTrailingSpaces $ getValue pdata "content"
              spam      = not . null $ getValue pdata "email" -- should always be null!
+             asReply   = not . null $ getValue pdata "asreply"
 
          when spam $ error "Are you human?" -- TODO: throw APE error instead of 'error'
 
-         e <- newPaste Nothing   -- no user lookup function yet TODO
-                       filetype desc hidden idSetting content
-         return $
-           case e of
-                Left err  -> Left $ Just err
-                Right pId -> Right pId
+         if asReply then
+            return $ Left Nothing
+          else do
+            e <- newPaste Nothing   -- no user lookup function yet TODO
+                          filetype desc hidden idSetting content
+            return $
+              case e of
+                    Left err  -> Left $ Just err
+                    Right pId -> Right pId
 
   case r of
        Left (Just (APE_AlreadyExists mu pId)) ->

@@ -13,6 +13,20 @@ import Text.Blaze.Html5.Attributes  as A
 import Text.Highlighting.Kate
 
 import NPaste.Types
+import NPaste.Utils
+
+-- | Show links in description etc
+formatDesc :: String -> Html
+formatDesc d =
+  sequence_ . for (parseDesc d) $ \dval ->
+    case dval of
+         DescText     t -> toHtml t
+         DescUsername u -> H.a ! A.href (toValue $ "/u/" ++ u) ! A.class_ "descUser" $ toHtml u
+         DescTag      t -> toHtml t -- TODO
+         DescID    i mu -> let url = maybe ("/" ++ i ++ "/") (\u -> "/u/" ++ u ++ "/" ++ i ++ "/") mu
+                            in H.a ! A.href (toValue url) ! A.class_ "descID" $ toHtml url
+ where
+  for = flip L.map
 
 --------------------------------------------------------------------------------
 -- | Read/show a single paste
@@ -39,15 +53,17 @@ readInfo :: Maybe PasteInfo
          -> Html
 readInfo Nothing  _ = return ()
 readInfo (Just p) r = do
-  H.div ! A.class_ "PasteInfo" $ do
-    unless (null r) $
-      H.p ! A.class_ "replies" $ do
-        "Replies: "
-        sequence_ . intersperse " " . for r $ \pId ->
-          let url = case pId of
-                         ID pId'                     -> "/" ++ pId' ++ "/"
-                         PrivateID User{u_name} pId' -> "/u/" ++ u_name ++ "/" ++ pId' ++ "/"
-           in H.a ! A.href (toValue url) $ toHtml url
+  H.div ! A.class_ "pasteInfo" $ do
+    unless (null r) $ H.p ! A.class_ "replies" $ do
+      "Replies: "
+      sequence_ . intersperse " " . for r $ \pId ->
+        let url = case pId of
+                       ID pId'                     -> "/" ++ pId' ++ "/"
+                       PrivateID User{u_name} pId' -> "/u/" ++ u_name ++ "/" ++ pId' ++ "/"
+         in H.a ! A.href (toValue url) $ toHtml url
+    H.form ! A.action "/" ! A.method "post" ! A.class_ "addReply" $ do
+      H.input ! A.type_ "hidden" ! A.name "desc" ! A.value (toValue $ "Reply to /" ++ p_id p ++ "/")
+      H.input ! A.type_ "submit" ! A.name "asreply" ! A.value "New reply"
     H.p ! A.class_ "timestamp" $
       toHtml $ formatTime defaultTimeLocale "%H:%M - %a %Y.%m.%d" (p_date p)
     H.form ! A.class_ "languageSelector" ! A.method "post" $ do
@@ -59,7 +75,7 @@ readInfo (Just p) r = do
             H.option                         ! A.value (toValue l) $ toHtml l
       H.input ! A.type_ "submit" ! A.value "Change language" ! A.name "submit"
   case p_description p of
-       Just d | not (null d) -> H.p ! A.class_ "desc" $ toHtml d
+       Just d | not (null d) -> H.p ! A.class_ "desc" $ formatDesc d
        _                     -> return ()
  where
   for = flip L.map
@@ -104,7 +120,7 @@ recentInfo PasteInfo{ p_id, p_date, p_description, p_type } =
         toHtml $ "/" ++ p_id ++ "/"
     H.p ! A.class_ "desc" $
       case p_description of
-           Just d  -> toHtml d
+           Just d  -> formatDesc d
            Nothing -> "No description."
 
 --------------------------------------------------------------------------------

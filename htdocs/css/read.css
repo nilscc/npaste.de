@@ -4,20 +4,60 @@ header div#compactMenu form {
   margin-right: 15px;
 }
 
-  header div#compactMenu div.postInfo {
+  header div#compactMenu div.pasteInfo {
     display: block;
   }
 
+  header div#compactMenu p.replies {
+    margin-right: 10px;
+  }
+
+    header div#compactMenu p.replies a,
+    header div#compactMenu p.desc a.descID,
+    header div#compactMenu form.addReply input[type=submit] {
+      background-color: #aaa;
+      padding: 2px 5px 2px;
+      border: 0;
+      border-radius: 4px;
+      font-size: 11px;
+      font-family: sans-serif;
+      font-weight: normal;
+      display: inline-block;
+      vertical-align: middle;
+      cursor: pointer;
+    }
+
+    header div#compactMenu p.replies a {
+      margin-left: 5px;
+      color: #055;
+    }
+
+    header div#compactMenu p.desc a.descID {
+      margin-left: 5px;
+      margin-right: 5px;
+      color: #055;
+    }
+
+    header div#compactMenu form.addReply input[type=submit] {
+      color: #444;
+    }
+
+    header div#compactMenu form.addReply input[type=submit]:hover {
+      text-decoration: underline;
+    }
+
   header div#compactMenu p.desc {
     font-style: italic;
+    font-size: 12px;
     margin: 0 15px 0;
   }
-  header p#logo { clear: right; }
 
-  header div#compactMenu form select {
+  header div#compactMenu form.languageSelector select {
     disply: inline-block;
   }
 
-  header div#compactMenu form input {
+  header div#compactMenu form.languageSelector input[type=submit] {
     display: none;
   }
+
+  header p#logo { clear: right; }
