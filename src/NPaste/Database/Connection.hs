@@ -2,11 +2,17 @@
 
 module NPaste.Database.Connection
   ( withConnection
+
+    -- * SQL Updates
+  , Update
   , updateSql
   , updateSql_
-  , querySql
+
+    -- * SQL Queries
   , Query
-  , Update
+  , Select (..)
+  , querySql
+
     -- * SQL Exceptions
   , catchSql
   , handleSql
@@ -66,3 +72,33 @@ throwSqlError :: MonadIO m => SqlError -> m a
 throwSqlError e = do
   liftIO $ H.throwSqlError e
 
+
+--------------------------------------------------------------------------------
+-- SELECT class
+
+-- | Minimal complete definition: `select` and `convertFromSql`. Example
+-- implementation:
+--
+-- > instance Select Foo where
+-- >   select         = withSelectStr "SELECT foo FROM foos"
+-- >   convertFromSql = convertSqlToFoo
+--
+-- Example usage:
+--
+-- > getFooById :: MonadIO m => Id -> m Foo
+-- > getFooById id = select "WHERE id = ?" [toSql id]
+--
+class Select res where
+
+  convertFromSql :: [[SqlValue]] -> res
+  select         :: MonadIO m => String -> [SqlValue] -> m res
+  fullSelect     :: MonadIO m => String -> [SqlValue] -> m res
+  withSelectStr  :: MonadIO m
+                 => String        -- ^ "SELECT .. FROM .."
+                 -> String        -- ^ "WHERE .." / "JOIN .." etc
+                 -> [SqlValue]
+                 -> m res
+
+  -- default implementations
+  fullSelect    s     v = querySql s v >>= return . convertFromSql
+  withSelectStr s1 s2 v = fullSelect (s1++" "++s2) v

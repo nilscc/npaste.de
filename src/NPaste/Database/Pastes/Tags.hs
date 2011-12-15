@@ -34,6 +34,5 @@ addTags :: Id
         -> Update ()
 addTags pid tags =
   forM_ tags $ \t ->
-    updateSql_ "INSERT INTO tags (paste_id, t_tag) \
-               \VALUES (?, ?)"
+    updateSql_ "INSERT INTO tags (id, tag) VALUES (?, ?)"
                [ toSql pid, toSql t ]

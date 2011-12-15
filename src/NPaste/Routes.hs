@@ -11,6 +11,7 @@ import qualified Text.Blaze.Html5.Attributes  as A
 import Text.Blaze ((!))
 
 import NPaste.Types
+import NPaste.Routes.Find
 import NPaste.Routes.Index
 import NPaste.Routes.Read
 import NPaste.Routes.Static
@@ -19,8 +20,10 @@ import NPaste.Html
 npasteR :: ServerPart Response
 npasteR = msum
   [ nullDir >> indexR
-  , path readR
+  , dir "f" findR
+  , dir "t" tagR
   , dir "s" staticR
+  , path readR
   , notFoundR
   ]
 

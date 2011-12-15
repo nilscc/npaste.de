@@ -1,4 +1,6 @@
-{-# LANGUAGE NamedFieldPuns, ViewPatterns #-}
+{-# LANGUAGE NamedFieldPuns, ViewPatterns, FlexibleContexts,
+   MultiParamTypeClasses, FlexibleInstances #-}
+{-# OPTIONS -fno-warn-orphans #-}
 
 module NPaste.Database.Pastes
   ( -- ** Queries
@@ -6,6 +8,8 @@ module NPaste.Database.Pastes
   , getRecentPastes
   , getPastesByUser
   , getReplies
+  , getPastesByTag
+  , findPastes
 
     -- ** Updates
   , newPaste
@@ -18,6 +22,7 @@ import Data.Maybe
 import Data.Time
 import Database.HDBC.PostgreSQL
 import System.Random
+import qualified Data.Set as S
 
 import Happstack.Crypto.MD5 (md5)
 
@@ -28,20 +33,36 @@ import NPaste.Types
 import NPaste.Utils
 import qualified NPaste.Utils.Description as P
 
+
+--------------------------------------------------------------------------------
+-- Queries
+
+instance Select [Paste] where
+  select         = withSelectStr "SELECT p.id, p.user_id, p.date, p.type, p.description, p.content, p.hidden FROM pastes p"
+  convertFromSql = convertToList
+
+instance Select (Maybe Paste) where
+  select         = withSelectStr "SELECT p.id, p.user_id, p.date, p.type, p.description, p.content, p.hidden FROM pastes p"
+  convertFromSql = convertListToMaybe
+
+
 getPasteById :: Id -> Query (Maybe Paste)
-getPasteById pid =
-  fmap convertListToMaybe $
-    querySql "SELECT id, user_id, date, type, description, content, hidden \
-             \  FROM pastes                                                \
-             \ WHERE id = ?"
-             [ toSql pid ]
+getPasteById pid = findPastes 1 0 $ S_PasteId pid
 
 getPasteByMD5 :: Maybe User -> ByteString -> Query (Maybe Paste)
 getPasteByMD5 mu hash =
-  fmap convertListToMaybe $
-    querySql "SELECT id, user_id, date, type, description, content, hidden \
-             \  FROM pastes WHERE user_id = ? AND md5 = ?"
-             [ toSql (maybe (-1) userId mu), byteaPack hash ]
+  findPastes 1 0 $ S_And (S_UserId (maybe (-1) userId mu))
+                         (S_PasteMd5 hash)
+
+getPastesByTag :: String        -- ^ Tag
+               -> Int           -- ^ limit
+               -> Int           -- ^ offset
+               -> Bool          -- ^ show hidden pastes?
+               -> Query [Paste]
+getPastesByTag tag limit offset hidden =
+  findPastes limit offset $
+    S_And (S_PasteHidden hidden)
+          (S_Tag tag)
 
 getRecentPastes :: Maybe User
                 -> Int          -- ^ limit
@@ -49,37 +70,89 @@ getRecentPastes :: Maybe User
                 -> Bool         -- ^ show hidden pastes?
                 -> Query [Paste]
 getRecentPastes mu limit offset hidden =
-  fmap convertToList $
+  findPastes limit offset $
     case mu of
-         Just u ->
-           querySql "SELECT id, user_id, date, type, description, content, hidden \
-                    \  FROM pastes WHERE hidden IN (?,FALSE) AND user_id = ?      \
-                    \ ORDER BY date DESC LIMIT ? OFFSET ?"
-                    [ toSql hidden, toSql (userId u), toSql limit, toSql offset ]
-         Nothing ->
-           querySql "SELECT id, user_id, date, type, description, content, hidden \
-                    \  FROM pastes WHERE hidden IN (?,FALSE)                      \
-                    \ ORDER BY date DESC LIMIT ? OFFSET ?"
-                    [ toSql hidden, toSql limit, toSql offset ]
+         Just u  -> S_And (S_PasteHidden hidden) (S_User u)
+         Nothing -> S_PasteHidden hidden
 
 getPastesByUser :: User
                 -> Int          -- ^ limit
                 -> Int          -- ^ offset
                 -> Query [Paste]
-getPastesByUser User{ userId } limit offset =
-  fmap convertToList $
-    querySql "SELECT id, user_id, date, type, description, content, hidden \
-             \  FROM pastes WHERE user_id = ?                              \
-             \ ORDER BY date DESC LIMIT ? OFFSET ?"
-             [ toSql userId, toSql limit, toSql offset ]
+getPastesByUser u limit offset =
+  findPastes limit offset $ S_User u
 
-getReplies :: Id -> Query [Paste]
-getReplies pid =
-  fmap convertToList $
-    querySql "SELECT id, user_id, date, type, description, content, hidden \
-             \  FROM pastes                                                \
-             \ WHERE id IN (SELECT reply_id FROM replies WHERE paste_id = ?) "
-             [ toSql pid ]
+getReplies :: Id
+           -> Int             -- ^ limit
+           -> Int             -- ^ offset
+           -> Query [Paste]
+getReplies pid limit offset =
+  findPastes limit offset $ S_ReplyTo pid
+
+findPastes :: Select res
+           => Int         -- ^ Limit
+           -> Int         -- ^ Offset
+           -> Search
+           -> Query res
+findPastes limit offset crits =
+  select (joins ++ " WHERE " ++ toWhere crits ++ " ORDER BY date DESC LIMIT ? OFFSET ?")
+         (toSql' crits ++ [toSql limit, toSql offset])
+ where
+  joins                         = unwords . S.toList $ joins' crits
+  joins'  (S_And s1 s2)         = joins' s1 `S.union` joins' s2
+  joins'  (S_Or  s1 s2)         = joins' s1 `S.union` joins' s2
+  joins'  (S_UserName _)        = S.singleton "JOIN users u   ON u.id = p.user_id"
+  joins'  (S_Tag _)             = S.singleton "JOIN tags t    ON t.id = p.id"
+  joins'  (S_TagId _)           = S.singleton "JOIN tags t    ON t.id = p.id"
+  joins'  (S_ReplyOf _)         = S.singleton "JOIN replies r ON r.paste_id = p.id"
+  joins'  (S_ReplyTo _)         = S.singleton "JOIN replies r ON r.reply_id = p.id"
+  joins'  _                     = S.empty
+
+  toWhere (S_And s1 s2)         = "(" ++ toWhere s1 ++ " AND " ++ toWhere s2 ++ ")"
+  toWhere (S_Or  s1 s2)         = "(" ++ toWhere s1 ++ " OR  " ++ toWhere s2 ++ ")"
+  toWhere (S_User _)            = "p.user_id = ?"
+  toWhere (S_UserId _)          = "p.user_id = ?"
+  toWhere (S_UserName _)        = "u.name = ?"
+  toWhere (S_Paste _)           = "p.id = ?"
+  toWhere (S_PasteId _)         = "p.id = ?"
+  toWhere (S_PasteType _)       = "p.type = ?"
+  toWhere (S_PasteDesc _)       = "p.description = ?"
+  toWhere (S_PasteCont _)       = "to_tsvector('bytea_output', p.content) @@ to_tsquery(?)"
+  toWhere (S_PasteMd5 _)        = "p.md5 = ?"
+  toWhere (S_PasteDate _)       = "p.date = ?"
+  toWhere (S_PasteDateBefore _) = "p.date < ?"
+  toWhere (S_PasteDateAfter _)  = "p.date > ?"
+  toWhere (S_PasteHidden _)     = "p.hidden IN (?,FALSE)"
+  toWhere (S_Tag _)             = "t.tag = ?"
+  toWhere (S_TagId _)           = "t.id = ?"
+  toWhere (S_ReplyOf _)         = "r.paste_id = ?"
+  toWhere (S_ReplyTo _)         = "r.reply_id = ?"
+
+  toSql'  (S_And s1 s2)         = toSql' s1 ++ toSql' s2
+  toSql'  (S_Or  s1 s2)         = toSql' s1 ++ toSql' s2
+  toSql'  (S_User u)            = [toSql $ userId u]
+  toSql'  (S_UserId i)          = [toSql i]
+  toSql'  (S_UserName n)        = [toSql n]
+  toSql'  (S_Paste p)           = [toSql $ pasteId p]
+  toSql'  (S_PasteId i)         = [toSql i]
+  toSql'  (S_PasteType t)       = [toSql t]
+  toSql'  (S_PasteDesc d)       = [toSql d]
+  toSql'  (S_PasteCont c)       = [toSql c]
+  toSql'  (S_PasteMd5 m)        = [byteaPack m]
+  toSql'  (S_PasteDate d)       = [toSql d]
+  toSql'  (S_PasteDateBefore d) = [toSql d]
+  toSql'  (S_PasteDateAfter d)  = [toSql d]
+  toSql'  (S_PasteHidden h)     = [toSql h]
+  toSql'  (S_Tag t)             = [toSql t]
+  toSql'  (S_TagId i)           = [toSql i]
+  toSql'  (S_ReplyOf i)         = [toSql i]
+  toSql'  (S_ReplyTo i)         = [toSql i]
+
+
+
+
+--------------------------------------------------------------------------------
+-- Updates
 
 newPaste :: Maybe User
          -> Maybe String          -- ^ type

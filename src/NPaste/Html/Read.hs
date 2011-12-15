@@ -21,7 +21,7 @@ formatDesc d =
     case dval of
          DescText     t -> toHtml t
          DescUsername u -> H.a ! A.href (toValue $ "/u/" ++ u) ! A.class_ "descUser" $ toHtml u
-         DescTag      t -> toHtml t -- TODO: support for tags
+         DescTag      t -> H.a ! A.href (toValue $ "/t/" ++ t) ! A.class_ "descTag"  $ toHtml ("#" ++ t)
          DescID       i -> let url = "/" ++ i ++ "/"
                             in H.a ! A.href (toValue url) ! A.class_ "descID" $ toHtml url
  where
@@ -82,7 +82,13 @@ readInfo (Just p) r = do
 -- | Show recent Pastes
 recentHtml :: [Paste] -> Html
 recentHtml [] = return ()
-recentHtml (p@Paste{ pasteContent } : r)  = do
+recentHtml pastes = do
+  H.h1 "Most recent pastes"
+  listPastes pastes
+
+listPastes :: [Paste] -> Html
+listPastes [] = return ()
+listPastes (p@Paste{ pasteContent } : r) = do
   recentInfo p
   H.div ! A.class_ "formatedCode" $ do
     let cont = unlines . take 20 . lines $ unpack pasteContent
@@ -95,7 +101,7 @@ recentHtml (p@Paste{ pasteContent } : r)  = do
                Left  err    -> do
                  H.p ! A.class_ "warning" $ toHtml err
                  formatPlain p cont
-  recentHtml r
+  listPastes r
 
 -- | Show a nice header with all kind of informations about our paste
 recentInfo :: Paste -> Html

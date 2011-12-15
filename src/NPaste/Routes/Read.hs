@@ -42,7 +42,7 @@ showPasteR pid = msum
   [ do -- see if we have a trailing slash if there is no data following
        checkPath
        paste <- getPasteById pid
-       repl  <- map pasteId `fmap` getReplies pid
+       repl  <- map pasteId `fmap` getReplies pid 20 0
        return . toResponse . compactFrame (readInfo paste repl) $ nullBody
          { css    = ["code/hk-pyg.css", "code.css", "read.css"]
          , html   = readHtml paste
