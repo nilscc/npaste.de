@@ -62,16 +62,12 @@ library
         NPaste.Database.Users
         NPaste.Database.Users.Password
         NPaste.Database.Pastes
-        NPaste.Database.Pastes.Content
-        NPaste.Database.Pastes.Info
         NPaste.Database.Pastes.Replies
         NPaste.Database.Pastes.Tags
 
         NPaste.Routes.Static
 
         NPaste.Types.Database
-        NPaste.Types.Database.PasteInfo
-        NPaste.Types.Database.PasteSettings
         NPaste.Types.Database.User
         NPaste.Types.Error
         NPaste.Types.Error.AddPaste
@@ -84,7 +80,6 @@ library
         NPaste.Types.Html.Valued
         NPaste.Types.Instances
         NPaste.Types.NPaste
-        NPaste.Types.ID
         NPaste.Types.State
 
         NPaste.Utils.Description

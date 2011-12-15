@@ -2,35 +2,38 @@
 
 module NPaste.Database.Pastes.Tags
   ( -- * Queries
+    getTags
     -- * Updates
-    addTags
+  , addTags
   ) where
 
 import Control.Monad
--- import Data.Maybe
+import Data.Maybe
 
 import NPaste.Database.Connection
 import NPaste.Types
--- import NPaste.Utils
 
 
 --------------------------------------------------------------------------------
 -- Queries
 
+getTags :: Id -> Query [String]
+getTags pid =
+  fmap (catMaybes . map convert) $
+    querySql "SELECT tag FROM tags WHERE id = ?" [ toSql pid ]
+ where
+  convert [SqlString s] = Just s
+  convert _             = Nothing
 
 
 --------------------------------------------------------------------------------
 -- Updates
 
-addTags :: ID
+addTags :: Id
         -> [String]
         -> Update ()
 addTags pid tags =
   forM_ tags $ \t ->
-    updateSql_ "INSERT INTO tags (t_Paste_id, t_Paste_user_id, t_tag) \
-               \VALUES (?, ?, ?)"
-               [ toSql p_id, toSql p_u, toSql t ]
- where
-  (p_id, p_u) = case pid of
-                     ID                   pid' -> (pid',-1)
-                     PrivateID User{u_id} pid' -> (pid',u_id)
+    updateSql_ "INSERT INTO tags (paste_id, t_tag) \
+               \VALUES (?, ?)"
+               [ toSql pid, toSql t ]

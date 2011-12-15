@@ -4,6 +4,7 @@ module NPaste.Utils
   ( -- * Convenient helper functions
     convertMaybe
   , convertListToMaybe
+  , convertToList
   , withJust
   , withJust_
 
@@ -23,6 +24,9 @@ convertMaybe = either (const Nothing) Just . safeConvert
 convertListToMaybe :: Convertible a b => [a] -> Maybe b
 convertListToMaybe = join . fmap convertMaybe . listToMaybe
 
+-- | Try to convert all elements, if not possible the element is lost!
+convertToList :: Convertible a b => [a] -> [b]
+convertToList = catMaybes . map convertMaybe
 
 withJust :: Monad m => Maybe a -> (a -> m (Maybe b)) -> m (Maybe b)
 withJust m s =

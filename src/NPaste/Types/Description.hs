@@ -6,7 +6,7 @@ module NPaste.Types.Description
 type Description = [DescVal]
 
 -- Elements
-data DescVal = DescID String (Maybe String)
+data DescVal = DescID String -- (Maybe String)
              | DescUsername String
              | DescTag String
              | DescText String

@@ -4,6 +4,7 @@ module NPaste.Database.Users
   ( -- ** Queries
     getUserByName
   , getUserById
+  -- , getAllUsers
   , checkPassword
 
     -- ** Updates
@@ -11,6 +12,7 @@ module NPaste.Database.Users
   , changePassword
   ) where
 
+-- import Data.Maybe
 import Database.HDBC.PostgreSQL
 
 import NPaste.Database.Connection
@@ -26,26 +28,26 @@ getUserById :: Int -> Query (Maybe User)
 getUserById (-1) = return Nothing
 getUserById uid  =
   fmap convertListToMaybe $
-       querySql "SELECT * FROM HS_User WHERE u_id = ?"
+       querySql "SELECT id, name, password, email, default_hidden FROM users WHERE id = ?"
                 [toSql uid]
 
 getUserByName :: String -> Query (Maybe User)
 getUserByName ""   = return Nothing
 getUserByName name =
   fmap convertListToMaybe $
-       querySql "SELECT * FROM HS_User WHERE u_name = ?"
+       querySql "SELECT id, name, password, email, default_hidden FROM users WHERE u_name = ?"
                 [toSql name]
 
 {-
 getAllUsers :: Query [User]
 getAllUsers = do
   fmap (catMaybes . map convertMaybe) $
-       querySql "SELECT * FROM HS_User" []
+       querySql "SELECT id, name, password, email, default_hidden FROM users" []
 -}
 
 getNextId :: Query Int
 getNextId = do
-  res <- querySql "SELECT max(u_id)+1 FROM users" []
+  res <- querySql "SELECT max(id)+1 FROM users" []
   case res of
        [[i]] -> return $ fromSql i
        _     -> return 0
@@ -62,7 +64,7 @@ newUser un pw me = runErrorT $ do
   unless (all (`elem` validChars) un) $
     throwError $ AUE_InvalidUsername un
   i <- getNextId
-  let u = User { u_id = i, u_name = un, u_email = me }
+  let u = User i un me False
   mpw <- packPassword pw
   case mpw of
        Nothing    -> throwError AUE_NoPassword

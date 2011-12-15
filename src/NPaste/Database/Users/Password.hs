@@ -25,7 +25,7 @@ import NPaste.Types
 
 getPassword :: User -> Query ByteString
 getPassword User{ u_id } = do
-  [[s]] <- querySql "SELECT u_password FROM users WHERE u_id = ?"
+  [[s]] <- querySql "SELECT password FROM users WHERE id = ?"
                     [toSql u_id]
   return $ byteaUnpack s
 
@@ -47,8 +47,8 @@ changePassword User{ u_id } str = do
   case mpw of
        Nothing -> return False
        Just pw -> do
-         updateSql_ "UPDATE users SET u_password = ? \
-                    \ WHERE u_id = ?"
+         updateSql_ "UPDATE users SET password = ? \
+                    \ WHERE id = ?"
                     [ pw, toSql u_id ]
          return True
 

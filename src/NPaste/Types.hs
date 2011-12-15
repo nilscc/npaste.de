@@ -3,7 +3,6 @@
 module NPaste.Types
   ( module NPaste.Types.NPaste
   , module NPaste.Types.State
-  , module NPaste.Types.ID
   , module NPaste.Types.Description
   , module NPaste.Types.Instances
 
@@ -26,7 +25,6 @@ module NPaste.Types
 import NPaste.Types.NPaste
 import NPaste.Types.Error
 import NPaste.Types.State
-import NPaste.Types.ID
 import NPaste.Types.Description
 import NPaste.Types.Instances ()
 
