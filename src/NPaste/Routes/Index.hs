@@ -27,7 +27,6 @@ indexR = do
                               d | null d    -> Nothing
                                 | otherwise -> Just d
              hidden    = getValue pdata "hidden" == "on"
-             idSetting = IdRandom
              content   = pack $ cutTrailingSpaces $ getValue pdata "content"
              spam      = not . null $ getValue pdata "email" -- should always be null!
              asReply   = not . null $ getValue pdata "asreply"
@@ -38,17 +37,15 @@ indexR = do
             return $ Left Nothing
           else do
             e <- newPaste Nothing   -- TODO: no user lookup function/support yet
-                          filetype desc hidden idSetting content
+                          filetype desc hidden content
             return $
               case e of
                     Left err  -> Left $ Just err
                     Right pId -> Right pId
 
   case r of
-       Left (Just (APE_AlreadyExists mu pId)) -> -- TODO: replace with proper ID
-         let url = case mu of
-                        Nothing           -> "/" ++ pId ++ "/"
-                        Just User{u_name} -> "/u/" ++ u_name ++ "/" ++ pId ++ "/"
+       Left (Just (APE_AlreadyExists Paste{pasteId})) -> -- TODO: replace with proper ID
+         let url = "/" ++ pasteId ++ "/"
           in seeOther url (toResponse $ "Paste already exists at: http://npaste.de" ++ url ++ "\n")
        Left err -> 
          return . toResponse . mainFrame $ nullBody
@@ -57,7 +54,8 @@ indexR = do
            , html   = indexHtml pdata err
            }
        Right pId -> do
-         seeOther (show pId) (toResponse $ "New paste added: http://npaste.de" ++ show pId ++ "\n")
+         let url = "/" ++ pId ++ "/"
+          in seeOther url (toResponse $ "New paste added: http://npaste.de" ++ url ++ "\n")
  where
   cutTrailingSpaces :: String -> String
   cutTrailingSpaces = unlines . map (reverse . dropWhile isSpace . reverse) . lines

@@ -11,7 +11,7 @@ module NPaste.Utils.Description
 import Control.Applicative
 import Text.ParserCombinators.Parsec hiding (many, optional, (<|>))
 
-import NPaste.Types hiding (userName)
+import NPaste.Types.Description
 
 --------------------------------------------------------------------------------
 -- DescVal selectors

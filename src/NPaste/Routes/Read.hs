@@ -15,7 +15,7 @@ import NPaste.Types
 readR :: String -> ServerPart Response
 
 -- handle /<id> urls
-readR pid | length pid >= 2 = showPasteR $ ID pid
+readR pid | length pid >= 2 = showPasteR pid
 
 -- TODO: handle /u/<user>/<id> urls
 
@@ -37,12 +37,12 @@ readR "r" = showRecentR Nothing 20 0 False
 readR _ = mzero
 
 
-showPasteR :: ID -> ServerPart Response
+showPasteR :: Id -> ServerPart Response
 showPasteR pid = msum
   [ do -- see if we have a trailing slash if there is no data following
        checkPath
        paste <- getPasteById pid
-       repl  <- getReplies   pid
+       repl  <- map pasteId `fmap` getReplies pid
        return . toResponse . compactFrame (readInfo paste repl) $ nullBody
          { css    = ["code/hk-pyg.css", "code.css", "read.css"]
          , html   = readHtml paste

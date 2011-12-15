@@ -10,5 +10,4 @@ data DescVal = DescID String -- (Maybe String)
              | DescUsername String
              | DescTag String
              | DescText String
-             deriving (Eq)
-
+             deriving (Eq, Show)

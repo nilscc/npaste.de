@@ -13,16 +13,18 @@ import Data.Convertible
 import Data.Time
 import Data.Typeable
 
+import NPaste.Types.Description
+import NPaste.Types.Instances ()
 import NPaste.Utils.Database (byteaUnpack)
 
 type Id = String
 
 data Paste = Paste
   { pasteId            :: Id
-  , pasteUserId       :: Int
+  , pasteUserId        :: Int
   , pasteDate          :: UTCTime
   , pasteType          :: Maybe String
-  , pasteDescription   :: Maybe String
+  , pasteDescription   :: Maybe Description
   , pasteContent       :: ByteString
   , pasteHidden        :: Bool
   }

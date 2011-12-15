@@ -22,7 +22,7 @@ formatDesc d =
          DescText     t -> toHtml t
          DescUsername u -> H.a ! A.href (toValue $ "/u/" ++ u) ! A.class_ "descUser" $ toHtml u
          DescTag      t -> toHtml t -- TODO: support for tags
-         DescID    i mu -> let url = maybe ("/" ++ i ++ "/") (\u -> "/u/" ++ u ++ "/" ++ i ++ "/") mu
+         DescID       i -> let url = "/" ++ i ++ "/"
                             in H.a ! A.href (toValue url) ! A.class_ "descID" $ toHtml url
  where
   for = flip L.map
@@ -48,7 +48,7 @@ readHtml _ = do
 
 -- | Information for the compact header
 readInfo :: Maybe Paste
-         -> [ID]              -- ^ replies
+         -> [Id]              -- ^ replies
          -> Html
 readInfo Nothing  _ = return ()
 readInfo (Just p) r = do
@@ -56,7 +56,8 @@ readInfo (Just p) r = do
     unless (null r) $ H.p ! A.class_ "replies" $ do
       "Replies: "
       sequence_ . intersperse " " . for r $ \pid ->
-         H.a ! A.href (toValue $ show pid) $ toHtml (show pid)
+        let url = "/" ++ pid ++ "/"
+         in H.a ! A.href (toValue url) $ toHtml url
     H.form ! A.action "/" ! A.method "post" ! A.class_ "addReply" $ do
       H.input ! A.type_ "hidden" ! A.name "desc" ! A.value (toValue $ "Reply to " ++ p_id)
       H.input ! A.type_ "submit" ! A.name "asreply" ! A.value "New reply"
@@ -70,15 +71,12 @@ readInfo (Just p) r = do
            else
             H.option                         ! A.value (toValue l) $ toHtml l
       H.input ! A.type_ "submit" ! A.value "Change language" ! A.name "submit"
-  case pasteDesc p of
+  case pasteDescription p of
        Just d | not (null d) -> H.p ! A.class_ "desc" $ formatDesc d
        _                     -> return ()
  where
   for = flip L.map
-  p_id = "/" ++ case pasteId p of
-                     ID                     i -> i
-                     PrivateID User{u_name} i -> "u/" ++ u_name ++ "/" ++ i
-             ++ "/"
+  p_id = "/" ++ pasteId p ++ "/"
 
 --------------------------------------------------------------------------------
 -- | Show recent Pastes
@@ -101,7 +99,7 @@ recentHtml (p@Paste{ pasteContent } : r)  = do
 
 -- | Show a nice header with all kind of informations about our paste
 recentInfo :: Paste -> Html
-recentInfo Paste{ pasteId, pasteDate, pasteDesc, pasteType } =
+recentInfo Paste{ pasteId, pasteDate, pasteDescription, pasteType } =
   H.div ! A.class_ "pasteInfo" $ do
     H.p ! A.class_ "timestamp" $
       toHtml $ formatTime defaultTimeLocale "%H:%M - %a %Y.%m.%d" pasteDate
@@ -111,13 +109,10 @@ recentInfo Paste{ pasteId, pasteDate, pasteDesc, pasteType } =
            Just t  -> toHtml t
     H.p $ do
       "Paste: "
-      let p_id = "/" ++ case pasteId of
-                             ID                     i -> i
-                             PrivateID User{u_name} i -> "u/" ++ u_name ++ "/" ++ i
-                     ++ "/"
+      let p_id = "/" ++ pasteId ++ "/"
       H.a ! A.href (toValue p_id) $ toHtml p_id
     H.p ! A.class_ "desc" $
-      case pasteDesc of
+      case pasteDescription of
            Just d  -> formatDesc d
            Nothing -> "No description."
 
@@ -132,7 +127,7 @@ formatCode Paste{pasteId} source = do
   H.div ! A.class_ "lineNumbers" $ H.pre $
     sequence_ . intersperse br . for [1..length source] $ \(show->n) ->
       let name = "line-" ++ n
-          url  = init (show pasteId) ++ "#" ++ name
+          url  = "/" ++ pasteId ++ "#" ++ name
        in H.a ! A.href (toValue url) ! A.name (toValue name) $ toHtml n
   H.div ! A.class_ "sourceCode" $
     H.pre $ sequence_ . intersperse br $ L.map sourceLineToHtml source
@@ -156,7 +151,7 @@ formatPlain Paste{pasteId} cont = do
   H.div ! A.class_ "lineNumbers" $ H.pre $
     sequence_ . intersperse br . for [1..length l] $ \(show->n) ->
       let name = "line-" ++ n
-          url  = init (show pasteId) ++ "#" ++ name
+          url  = "/" ++ pasteId ++ "#" ++ name
        in H.a ! A.href (toValue url) ! A.name (toValue name) $ toHtml n
   H.pre ! A.class_ "plainText" $ toHtml cont
  where

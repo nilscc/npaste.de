@@ -23,7 +23,7 @@ indexHtml pdata err = do
            H.a ! A.href "/register" $ "register now!"
        Just (APE_InvalidCustomId _) ->
          H.p ! A.class_ "error" $ "Your custom ID is invalid."
-       Just (APE_AlreadyExists _ _) ->
+       Just (APE_AlreadyExists _) ->
          H.p ! A.class_ "error" $ "Your paste already exists."
        Just (APE_DescTooLong) ->
          H.p ! A.class_ "error" $ "Your description is too long (250 char max)."
