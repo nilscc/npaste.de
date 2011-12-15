@@ -13,7 +13,6 @@ CREATE TABLE users (
   email             varchar(100) UNIQUE,
 
   default_hidden    boolean DEFAULT FALSE,
-  use_global_ids    boolean DEFAULT TRUE,
 
   PRIMARY KEY (id)
 );
