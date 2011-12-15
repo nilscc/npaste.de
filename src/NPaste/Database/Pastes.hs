@@ -99,12 +99,10 @@ newPaste muser mtype mdesc hidden cont = runErrorT $ do
     now <- liftIO getCurrentTime
 
     let uid   = maybe (-1) u_id muser
-        ty    = fromMaybe "" mtype
-        desc  = fromMaybe "" mdesc
     updateSql_ "INSERT INTO pastes (id, user_id, date, type, description, content, md5, hidden) \
                \     VALUES        (?,  ?,       ?,    ?,    ?,           ?,       ?,   ?     ) "
-               [ toSql pid, toSql uid, toSql now, toSql ty, toSql desc, byteaPack cont
-               , byteaPack hash, toSql hidden ]
+               [ toSql pid, toSql uid, toSql now, toSql mtype, toSql mdesc
+               , byteaPack cont, byteaPack hash, toSql hidden ]
 
     -- Add tags & replies if a description is given
     withJust_ mdesc $ \(P.parseDesc -> descVals) -> do
