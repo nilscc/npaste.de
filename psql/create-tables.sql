@@ -1,9 +1,3 @@
-DROP TABLE IF EXISTS replies;
-DROP TABLE IF EXISTS tags;
-DROP TABLE IF EXISTS pastes;
-DROP TABLE IF EXISTS users;
-
-
 -- USERS & USER SETTINGS -------------------------------------------------------
 
 CREATE TABLE users (
