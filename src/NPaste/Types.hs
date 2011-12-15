@@ -9,16 +9,13 @@ module NPaste.Types
 
     -- * Database types
   , Query, Update
-  , Paste (..), PasteSettings (..), User(..)
+  , Paste (..), Id, User(..)
 
     -- * HTML types
   , module NPaste.Types.Html
 
     -- * Errors
   , module NPaste.Types.Error
-
-    -- * Convenient types
-  , Json
 
     -- * Reexports of other modules
   , module Control.Concurrent.MState
@@ -40,7 +37,3 @@ import NPaste.Types.Html
 import Control.Concurrent.MState
 import Control.Monad.Error
 import Happstack.Server.Monads
-
-import Data.Aeson
-
-type Json = Value
