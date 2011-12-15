@@ -41,7 +41,7 @@ getPasteByMD5 mu hash =
   fmap convertListToMaybe $
     querySql "SELECT id, user_id, date, type, description, content, hidden \
              \  FROM pastes WHERE user_id = ? AND md5 = ?"
-             [ toSql (maybe (-1) u_id mu), byteaPack hash ]
+             [ toSql (maybe (-1) userId mu), byteaPack hash ]
 
 getRecentPastes :: Maybe User
                 -> Int          -- ^ limit
@@ -55,7 +55,7 @@ getRecentPastes mu limit offset hidden =
            querySql "SELECT id, user_id, date, type, description, content, hidden \
                     \  FROM pastes WHERE hidden IN (?,FALSE) AND user_id = ?      \
                     \ ORDER BY date DESC LIMIT ? OFFSET ?"
-                    [ toSql hidden, toSql (u_id u), toSql limit, toSql offset ]
+                    [ toSql hidden, toSql (userId u), toSql limit, toSql offset ]
          Nothing ->
            querySql "SELECT id, user_id, date, type, description, content, hidden \
                     \  FROM pastes WHERE hidden IN (?,FALSE)                      \
@@ -66,12 +66,12 @@ getPastesByUser :: User
                 -> Int          -- ^ limit
                 -> Int          -- ^ offset
                 -> Query [Paste]
-getPastesByUser User{ u_id } limit offset =
+getPastesByUser User{ userId } limit offset =
   fmap convertToList $
     querySql "SELECT id, user_id, date, type, description, content, hidden \
              \  FROM pastes WHERE user_id = ?                              \
              \ ORDER BY date DESC LIMIT ? OFFSET ?"
-             [ toSql u_id, toSql limit, toSql offset ]
+             [ toSql userId, toSql limit, toSql offset ]
 
 getReplies :: Id -> Query [Paste]
 getReplies pid =
@@ -98,7 +98,7 @@ newPaste muser mtype mdesc hidden cont = runErrorT $ do
   handleSql (sqlErrorToAPE muser hash) $ do
     now <- liftIO getCurrentTime
 
-    let uid   = maybe (-1) u_id muser
+    let uid   = maybe (-1) userId muser
     updateSql_ "INSERT INTO pastes (id, user_id, date, type, description, content, md5, hidden) \
                \     VALUES        (?,  ?,       ?,    ?,    ?,           ?,       ?,   ?     ) "
                [ toSql pid, toSql uid, toSql now, toSql mtype, toSql mdesc

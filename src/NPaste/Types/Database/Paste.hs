@@ -18,13 +18,13 @@ import NPaste.Utils.Database (byteaUnpack)
 type Id = String
 
 data Paste = Paste
-  { p_id            :: Id
-  , p_user_id       :: Int
-  , p_date          :: UTCTime
-  , p_type          :: Maybe String
-  , p_description   :: Maybe String
-  , p_content       :: ByteString
-  , p_hidden        :: Bool
+  { pasteId            :: Id
+  , pasteUserId       :: Int
+  , pasteDate          :: UTCTime
+  , pasteType          :: Maybe String
+  , pasteDescription   :: Maybe String
+  , pasteContent       :: ByteString
+  , pasteHidden        :: Bool
   }
   deriving (Show, Typeable, Eq)
 

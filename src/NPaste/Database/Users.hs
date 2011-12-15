@@ -35,7 +35,7 @@ getUserByName :: String -> Query (Maybe User)
 getUserByName ""   = return Nothing
 getUserByName name =
   fmap convertListToMaybe $
-       querySql "SELECT id, name, password, email, default_hidden FROM users WHERE u_name = ?"
+       querySql "SELECT id, name, password, email, default_hidden FROM users WHERE name = ?"
                 [toSql name]
 
 {-
@@ -70,7 +70,7 @@ newUser un pw me = runErrorT $ do
        Nothing    -> throwError AUE_NoPassword
        Just sqlPw -> do
          handleSql sqlErrorToAUE $
-           updateSql_ "INSERT INTO users (u_id, u_name, u_email, u_password) \
+           updateSql_ "INSERT INTO users (id, name, email, password) \
                       \VALUES (?, ?, ?, ?)"
                       [ toSql i, toSql un, toSql me, sqlPw ]
          return u

@@ -24,9 +24,9 @@ import NPaste.Types
 -- Password validation
 
 getPassword :: User -> Query ByteString
-getPassword User{ u_id } = do
+getPassword User{ userId } = do
   [[s]] <- querySql "SELECT password FROM users WHERE id = ?"
-                    [toSql u_id]
+                    [toSql userId]
   return $ byteaUnpack s
 
 -- | Check if the provided password of a user is correct.
@@ -42,14 +42,14 @@ checkPassword u pw = do
 changePassword :: User
                -> String        -- ^ new password (plaintext)
                -> Update Bool
-changePassword User{ u_id } str = do
+changePassword User{ userId } str = do
   mpw <- packPassword str
   case mpw of
        Nothing -> return False
        Just pw -> do
          updateSql_ "UPDATE users SET password = ? \
                     \ WHERE id = ?"
-                    [ pw, toSql u_id ]
+                    [ pw, toSql userId ]
          return True
 
 -------------------------------------------------------------------------------

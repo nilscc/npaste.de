@@ -10,10 +10,10 @@ import Data.Convertible
 import Data.Typeable
 
 data User = User
-  { u_id             :: Int
-  , u_name           :: String
-  , u_email          :: Maybe String
-  , u_default_hidden :: Bool
+  { userId             :: Int
+  , userName           :: String
+  , userEmail          :: Maybe String
+  , userDefaultHidden :: Bool
   }
   deriving (Show, Typeable, Eq)
 
