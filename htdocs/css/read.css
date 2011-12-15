@@ -20,6 +20,7 @@ header div#compactMenu form {
 
     header div#compactMenu p.replies a,
     header div#compactMenu p.desc a.descID,
+    header div#compactMenu p.desc a.descTag,
     header div#compactMenu form.addReply input[type=submit] {
       background-color: #aaa;
       padding: 2px 5px 2px;
@@ -38,7 +39,8 @@ header div#compactMenu form {
       color: #055;
     }
 
-    header div#compactMenu p.desc a.descID {
+    header div#compactMenu p.desc a.descID,
+    header div#compactMenu p.desc a.descTag {
       margin-left: 5px;
       margin-right: 5px;
       color: #055;
