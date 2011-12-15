@@ -32,7 +32,6 @@ CREATE TABLE pastes (
   md5             bytea NOT NULL,
   content         bytea NOT NULL,
   hidden          boolean DEFAULT FALSE,
-  id_is_global    boolean DEFAULT TRUE,
 
   UNIQUE (user_id, md5),
 
