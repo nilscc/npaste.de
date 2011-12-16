@@ -30,6 +30,6 @@ npasteR = choice
 
 notFoundR :: NPaste ()
 notFoundR = do
-  ResponseCode .= (notFound :: Response -> ServerPart Response)
-  Title        .= Just ("Page not found" :: String)
+  ResponseCode .= notFound
+  Title        .= Just "Page not found"
   HtmlBody     .= H.h2 ! A.class_ "error" $ "The page you requested was not found."

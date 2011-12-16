@@ -25,9 +25,9 @@ showPasteR pid = choice
   [ do checkPath -- see if we have a trailing slash if there is no data following
        paste       <- getPasteById pid
        repl        <- map pasteId `fmap` getReplies pid 20 0
-       HtmlContext .= nullContext { css = CSS ["code/hk-pyg.css", "code.css", "read.css"] }
-       HtmlFrame   .= compactFrame (readInfo paste repl)
-       HtmlBody    .= readHtml paste
+       CSS       .= ["code/hk-pyg.css", "code.css", "read.css"]
+       HtmlFrame .= compactFrame (readInfo paste repl)
+       HtmlBody  .= readHtml paste
   , do paste <- getPasteById pid
        maybe mzero (setNP . PlainResponse . toResponse . unpack . pasteContent) paste
   ]
@@ -36,9 +36,8 @@ showPasteR pid = choice
 
 showRecentR :: Maybe User -> Int -> Int -> Bool -> NPaste ()
 showRecentR mu l o hidden = do
+  setNP M_Recent -- set menu location
   pastes      <- getRecentPastes mu l o hidden
-  -- set menu location
-  setNP M_Recent
-  HtmlContext .= nullContext { css = CSS ["code/hk-pyg.css", "code.css", "recent.css"] }
-  HtmlFrame   .= mainFrame
-  HtmlBody    .= recentHtml pastes
+  CSS       .= ["code/hk-pyg.css", "code.css", "recent.css"]
+  HtmlFrame .= mainFrame
+  HtmlBody  .= recentHtml pastes

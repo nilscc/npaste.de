@@ -51,12 +51,12 @@ indexR = do
   case r of
        Left (Just (APE_AlreadyExists Paste{pasteId})) -> do -- TODO: replace with proper ID
          let url = "/" ++ pasteId ++ "/"
-         ResponseCode  .= (seeOther url :: Response -> ServerPart Response)
+         ResponseCode  .= seeOther url
          PlainResponse .= toResponse $ "Paste already exists at: http://npaste.de" ++ url ++ "\n"
        Left err -> do
-         HtmlFrame     .= mainFrame
-         HtmlContext   .= nullContext { css = CSS ["index.css"] }
-         HtmlBody      .= indexHtml pdata err
+         HtmlFrame .= mainFrame
+         CSS       .= ["index.css"]
+         HtmlBody  .= indexHtml pdata err
        Right pId -> do
          let url = "/" ++ pId ++ "/"
          ResponseCode  .= (seeOther url :: Response -> ServerPart Response)

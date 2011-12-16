@@ -24,8 +24,8 @@ findR = do
          CSS      .= ["code/hk-pyg.css", "code.css", "recent.css"]
          HtmlBody .= findHtml "Your search results:" pastes
        Nothing -> do
-         CSS       .= ["recent.css"]
-         HtmlBody  .= findHtmlNothingFound
+         CSS      .= ["recent.css"]
+         HtmlBody .= findHtmlNothingFound
 
 getSearch :: NPaste (Maybe Search)
 getSearch = choice

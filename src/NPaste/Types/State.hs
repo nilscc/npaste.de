@@ -108,29 +108,3 @@ instance ModifyNPasteState Script where
   modifyNP f = modifyNP $ \info ->
                  let (a,c) = f $ script info
                   in (a,info{ script = c })
-
-
--- | Convenient to use `setNP` alias
-class SetNPasteState con val where
-  infixr 0 .=
-  (.=) :: con -> val -> NPaste ()
-
-instance ModifyNPasteState t => SetNPasteState (a -> t) a where
-  con  .= val = setNP $ con val
-
-instance ModifyNPasteState t => SetNPasteState t t where
-  _con .= val = setNP val
-instance ModifyNPasteState t => SetNPasteState (a -> t) t where
-  _con .= val = setNP val
-instance ModifyNPasteState t => SetNPasteState (a -> b -> t) t where
-  _con .= val = setNP val
-instance ModifyNPasteState t => SetNPasteState (a -> b -> c -> t) t where
-  _con .= val = setNP val
-instance ModifyNPasteState t => SetNPasteState (a -> b -> c -> d -> t) t where
-  _con .= val = setNP val
-instance ModifyNPasteState t => SetNPasteState (a -> b -> c -> d -> e -> t) t where
-  _con .= val = setNP val
-instance ModifyNPasteState t => SetNPasteState (a -> b -> c -> d -> e -> f -> t) t where
-  _con .= val = setNP val
-instance ModifyNPasteState t => SetNPasteState (a -> b -> c -> d -> e -> f -> g -> t) t where
-  _con .= val = setNP val

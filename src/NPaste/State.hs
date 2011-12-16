@@ -5,6 +5,7 @@ module NPaste.State
   , npasteNullState
 
   , choice
+  , (.=)
   ) where
 
 import Happstack.Server
@@ -54,3 +55,11 @@ choice :: [NPaste a] -> NPaste a
 choice val = do
   t <- get
   msum [ msum [ v, setNP t >> mzero ] | v <- val ]
+
+-- | Convenient `setNP` alias
+infixr 0 .=
+(.=) :: ModifyNPasteState t
+     => (a -> t)
+     -> a
+     -> NPaste ()
+con .= val = setNP $ con val
