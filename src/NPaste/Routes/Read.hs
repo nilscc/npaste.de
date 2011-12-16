@@ -9,10 +9,11 @@ import Happstack.Server
 
 import NPaste.Database
 import NPaste.Html
+import NPaste.State
 import NPaste.Types
 
 
-readR :: String -> ServerPart Response
+readR :: String -> NPaste ()
 
 -- handle /<id> urls
 readR pid | length pid >= 2 = showPasteR pid
@@ -29,34 +30,32 @@ readR pid | length pid >= 2 = showPasteR pid
 --            showPasteR $ PrivateID u pid
 --          , showRecentR (Just u) 20 0 False
 --          ]
---        _ -> mzero
+--        _ -> reset
 
 -- show recent pastes
 readR "r" = showRecentR Nothing 20 0 False
 
-readR _ = mzero
+readR _ = reset
 
 
-showPasteR :: Id -> ServerPart Response
+showPasteR :: Id -> NPaste ()
 showPasteR pid = msum
   [ do -- see if we have a trailing slash if there is no data following
        checkPath
-       paste <- getPasteById pid
-       repl  <- map pasteId `fmap` getReplies pid 20 0
-       return . toResponse . compactFrame (readInfo paste repl) $ nullBody
-         { css    = ["code/hk-pyg.css", "code.css", "read.css"]
-         , html   = readHtml paste
-         }
+       paste       <- getPasteById pid
+       repl        <- map pasteId `fmap` getReplies pid 20 0
+       HtmlContext .= nullContext { css = CSS ["code/hk-pyg.css", "code.css", "read.css"] }
+       HtmlFrame   .= compactFrame (readInfo paste repl)
+       HtmlBody    .= readHtml paste
   , do paste <- getPasteById pid
-       maybe mzero (return . toResponse . unpack . pasteContent) paste
+       maybe reset (setNP . PlainResponse . toResponse . unpack . pasteContent) paste
   ]
  where
   checkPath = join $ msum [ nullDir >> return trailingSlash, return (return ()) ]
 
-showRecentR :: Maybe User -> Int -> Int -> Bool -> ServerPart Response
+showRecentR :: Maybe User -> Int -> Int -> Bool -> NPaste ()
 showRecentR mu l o hidden = do
-  pastes   <- getRecentPastes mu l o hidden
-  return . toResponse . mainFrame $ nullBody
-    { css    = ["code/hk-pyg.css", "code.css", "recent.css"]
-    , html   = recentHtml pastes
-    }
+  pastes      <- getRecentPastes mu l o hidden
+  HtmlContext .= nullContext { css = CSS ["code/hk-pyg.css", "code.css", "recent.css"] }
+  HtmlFrame   .= mainFrame
+  HtmlBody    .= recentHtml pastes

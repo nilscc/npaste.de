@@ -13,8 +13,9 @@ import NPaste.Html
 import NPaste.Types
 
 
-indexR :: ServerPart Response
+indexR :: NPaste ()
 indexR = do
+
   pdata <- msum
     [ methodM POST >> getIndexPostData
     , return nullPostData ]
@@ -44,18 +45,19 @@ indexR = do
                     Right pId -> Right pId
 
   case r of
-       Left (Just (APE_AlreadyExists Paste{pasteId})) -> -- TODO: replace with proper ID
+       Left (Just (APE_AlreadyExists Paste{pasteId})) -> do -- TODO: replace with proper ID
          let url = "/" ++ pasteId ++ "/"
-          in seeOther url (toResponse $ "Paste already exists at: http://npaste.de" ++ url ++ "\n")
-       Left err -> 
-         return . toResponse . mainFrame $ nullBody
-           { css    = ["index.css"]
-           -- , script = ["index.js"]
-           , html   = indexHtml pdata err
-           }
+         ResponseCode  .= (seeOther url :: Response -> ServerPart Response)
+         PlainResponse .= toResponse $ "Paste already exists at: http://npaste.de" ++ url ++ "\n"
+       Left err -> do
+         HtmlFrame     .= mainFrame
+         HtmlContext   .= nullContext { css = CSS ["index.css"] }
+         HtmlBody      .= indexHtml pdata err
        Right pId -> do
          let url = "/" ++ pId ++ "/"
-          in seeOther url (toResponse $ "New paste added: http://npaste.de" ++ url ++ "\n")
+         ResponseCode  .= (seeOther url :: Response -> ServerPart Response)
+         PlainResponse .= toResponse $ "New paste added: http://npaste.de" ++ url ++ "\n"
+
  where
   cutTrailingSpaces :: String -> String
   cutTrailingSpaces = unlines . map (reverse . dropWhile isSpace . reverse) . lines
@@ -70,7 +72,7 @@ indexR = do
 --------------------------------------------------------------------------------
 -- Post data
 
-getIndexPostData :: ServerPart IndexPostData
+getIndexPostData :: NPaste IndexPostData
 getIndexPostData = do
   decodeBody (defaultBodyPolicy "/tmp/npaste.de/" 1000000 1000000 1000000)
   fmap IndexPostData $ body lookPairs

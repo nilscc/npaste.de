@@ -4,7 +4,7 @@
 module NPaste.Html.Frames
   ( mainFrame
   , compactFrame
-  , nullBody
+  , nullContext
   ) where
 
 import Text.Blaze (toHtml, toValue, (!))
@@ -13,47 +13,44 @@ import qualified Text.Blaze.Html5.Attributes  as A
 
 import NPaste.Types
 
-nullBody :: HtmlBody
-nullBody = HtmlBody
-  { title = Nothing
+nullContext :: HtmlContext
+nullContext = HtmlContext
+  { title = Title Nothing
   , section = M_AddNewPaste
-  , user = Nothing
-  , script = []
-  , css = []
-  , html = return ()
+  , script = Script []
+  , css = CSS []
   }
 
-htmlHeader :: HtmlBody -> Html
-htmlHeader htmlbody =
+htmlHeader :: HtmlContext -> Html
+htmlHeader htmlcontext =
   H.head $ do
     H.title . toHtml $
-      maybe "npaste.de" ("npaste.de - " ++) (title htmlbody)
+      maybe "npaste.de" ("npaste.de - " ++) (unTitle $ title htmlcontext)
 
     -- load javascript
-    unless (null $ script htmlbody) $ do
-      let scripts = ["jquery-1.6.2.min.js"] ++ script htmlbody
+    unless (null . unScript $ script htmlcontext) $ do
+      let scripts = ["jquery-1.6.2.min.js"] ++ unScript (script htmlcontext)
       forM_ scripts $ \s ->
         H.script ! A.type_ "text/javascript" ! A.src (toValue $ "/s/js/" ++ s) $ return ()
 
     -- load css
-    let cssFiles = css htmlbody ++ ["fonts.css"]
+    let cssFiles = unCSS (css htmlcontext) ++ ["fonts.css"]
     forM_ cssFiles $ \c ->
       H.link ! A.type_ "text/css" ! A.href (toValue $ "/s/css/" ++ c) ! A.rel "stylesheet"
 
 --------------------------------------------------------------------------------
 -- Main frame
 
-mainFrame :: HtmlBody
+mainFrame :: HtmlContext
+          -> HtmlBody
           -> Html
-mainFrame htmlbody = H.docTypeHtml $ do
-  htmlHeader htmlbody{ css = css htmlbody ++ ["main.css"] }
+mainFrame htmlcontext htmlbody = H.docTypeHtml $ do
+  htmlHeader htmlcontext{ css = CSS $ unCSS (css htmlcontext) ++ ["main.css"] }
 
   H.body $ do
     H.header $ mainHeader
-    H.menu   $ mainMenu (section htmlbody)
-    H.section ! A.id "main" $
-      html htmlbody
-
+    H.menu   $ mainMenu (section htmlcontext)
+    H.section ! A.id "main" $ unHtmlBody htmlbody
 
 -- | Header
 mainHeader :: Html
@@ -100,14 +97,14 @@ sectionToTitle s = case s of
 -- Compact frame
 
 compactFrame :: Html        -- ^ header content
-             -> HtmlBody    -- ^ HTML body
+             -> HtmlContext -- ^ HTML frame
+             -> HtmlBody    -- ^ inner HTML body
              -> Html
-compactFrame compH htmlbody = H.docTypeHtml $ do
-  htmlHeader htmlbody{ css = css htmlbody ++ ["compact.css"] }
+compactFrame compH htmlcontext htmlbody = H.docTypeHtml $ do
+  htmlHeader htmlcontext{ css = CSS $ unCSS (css htmlcontext) ++ ["compact.css"] }
   H.body $ do
     H.header $ compactHeader compH
-    H.section ! A.id "main" $
-      html htmlbody
+    H.section ! A.id "main" $ unHtmlBody htmlbody
 
 -- | Header
 compactHeader :: Html -> Html

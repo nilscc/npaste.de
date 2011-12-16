@@ -5,4 +5,4 @@ data MenuSection
   = M_AddNewPaste
   | M_Read
   | M_Settings
-  deriving Eq
+  deriving (Eq, Show)

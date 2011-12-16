@@ -1,8 +1,7 @@
 {-# OPTIONS -fno-warn-dodgy-exports #-}
 
 module NPaste.Types
-  ( module NPaste.Types.NPaste
-  , module NPaste.Types.State
+  ( module NPaste.Types.State
   , module NPaste.Types.Description
   , module NPaste.Types.Instances
   , module NPaste.Types.Search
@@ -23,7 +22,6 @@ module NPaste.Types
   , module Happstack.Server.Monads
   ) where
 
-import NPaste.Types.NPaste
 import NPaste.Types.Error
 import NPaste.Types.Search
 import NPaste.Types.State

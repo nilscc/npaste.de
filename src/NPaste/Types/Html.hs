@@ -1,5 +1,6 @@
 module NPaste.Types.Html
-  ( module NPaste.Types.Html.Body
+  ( -- * Main HTML framework
+    module NPaste.Types.Html.Context
   , module NPaste.Types.Html.Menu
 
     -- ** Websites
@@ -13,7 +14,7 @@ module NPaste.Types.Html
 
 import Text.Blaze
 
-import NPaste.Types.Html.Body
+import NPaste.Types.Html.Context
 import NPaste.Types.Html.Menu
 import NPaste.Types.Html.Index
 import NPaste.Types.Html.Valued

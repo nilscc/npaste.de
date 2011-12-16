@@ -3,7 +3,33 @@ module NPaste
   ) where
 
 import Happstack.Server
+import NPaste.State
 import NPaste.Routes
+import NPaste.Types
 
 npaste :: ServerPart Response
-npaste = npasteR
+npaste = do
+  (res, newstate) <- runNPaste npasteNullState npasteR
+  case res of
+       Right _   -> compose newstate
+       Left  err -> handleError newstate err
+
+compose :: NPasteState -> ServerPart Response
+compose st = do
+  let code = unResponseCode $ responseCode st
+  case responseFormat st of
+       HtmlResponse ->
+         let ctxt  =               htmlContext st
+             html  =               htmlBody    st
+             frame = unHtmlFrame $ htmlFrame   st
+          in code . toResponse $ frame ctxt html
+       PartialHtmlResponse ->
+         code . toResponse . unHtmlBody $ htmlBody st
+       PlainResponse rsp ->
+         code rsp
+
+handleError :: NPasteState
+            -> NPasteError
+            -> ServerPart Response
+handleError _ _ =
+  internalServerError $ toResponse "An error occured. Please try again later."

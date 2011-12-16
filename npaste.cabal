@@ -26,7 +26,7 @@ library
         parsec                  == 3.*,
         HDBC                    == 2.*,
         HDBC-postgresql         == 2.*,
-        mstate                  == 0.2.*,
+        mstate                  >= 0.2.5,
         convertible             == 1.*,
         monad-peel              == 0.1.*,
         Crypto                  == 4.*,
@@ -74,12 +74,11 @@ library
         NPaste.Types.Error.AddUser
         NPaste.Types.Error.NPaste
         NPaste.Types.Html
-        NPaste.Types.Html.Body
+        NPaste.Types.Html.Context
         NPaste.Types.Html.Index
         NPaste.Types.Html.Menu
         NPaste.Types.Html.Valued
         NPaste.Types.Instances
-        NPaste.Types.NPaste
         NPaste.Types.State
 
         NPaste.Utils.Description
@@ -102,7 +101,7 @@ executable npaste.de
         parsec                  == 3.*,
         HDBC                    == 2.*,
         HDBC-postgresql         == 2.*,
-        mstate                  == 0.2.*,
+        mstate                  >= 0.2.5,
         convertible             == 1.*,
         monad-peel              == 0.1.*,
         Crypto                  == 4.*,

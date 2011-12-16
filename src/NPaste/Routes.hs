@@ -15,9 +15,8 @@ import NPaste.Routes.Find
 import NPaste.Routes.Index
 import NPaste.Routes.Read
 import NPaste.Routes.Static
-import NPaste.Html
 
-npasteR :: ServerPart Response
+npasteR :: NPaste ()
 npasteR = msum
   [ nullDir >> indexR
   , dir "f" findR
@@ -27,7 +26,8 @@ npasteR = msum
   , notFoundR
   ]
 
-notFoundR :: ServerPart Response
+notFoundR :: NPaste ()
 notFoundR = do
-  notFound . toResponse . mainFrame $ nullBody
-    { html = H.h2 ! A.class_ "error" $ "The page you requested was not found." }
+  ResponseCode .= (notFound :: Response -> ServerPart Response)
+  Title        .= Just ("Page not found" :: String)
+  HtmlBody     .= H.h2 ! A.class_ "error" $ "The page you requested was not found."

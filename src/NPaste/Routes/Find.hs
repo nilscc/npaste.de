@@ -3,38 +3,37 @@ module NPaste.Routes.Find
   , tagR
   ) where
 
+-- import Data.ByteString.Char8 (pack)
 import Happstack.Server
 
 import NPaste.Database
+import NPaste.State
 import NPaste.Types
 import NPaste.Html
 
 --------------------------------------------------------------------------------
 -- Finding
 
-findR :: ServerPart Response
+findR :: NPaste ()
 findR = do
   sres <- getSearch
   case sres of
        Just s -> do
          pastes <- findPastes 20 0 s
-         return . toResponse . mainFrame $ nullBody
-           { css  = ["code/hk-pyg.css", "code.css", "recent.css"]
-           , html = findHtml "Your search results:" pastes
-           }
+         CSS      .= ["code/hk-pyg.css", "code.css", "recent.css"]
+         HtmlBody .= findHtml "Your search results:" pastes
        Nothing -> do
-         return . toResponse . mainFrame $ nullBody
-           { css  = ["recent.css"]
-           , html = findHtmlNothingFound
-           }
+         CSS       .= ["recent.css"]
+         HtmlBody  .= findHtmlNothingFound
 
-getSearch :: ServerPart (Maybe Search)
+getSearch :: NPaste (Maybe Search)
 getSearch = msum
   [ path $ \p -> case p of
       _ | p `elem` ["t","tag"]             -> keepSearching S_Tag
         | p `elem` ["l","lang","language"] -> keepSearching S_PasteType
+        -- | p `elem` ["c","cont","content"]  -> keepSearching (S_PasteCont . pack)
         | p `elem` ["u","usr","user"]      -> keepSearching S_UserName
-        | otherwise                        -> mzero
+        | otherwise                        -> reset
   , return Nothing
   ]
  where
@@ -47,8 +46,8 @@ getSearch = msum
            return Nothing
 
 search' :: (String -> Search)
-        -> (Maybe Search -> ServerPart (Maybe Search))
-        -> ServerPart (Maybe Search)
+        -> (Maybe Search -> NPaste (Maybe Search))
+        -> NPaste (Maybe Search)
 search' constr doit = msum
   [ path $ doit . Just . constr
   , return Nothing
@@ -58,10 +57,8 @@ search' constr doit = msum
 --------------------------------------------------------------------------------
 -- Specific search queries
 
-tagR :: ServerPart Response
+tagR :: NPaste ()
 tagR = path $ \t -> do
   pastes <- findPastes 20 0 (S_Tag t)
-  return . toResponse . mainFrame $ nullBody
-    { css  = ["code/hk-pyg.css", "code.css", "recent.css"]
-    , html = tagHtml t pastes
-    }
+  CSS      .= ["code/hk-pyg.css", "code.css", "recent.css"]
+  HtmlBody .= tagHtml t pastes

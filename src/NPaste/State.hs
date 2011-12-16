@@ -1,19 +1,19 @@
-module NPaste.Types.NPaste
-  ( NPaste
-  , runNPaste, evalNPaste, execNPaste
-  , OutputM
+module NPaste.State
+  ( runNPaste, evalNPaste, execNPaste
   , runOutputM, evalOutputM, execOutputM
+
+  , npasteNullState
+  , resetNPasteState
+  , reset
   ) where
 
-import Control.Concurrent.MState
-import Control.Monad.Error
 import Happstack.Server
-import Happstack.Server.Internal.MonadPeelIO ()
+import NPaste.Html
+import NPaste.Types
 
-import NPaste.Types.Error
-import NPaste.Types.State
 
-type NPaste a = ErrorT NPasteError (MState NPasteState (ServerPartT IO)) a
+--------------------------------------------------------------------------------
+-- * State management
 
 runNPaste :: NPasteState -> NPaste a -> ServerPart (Either NPasteError a, NPasteState)
 runNPaste s n = runMState (runErrorT n) s
@@ -24,7 +24,7 @@ evalNPaste s n = fmap fst $ runNPaste s n
 execNPaste :: NPasteState -> NPaste a -> ServerPart NPasteState
 execNPaste s n = fmap snd $ runNPaste s n
 
-type OutputM a = MState NPasteState (ServerPartT IO) a
+-- ** Output stuff
 
 runOutputM :: NPasteState -> OutputM a -> ServerPart (a, NPasteState)
 runOutputM s n = runMState n s
@@ -34,3 +34,21 @@ evalOutputM s n = fmap fst $ runMState n s
 
 execOutputM :: NPasteState -> OutputM a -> ServerPart NPasteState
 execOutputM s n = fmap snd $ runMState n s
+
+-- ** Default values
+
+npasteNullState :: NPasteState
+npasteNullState = NPasteState
+  { responseFormat  = HtmlResponse
+  , responseCode    = ResponseCode ok
+  , htmlContext     = nullContext
+  , htmlFrame       = HtmlFrame mainFrame
+  , htmlBody        = HtmlBody $ return ()
+  , currentUser     = Nothing
+  }
+
+resetNPasteState :: NPaste ()
+resetNPasteState = setNP npasteNullState
+
+reset :: NPaste a
+reset = resetNPasteState >> mzero

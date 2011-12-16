@@ -117,7 +117,7 @@ findPastes limit offset crits =
   toWhere (S_PasteId _)         = "p.id = ?"
   toWhere (S_PasteType _)       = "p.type = ?"
   toWhere (S_PasteDesc _)       = "p.description = ?"
-  toWhere (S_PasteCont _)       = "to_tsvector('bytea_output', p.content) @@ to_tsquery(?)"
+  toWhere (S_PasteCont _)       = "to_tsvector(p.content) @@ to_tsquery(?)" -- TODO
   toWhere (S_PasteMd5 _)        = "p.md5 = ?"
   toWhere (S_PasteDate _)       = "p.date = ?"
   toWhere (S_PasteDateBefore _) = "p.date < ?"
