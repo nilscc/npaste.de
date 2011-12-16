@@ -35,10 +35,13 @@ data NPasteState = NPasteState
 instance Show Html where
   show _ = "<html>"
 
+instance Show (ServerPart a) where
+  show _ = "<serverpart>"
+
 data ResponseFormat
   = HtmlResponse
   | PartialHtmlResponse
-  | PlainResponse Response
+  | PlainResponse Request (ServerPart Response)
   -- | JsonResponse -- TODO
   deriving Show
 

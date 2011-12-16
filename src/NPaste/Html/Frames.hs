@@ -16,7 +16,7 @@ import NPaste.Types
 nullContext :: HtmlContext
 nullContext = HtmlContext
   { title = Title Nothing
-  , section = M_AddNewPaste
+  , section = M_Other
   , script = Script []
   , css = CSS []
   }

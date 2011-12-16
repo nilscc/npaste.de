@@ -29,7 +29,8 @@ showPasteR pid = choice
        HtmlFrame .= compactFrame (readInfo paste repl)
        HtmlBody  .= readHtml paste
   , do paste <- getPasteById pid
-       maybe mzero (setNP . PlainResponse . toResponse . unpack . pasteContent) paste
+       rq    <- askRq
+       maybe mzero ((.=) (PlainResponse rq) . return . toResponse . unpack . pasteContent) paste
   ]
  where
   checkPath = join $ choice [ nullDir >> return trailingSlash, return (return ()) ]

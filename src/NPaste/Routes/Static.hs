@@ -6,6 +6,10 @@ import NPaste.State
 
 staticR :: NPaste ()
 staticR = choice
-  [ dir "css" $ setNP . PlainResponse =<< serveDirectory DisableBrowsing [] "htdocs/css"
-  , dir "js"  $ setNP . PlainResponse =<< serveDirectory DisableBrowsing [] "htdocs/js"
+  [ dir "css" $ do
+      rq <- askRq
+      PlainResponse rq .= serveDirectory DisableBrowsing [] "htdocs/css"
+  , dir "js"  $do
+      rq <- askRq
+      PlainResponse rq .= serveDirectory DisableBrowsing [] "htdocs/js"
   ]

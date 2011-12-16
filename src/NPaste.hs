@@ -25,8 +25,8 @@ compose st = do
           in code . toResponse $ frame ctxt html
        PartialHtmlResponse ->
          code . toResponse . unHtmlBody $ htmlBody st
-       PlainResponse rsp ->
-         code rsp
+       PlainResponse rq rsp ->
+         localRq (const rq) rsp
 
 handleError :: NPasteState
             -> NPasteError
