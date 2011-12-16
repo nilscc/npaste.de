@@ -32,6 +32,5 @@ data Search
   | S_TagId           Int
 
     -- Replies
-  | S_ReplyTo         Id
   | S_ReplyOf         Id
   deriving (Eq, Show)
