@@ -60,6 +60,8 @@ search' constr doit = choice
 
 tagR :: NPaste ()
 tagR = path $ \t -> do
+  -- unless (validTag t) mzero -- TODO: quit if no valid tag
   pastes <- findPastes 20 0 (S_Tag t)
+  Title    .= Just $ "Post for #" ++ t
   CSS      .= ["code/hk-pyg.css", "code.css", "recent.css"]
   HtmlBody .= tagHtml t pastes
