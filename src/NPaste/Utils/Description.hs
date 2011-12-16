@@ -40,7 +40,7 @@ pasteId', userName, tag, descVal :: Parser DescVal
 pasteId' = try $ char '/' *> fmap newId    (many1 alphaNum) <* char '/'
  where newId i = DescID i -- Nothing
 userName = try $ char '@' *> fmap DescUsername (many1 alphaNum)
-tag      = try $ char '#' *> fmap DescTag      (many1 alphaNum)
+tag      = try $ char '#' *> fmap DescTag      (many1 $ alphaNum <|> oneOf "!\"§$%&/()=?`´\\}][{³²+*~#'÷-_…·<>|^°")
 
 descVal = pasteId' <|> userName <|> tag
 

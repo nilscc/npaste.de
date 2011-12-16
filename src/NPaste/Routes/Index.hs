@@ -52,8 +52,7 @@ indexR = do
        Left (Just (APE_AlreadyExists Paste{pasteId})) -> do -- TODO: replace with proper ID
          let url = "/" ++ pasteId ++ "/"
          rq <- askRq
-         ResponseCode     .= seeOther url
-         PlainResponse rq .= return . toResponse $
+         PlainResponse rq .= seeOther url . toResponse $
                              "Paste already exists at: http://npaste.de" ++ url ++ "\n"
        Left err -> do
          HtmlFrame .= mainFrame
@@ -62,8 +61,7 @@ indexR = do
        Right pId -> do
          let url = "/" ++ pId ++ "/"
          rq <- askRq
-         ResponseCode     .= (seeOther url :: Response -> ServerPart Response)
-         PlainResponse rq .= return . toResponse $
+         PlainResponse rq .= seeOther url . toResponse $
                              "New paste added: http://npaste.de" ++ url ++ "\n"
 
  where

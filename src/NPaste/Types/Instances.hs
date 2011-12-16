@@ -21,11 +21,15 @@ instance Convertible SqlValue Description where
   safeConvert s = fmap (parseDesc)          $      safeConvert s
 
 --------------------------------------------------------------------------------
--- Happstack instances - Are these correct? TODO
+-- * Happstack instances
+
+-- ** Server Monad instances
 
 instance (MonadIO m, ServerMonad m) => ServerMonad (MState t m) where
   askRq       = lift askRq
   localRq f m = mapMState_ (localRq f) m
+
+-- ** FilterMonad instances
 
 instance (MonadIO m, FilterMonad a m) => FilterMonad a (MState t m) where
   setFilter     = lift . setFilter
@@ -38,11 +42,15 @@ instance (Error err, FilterMonad a m) => FilterMonad a (ErrorT err m) where
   getFilter m   = do (errT, aa) <- lift $ getFilter (runErrorT m)
                      either throwError (return . (,aa)) errT
 
+-- ** WebMonad instances
+
 instance (Error err, WebMonad a m) => WebMonad a (ErrorT err m) where
   finishWith = lift . finishWith
 
 instance WebMonad a m => WebMonad a (MState t m) where
   finishWith = lift . finishWith
+
+-- ** HasRqData instances
 
 instance (MonadPeelIO m, HasRqData m) => HasRqData (MState t m) where
   askRqEnv       = lift askRqEnv
