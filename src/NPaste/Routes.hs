@@ -11,13 +11,15 @@ import qualified Text.Blaze.Html5.Attributes  as A
 import Text.Blaze ((!))
 
 import NPaste.Types
+import NPaste.State
+
 import NPaste.Routes.Find
 import NPaste.Routes.Index
 import NPaste.Routes.Read
 import NPaste.Routes.Static
 
 npasteR :: NPaste ()
-npasteR = msum
+npasteR = choice
   [ nullDir >> indexR
   , dir "f" findR
   , dir "t" tagR

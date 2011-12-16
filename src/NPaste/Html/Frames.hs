@@ -68,29 +68,16 @@ mainHeader = do
     "a haskell happstack pastebin"
   
 
-
 -- | Menu
 mainMenu :: MenuSection -> Html
 mainMenu active = sequence_ $ do
   -- list monad
-  s <- [ M_AddNewPaste, M_Read, M_Settings]
-  return $ H.li $
-    if (active == s) then
-      H.a ! A.href (sectionToUrl s) ! A.class_ "menu-item active" $ (sectionToTitle s)
-     else
-      H.a ! A.href (sectionToUrl s) $ (sectionToTitle s)
-
-sectionToUrl :: MenuSection -> AttributeValue
-sectionToUrl s = case s of
-  M_AddNewPaste -> "/"
-  M_Read        -> "/r"
-  M_Settings    -> "/s"
-
-sectionToTitle :: MenuSection -> Html
-sectionToTitle s = case s of
-  M_AddNewPaste -> "New paste"
-  M_Read        -> "Show recent pastes"
-  M_Settings    -> "My settings"
+  (s,u,t) <- [ (M_AddNewPaste, "/",  "New paste")
+             , (M_Recent,      "/r", "Show recent pastes")
+             ]
+  return $
+    (if (active == s) then H.li ! A.class_ "active" else H.li)
+      (H.a ! A.href u $ t)
 
 
 --------------------------------------------------------------------------------

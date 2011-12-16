@@ -3,8 +3,8 @@ module NPaste.State
   , runOutputM, evalOutputM, execOutputM
 
   , npasteNullState
-  , resetNPasteState
-  , reset
+
+  , choice
   ) where
 
 import Happstack.Server
@@ -47,8 +47,10 @@ npasteNullState = NPasteState
   , currentUser     = Nothing
   }
 
-resetNPasteState :: NPaste ()
-resetNPasteState = setNP npasteNullState
+-- ** Other
 
-reset :: NPaste a
-reset = resetNPasteState >> mzero
+-- | Sensible version of `msum` that resets the state after a failed attempt
+choice :: [NPaste a] -> NPaste a
+choice val = do
+  t <- get
+  msum [ msum [ v, setNP t >> mzero ] | v <- val ]

@@ -129,7 +129,8 @@ menu
         text-align: center;
     }
 
-    menu li:hover
+    menu li:hover,
+    menu li.active
     {
         background-color: #777;
     }

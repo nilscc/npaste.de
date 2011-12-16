@@ -11,12 +11,16 @@ import Text.Highlighting.Kate
 import NPaste.Database
 import NPaste.Html
 import NPaste.Types
+import NPaste.State
 
 
 indexR :: NPaste ()
 indexR = do
 
-  pdata <- msum
+  -- set menu location
+  setNP M_AddNewPaste
+
+  pdata <- choice
     [ methodM POST >> getIndexPostData
     , return nullPostData ]
 

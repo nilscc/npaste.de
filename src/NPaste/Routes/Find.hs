@@ -16,6 +16,7 @@ import NPaste.Html
 
 findR :: NPaste ()
 findR = do
+  setNP M_Other -- menu location
   sres <- getSearch
   case sres of
        Just s -> do
@@ -27,13 +28,13 @@ findR = do
          HtmlBody  .= findHtmlNothingFound
 
 getSearch :: NPaste (Maybe Search)
-getSearch = msum
+getSearch = choice
   [ path $ \p -> case p of
       _ | p `elem` ["t","tag"]             -> keepSearching S_Tag
         | p `elem` ["l","lang","language"] -> keepSearching S_PasteType
         -- | p `elem` ["c","cont","content"]  -> keepSearching (S_PasteCont . pack)
         | p `elem` ["u","usr","user"]      -> keepSearching S_UserName
-        | otherwise                        -> reset
+        | otherwise                        -> mzero
   , return Nothing
   ]
  where
@@ -48,7 +49,7 @@ getSearch = msum
 search' :: (String -> Search)
         -> (Maybe Search -> NPaste (Maybe Search))
         -> NPaste (Maybe Search)
-search' constr doit = msum
+search' constr doit = choice
   [ path $ doit . Just . constr
   , return Nothing
   ]
