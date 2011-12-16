@@ -36,6 +36,25 @@ div.pasteInfo p.language {
   text-align: right;
 }
 
+div.pasteInfo p a {
+  margin-left: 5px;
+  margin-right: 5px;
+  color: #ccc;
+}
+
+div.pasteInfo p a {
+  background-color: #666;
+  padding: 2px 5px 2px;
+  border: 0;
+  border-radius: 4px;
+  font-size: 11px;
+  font-family: sans-serif;
+  font-weight: normal;
+  display: inline-block;
+  vertical-align: baseline;
+  cursor: pointer;
+}
+
 
 /* PASTE CONTENT */
 
