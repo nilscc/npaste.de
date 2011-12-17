@@ -62,8 +62,8 @@ showPasteR pid = choice
 
 showRecentR :: Maybe User -> Int -> Int -> Bool -> NPaste ()
 showRecentR mu l o hidden = do
-  setNP M_Recent -- set menu location
-  pastes      <- getRecentPastes mu l o hidden
+  setNP M_Recent -- menu location
+  pastes    <- getRecentPastes mu l o hidden
   CSS       .= ["code/hk-pyg.css", "code.css", "recent.css"]
   HtmlFrame .= mainFrame
   HtmlBody  .= recentHtml pastes

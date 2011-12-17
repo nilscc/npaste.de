@@ -26,14 +26,17 @@ findHtmlNothingFound = do
 tagHtml :: String -> [Paste] -> Html
 tagHtml tag pastes = do
   tagSearchForm $ Just tag
-  findHtml ("All pastes for #" ++ tag) pastes
+  tagListPastes tag pastes
+
+tagListPastes :: String -> [Paste] -> Html
+tagListPastes tag pastes = findHtml ("All pastes for #" ++ tag) pastes
 
 tagSearchHtml :: Html
 tagSearchHtml = tagSearchForm Nothing
 
 tagSearchForm :: Maybe String -> Html
 tagSearchForm mtag = do
-  H.form ! A.method "post" ! A.action "/t" $ do
+  H.form ! A.method "post" ! A.action "/t" ! A.id "tag_search_form" $ do
     H.p "Search for tag: "
     case mtag of
          Just tag -> H.input ! A.type_ "text" ! A.name "tag" ! A.value (H.toValue tag)

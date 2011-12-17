@@ -55,6 +55,10 @@ div.pasteInfo p a {
   cursor: pointer;
 }
 
+#main form#tag_search_form p {
+  display: inline-block;
+  margin-right: 20px;
+}
 
 /* PASTE CONTENT */
 

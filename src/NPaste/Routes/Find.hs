@@ -76,5 +76,6 @@ tagR = choice
       HtmlBody .= tagHtml t pastes
   , do
       Title    .= Just "Searching for tags"
+      CSS      .= ["recent.css"]
       HtmlBody .= tagSearchHtml
   ]
