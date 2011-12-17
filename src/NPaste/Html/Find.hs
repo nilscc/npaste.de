@@ -28,7 +28,9 @@ findHtmlNothingFound = do
 --------------------------------------------------------------------------------
 -- ** View pastes
 
-viewHtml :: Maybe String -> Either ParseError [Paste] -> Html
+viewHtml :: Maybe String
+         -> Either ParseError [Paste]
+         -> Html
 viewHtml mf epastes = do
   H.h1 $ do
     "Most recent pastes"
