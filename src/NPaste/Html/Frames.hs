@@ -76,10 +76,24 @@ mainMenu active = sequence_ $ do -- list monad
              , (M_Tags,        "/t", "Search tags")
              , (M_About,       "/a", "About")
              ]
-  return $
-    (if (active == s) then H.li ! A.class_ "active" else H.li)
-      (H.a ! A.href u $ t)
+  return $ if (active == s) then
+    H.li ! A.class_ "active" $ do
+      case s of
+           M_About -> H.a ! A.href "/a#about" $ t
+           _       -> H.a ! A.href u          $ t
+      subMenu s
+   else
+    H.li $ H.a ! A.href u $ t
 
+subMenu :: MenuSection -> Html
+subMenu M_About = H.ul ! A.class_ "submenu" $ sequence_ $ do
+  (u,t) <- [ ("/a#howto",       "How to")
+           , ("/a#contact",     "Contact")
+           , ("/a#statistics",  "Statistics")
+           , ("/a#disclaimer",  "Disclaimer")
+           ]
+  return $ H.li $ H.a ! A.href u $ t
+subMenu _ = return ()
 
 --------------------------------------------------------------------------------
 -- Compact frame
