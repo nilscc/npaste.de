@@ -16,11 +16,11 @@ import NPaste.Utils
 
 viewR :: NPaste ()
 viewR = do
-  setNP M_Recent -- menu location
   CSS .= ["code/hk-pyg.css", "code.css", "view.css"]
   choice
     [ dir "t" tagR
     , do pastes    <- getRecentPastes Nothing 20 0 False -- TODO: support for user/limit/offset/hidden
+         M_View    .= Nothing
          Title     .= Just "Recent pastes"
          HtmlBody  .= viewHtml Nothing pastes
     ]
@@ -30,15 +30,16 @@ tagR = choice
   [ methodM POST >> do
       decodeBody (defaultBodyPolicy "/tmp/" 0 100000 100000)
       tag <- body $ look "tag"
+      rq <- askRq
       if validTag tag then do
         let url = "/v/t/" ++ tag
-        rq <- askRq
-        PlainResponse rq .= seeOther url . toResponse $
-          "Go to npaste.de" ++ url ++ " to see the results of your query"
+        PlainResponse rq .= seeOther url  . toResponse $ "Forwarding to npaste.de" ++ url
        else
-        mzero
+        PlainResponse rq .= seeOther "/v" . toResponse $ "Invalid tag, forwarding to npaste.de/v"
   , path $ \t -> do
+      unless (validTag t) mzero
       pastes <- findPastes 20 0 (S_Tag t)
+      M_View   .= Just t
       Title    .= Just $ "Pastes for #" ++ t
       HtmlBody .= viewHtml (Just t) pastes
   ]
