@@ -26,13 +26,15 @@ findHtmlNothingFound = do
 tagHtml :: String -> [Paste] -> Html
 tagHtml tag pastes = do
   tagSearchForm $ Just tag
-  tagListPastes tag pastes
+  H.div ! A.id "tag_list_pastes" $ tagListPastes tag pastes
+
+emptyTagHtml :: Html
+emptyTagHtml = do
+  tagSearchForm Nothing
+  H.div ! A.id "tag_list_pastes" $ return ()
 
 tagListPastes :: String -> [Paste] -> Html
 tagListPastes tag pastes = findHtml ("All pastes for #" ++ tag) pastes
-
-tagSearchHtml :: Html
-tagSearchHtml = tagSearchForm Nothing
 
 tagSearchForm :: Maybe String -> Html
 tagSearchForm mtag = do

@@ -16,6 +16,7 @@ import NPaste.State
 
 import NPaste.Routes.Find
 import NPaste.Routes.Index
+import NPaste.Routes.Partial
 import NPaste.Routes.Read
 import NPaste.Routes.Static
 
@@ -35,11 +36,6 @@ npasteR = choice
 
 --------------------------------------------------------------------------------
 -- Simple routes
-
-partialR :: NPaste ()
-partialR = do
-  setNP PartialHtmlResponse
-  npasteR
 
 notFoundR :: NPaste ()
 notFoundR = do

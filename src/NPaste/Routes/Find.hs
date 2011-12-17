@@ -59,23 +59,27 @@ search' constr doit = choice
 -- Specific search queries
 
 tagR :: NPaste ()
-tagR = choice
-  [ methodM POST >> do
-      decodeBody (defaultBodyPolicy "/tmp/" 0 100000 100000)
-      tag <- body $ look "tag"
-      if validTag tag then do
-        let url = "/t/" ++ tag
-        rq <- askRq
-        PlainResponse rq .= seeOther url . toResponse $ "Go to npaste.de" ++ url ++ " to see the results of your query"
-       else
-        mzero
-  , path $ \t -> do
-      pastes <- findPastes 20 0 (S_Tag t)
-      Title    .= Just $ "Pastes for #" ++ t
-      CSS      .= ["code/hk-pyg.css", "code.css", "recent.css"]
-      HtmlBody .= tagHtml t pastes
-  , do
-      Title    .= Just "Searching for tags"
-      CSS      .= ["recent.css"]
-      HtmlBody .= tagSearchHtml
-  ]
+tagR =  do
+  setNP M_Tags
+  choice
+    [ methodM POST >> do
+        decodeBody (defaultBodyPolicy "/tmp/" 0 100000 100000)
+        tag <- body $ look "tag"
+        if validTag tag then do
+          let url = "/t/" ++ tag
+          rq <- askRq
+          PlainResponse rq .= seeOther url . toResponse $ "Go to npaste.de" ++ url ++ " to see the results of your query"
+         else
+          mzero
+    , path $ \t -> do
+        pastes <- findPastes 20 0 (S_Tag t)
+        Title    .= Just $ "Pastes for #" ++ t
+        CSS      .= ["code/hk-pyg.css", "code.css", "recent.css"]
+        Script   .= ["recent.js"]
+        HtmlBody .= tagHtml t pastes
+    , do
+        Title    .= Just "Searching for tags"
+        CSS      .= ["code/hk-pyg.css", "code.css", "recent.css"]
+        Script   .= ["recent.js"]
+        HtmlBody .= emptyTagHtml
+    ]
