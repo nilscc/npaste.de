@@ -49,7 +49,7 @@ aboutR = do
   setNP M_About
   CSS      .= ["document.css"]
   Title    .= Just "About"
-  u        <- numberOfUsers
-  p        <- numberOfPastes
+  u        <- getNumberOfUsers
+  p        <- getNumberOfPastes
   now      <- liftIO getCurrentTime
   HtmlBody .= aboutHtml u p now
