@@ -31,7 +31,7 @@ import NPaste.Database.Pastes.Tags
 import NPaste.Database.Connection
 import NPaste.Types
 import NPaste.Utils
-import qualified NPaste.Utils.Description as P
+import qualified NPaste.Parser.Description as P
 
 
 --------------------------------------------------------------------------------

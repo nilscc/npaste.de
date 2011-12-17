@@ -8,7 +8,7 @@ import NPaste.Database
 import NPaste.State
 import NPaste.Types
 import NPaste.Html
-import NPaste.Utils
+import NPaste.Parser
 
 
 --------------------------------------------------------------------------------
