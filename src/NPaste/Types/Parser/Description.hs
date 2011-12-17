@@ -1,4 +1,4 @@
-module NPaste.Types.Description
+module NPaste.Types.Parser.Description
   ( Description
   , DescVal (..)
   ) where

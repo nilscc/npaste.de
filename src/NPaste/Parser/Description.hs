@@ -10,12 +10,13 @@ module NPaste.Parser.Description
     , usernamesOnly
       -- ** Validation
     , validTag
+    , tagSpecialChars
     ) where
 
 import Control.Applicative
 import Text.ParserCombinators.Parsec hiding (many, optional, (<|>))
 
-import NPaste.Types.Description
+import NPaste.Types.Parser.Description
 
 --------------------------------------------------------------------------------
 -- DescVal selectors
@@ -47,8 +48,7 @@ parseDesc = either (const []) id . parse parseAll "description"
 -- parse different DescVals:
 pasteId', userName, tag, descVal :: Parser DescVal
 
-pasteId' = try $ char '/' *> fmap newId    (many1 alphaNum) <* char '/'
- where newId i = DescID i -- Nothing
+pasteId' = try $ char '/' *> fmap DescID       (many1 alphaNum) <* char '/'
 userName = try $ char '@' *> fmap DescUsername (many1 alphaNum)
 tag      = try $ char '#' *> fmap DescTag      (many1 $ alphaNum <|> oneOf tagSpecialChars)
 

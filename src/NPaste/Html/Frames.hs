@@ -8,11 +8,13 @@ module NPaste.Html.Frames
   ) where
 
 import Data.Maybe
+import Data.List
 import Text.Blaze (toHtml, toValue, (!))
 import qualified Text.Blaze.Html5             as H
 import qualified Text.Blaze.Html5.Attributes  as A
 
 import NPaste.Types
+import NPaste.Utils
 
 nullContext :: HtmlContext
 nullContext = HtmlContext
@@ -96,6 +98,7 @@ menus =
   , (M_About,          "/a",    Just "/a#about",   "About")
   ]
 
+
 getSubMenu :: MenuSection -> [Html]
 getSubMenu M_About =
   [ H.a ! A.href "/a#howto"      $ "How to"
@@ -103,10 +106,23 @@ getSubMenu M_About =
   , H.a ! A.href "/a#statistics" $ "Statistics"
   , H.a ! A.href "/a#disclaimer" $ "Disclaimer"
   ]
-getSubMenu (M_View (Just t)) =
-  [ toHtml $ "Filtered by #" ++ t
-  ]
+getSubMenu (M_View (Just f)) =
+  [ do "Filtered by:"
+       H.br
+       sequence_ . intercalate [" "] $ map filterToHtml f ]
+ where
+  filterToHtml fval =
+    let (url,text) = case fval of
+                          FilterID          i -> ("/id/"   ++ i, "/"  ++ i ++ "/")
+                          FilterDescription d -> ("/desc/" ++ d, "\"" ++ d ++ "\"")
+                          FilterTag         t -> ("/tag/"  ++ t, "#"  ++ t)
+                          FilterUsername    u -> ("/user/" ++ u, "@"  ++ u)
+                          FilterLanguage    l -> let l' = maybe l id $ findLang l
+                                                  in ("/lang/" ++ l', l')
+     in [ H.a ! A.href (toValue $ "/v" ++ url) $ toHtml text ]
 getSubMenu _ = []
+
+
 
 --------------------------------------------------------------------------------
 -- Compact frame
