@@ -35,7 +35,7 @@ import NPaste.Types
 import NPaste.Utils.Database
 
 conStr :: String
-conStr = "host=localhost user=nils dbname=npaste password=1234"
+conStr = "host=localhost user=nils dbname=npaste-test password=1234"
 
 withConnection :: MonadIO m => (Connection -> IO a) -> m a
 withConnection = liftIO . withPostgreSQL conStr
