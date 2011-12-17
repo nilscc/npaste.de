@@ -60,7 +60,7 @@ header div#compactMenu form {
   }
 
   header div#compactMenu form.languageSelector input[type=submit] {
-    display: none;
+    /* display: none; */
   }
 
   header p#logo { clear: right; }

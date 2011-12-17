@@ -196,7 +196,7 @@ section#main
 
 /* {{{ Recent pastes -> read.css */
 
-
+/*
     section#main div.recentpaste
     {
         background-color: #eee;
@@ -230,11 +230,13 @@ section#main
             text-align: left;
             overflow: hidden;
         }
+*/
 
 /* }}} */
 
 /* {{{ FAQ -> about.css */
 
+/*
     section#main div#faq p.faq-question
     {
         font-weight: bold;
@@ -246,11 +248,13 @@ section#main
         margin: 0.5em auto auto;
         padding: 0;
     }
+*/
 
 /* }}} */
 
 /* {{{ Registration -> login.css */
 
+/*
     section#main form#registration-form p span.desc
     {
         display: inline-block;
@@ -262,11 +266,13 @@ section#main
     {
         display: inline-block;
     }
+*/
 
 /* }}} */
 
 /* {{{ Login -> login.css */
 
+/*
     section#main form#login-form p span.desc
     {
         display: inline-block;
@@ -278,11 +284,13 @@ section#main
     {
         display: inline-block;
     }
+*/
 
 /* }}} */
 
 /* {{{ Profile -> profile.css */
 
+/*
     section#main form#profile-form p span.desc
     {
         display: inline-block;
@@ -299,5 +307,6 @@ section#main
     {
         display: inline-block;
     }
+*/
 
 /* }}} */
