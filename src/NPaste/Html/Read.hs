@@ -63,14 +63,15 @@ readInfo (Just p) r = do
       H.input ! A.type_ "submit" ! A.name "asreply" ! A.value "New reply"
     H.p ! A.class_ "timestamp" $
       toHtml $ formatTime defaultTimeLocale "%H:%M - %a %Y.%m.%d" (pasteDate p)
-    H.form ! A.class_ "languageSelector" ! A.method "post" $ do
+    H.form ! A.action (H.toValue p_id) ! A.method "post"
+           ! A.class_ "languageSelector" $ do
       H.select ! A.id "lang" ! A.name "lang" $
-        forM_ ("Plain text" : languages) $ \l ->
+        forM_ ("Plaintext" : languages) $ \l ->
           if Just l == pasteType p then -- TODO: different highlighting languages
             H.option ! A.selected "selected" ! A.value (toValue l) $ toHtml l
            else
             H.option                         ! A.value (toValue l) $ toHtml l
-      H.input ! A.type_ "submit" ! A.value "Change language" ! A.name "submit"
+      H.input ! A.type_ "submit" ! A.value "Change language"
   case pasteDescription p of
        Just d | not (null d) -> H.p ! A.class_ "desc" $ formatDesc d
        _                     -> return ()

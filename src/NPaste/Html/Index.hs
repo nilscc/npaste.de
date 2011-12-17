@@ -65,4 +65,4 @@ indexHtml pdata err = do
     -- a good method to do that, but it's better than nothing :)
     H.input ! A.id "email" ! A.type_ "text" ! A.name "email"
 
-    H.input ! A.id "submit" ! A.type_ "submit" ! A.name "submit" ! A.value "Add paste"
+    H.input ! A.type_ "submit" ! A.value "Add paste"
