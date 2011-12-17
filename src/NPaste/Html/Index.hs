@@ -47,7 +47,7 @@ indexHtml pdata err = do
       H.li $ do
         H.p "Language:"
         H.select ! A.id "lang" ! A.name "lang" $
-          forM_ ("Plain text" : languages) $ \l ->
+          forM_ ("Plaintext" : languages) $ \l ->
             if l == getValue pdata "lang" then
               H.option ! A.selected "selected" ! A.value (toValue l) $ toHtml l
              else
