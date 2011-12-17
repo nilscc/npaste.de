@@ -6,11 +6,13 @@ module NPaste.Html.About
   ) where
 
 import Text.Blaze (Html, (!))
+import Data.Time
+import System.Locale
 import qualified Text.Blaze.Html5             as H
 import qualified Text.Blaze.Html5.Attributes  as A
 
-aboutHtml :: Integer -> Integer -> Html
-aboutHtml numU numP = do
+aboutHtml :: Integer -> Integer -> UTCTime -> Html
+aboutHtml numU numP now = do
   H.h1 $ H.a ! A.name "about" $ "About npaste.de"
 
   H.p $ do
@@ -186,3 +188,5 @@ aboutHtml numU numP = do
     H.h4 "11. Changes to the Terms"
 
     H.p "npaste.de reserves the right to modify these Terms from time to time at our sole discretion and without any notice. Changes to our Terms become effective on the date they are posted and your continued use of npaste.de after any changes to Terms will signify your agreement to be bound by them."
+
+    H.p $ H.toHtml $ formatTime defaultTimeLocale "%B, %Y" now

@@ -4,6 +4,7 @@ module NPaste.Routes
   ( npasteR
   ) where
 
+import Data.Time
 import Happstack.Server
 
 import qualified Text.Blaze.Html5             as H
@@ -50,4 +51,5 @@ aboutR = do
   Title    .= Just "About"
   u        <- numberOfUsers
   p        <- numberOfPastes
-  HtmlBody .= aboutHtml u p
+  now      <- liftIO getCurrentTime
+  HtmlBody .= aboutHtml u p now
