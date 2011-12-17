@@ -78,7 +78,7 @@ tagR =  do
         -- Script   .= ["recent.js"]
         HtmlBody .= tagHtml t pastes
     , do
-        Title    .= Just "Searching for tags"
+        Title    .= Just "Search tags"
         CSS      .= ["code/hk-pyg.css", "code.css", "recent.css"]
         -- Script   .= ["recent.js"]
         HtmlBody .= emptyTagHtml

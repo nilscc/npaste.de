@@ -47,7 +47,7 @@ aboutR :: NPaste ()
 aboutR = do
   setNP M_About
   CSS      .= ["document.css"]
-  Title    .= Just "About npaste.de"
+  Title    .= Just "About"
   u        <- numberOfUsers
   p        <- numberOfPastes
   HtmlBody .= aboutHtml u p

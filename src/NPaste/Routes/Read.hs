@@ -45,6 +45,7 @@ showPasteR pid = choice
        -- get all informations, set the language etc pp
        paste     <- fmap setLang `fmap` getPasteById pid
        repl      <-  map pasteId `fmap` getReplies pid 20 0
+       Title     .= Just $ "Paste /" ++ pid ++ "/"
        CSS       .= ["code/hk-pyg.css", "code.css", "read.css"]
        Script    .= ["read.js"]
        HtmlFrame .= compactFrame (readInfo paste repl)
@@ -64,6 +65,7 @@ showRecentR :: Maybe User -> Int -> Int -> Bool -> NPaste ()
 showRecentR mu l o hidden = do
   setNP M_Recent -- menu location
   pastes    <- getRecentPastes mu l o hidden
+  Title     .= Just "Recent pastes"
   CSS       .= ["code/hk-pyg.css", "code.css", "recent.css"]
   HtmlFrame .= mainFrame
   HtmlBody  .= recentHtml pastes
