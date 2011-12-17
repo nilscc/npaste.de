@@ -7,8 +7,9 @@ import Data.ByteString.Char8 (unpack)
 import Data.List                    as L
 import Data.Time
 import System.Locale
-import Text.Blaze.Html5             as H
-import Text.Blaze.Html5.Attributes  as A
+import Text.Blaze.Html5 (toHtml, toValue, (!))
+import qualified Text.Blaze.Html5             as H
+import qualified Text.Blaze.Html5.Attributes  as A
 
 import Text.Highlighting.Kate
 
@@ -20,8 +21,8 @@ formatDesc d =
   sequence_ . for d $ \dval ->
     case dval of
          DescText     t -> toHtml t
-         DescUsername u -> H.a ! A.href (toValue $ "/u/" ++ u) ! A.class_ "descUser" $ toHtml u
-         DescTag      t -> H.a ! A.href (toValue $ "/t/" ++ t) ! A.class_ "descTag"  $ toHtml ("#" ++ t)
+         DescUsername u -> H.a ! A.href (toValue $ "/u/"   ++ u) ! A.class_ "descUser" $ toHtml u
+         DescTag      t -> H.a ! A.href (toValue $ "/v/t/" ++ t) ! A.class_ "descTag"  $ toHtml ("#" ++ t)
          DescID       i -> let url = "/" ++ i ++ "/"
                             in H.a ! A.href (toValue url) ! A.class_ "descID" $ toHtml url
  where
@@ -80,19 +81,15 @@ readInfo (Just p) r = do
   p_id = "/" ++ pasteId p ++ "/"
 
 --------------------------------------------------------------------------------
--- | Show recent Pastes
-recentHtml :: [Paste] -> Html
-recentHtml [] = return ()
-recentHtml pastes = do
-  H.h1 "Most recent pastes"
-  listPastes pastes
-
-listPastes :: [Paste] -> Html
-listPastes [] = return ()
-listPastes (p@Paste{ pasteContent } : r) = do
-  recentInfo p
+-- | List multiple pastes
+listPastes :: [Paste]
+           -> Maybe Int     -- ^ number of lines (Nothing = no limit)
+           -> Html
+listPastes [] _                               = return ()
+listPastes (p@Paste{ pasteContent } : r) lnum = do
+  pasteInfo p
   H.div ! A.class_ "formatedCode" $ do
-    let cont = unlines . take 20 . lines $ unpack pasteContent
+    let cont = maybe id (\i -> unlines . take i . lines) lnum $ unpack pasteContent
         lang = pasteType p
     case lang of
          Nothing -> formatPlain p cont
@@ -102,11 +99,11 @@ listPastes (p@Paste{ pasteContent } : r) = do
                Left  err    -> do
                  H.p ! A.class_ "warning" $ toHtml err
                  formatPlain p cont
-  listPastes r
+  listPastes r lnum
 
 -- | Show a nice header with all kind of informations about our paste
-recentInfo :: Paste -> Html
-recentInfo Paste{ pasteId, pasteDate, pasteDescription, pasteType } =
+pasteInfo :: Paste -> Html
+pasteInfo Paste{ pasteId, pasteDate, pasteDescription, pasteType } =
   H.div ! A.class_ "pasteInfo" $ do
     H.p ! A.class_ "timestamp" $
       toHtml $ formatTime defaultTimeLocale "%H:%M - %a %Y.%m.%d" pasteDate
@@ -132,12 +129,12 @@ formatCode :: Paste
            -> Html
 formatCode Paste{pasteId} source = do
   H.div ! A.class_ "lineNumbers" $ H.pre ! A.class_ "lineNumbers" $
-    sequence_ . intersperse br . for [1..length source] $ \(show->n) ->
+    sequence_ . intersperse H.br . for [1..length source] $ \(show->n) ->
       let name = "line-" ++ n
           url  = "/" ++ pasteId ++ "/#" ++ name
        in H.a ! A.href (toValue url) ! A.name (toValue name) $ toHtml n
   H.div ! A.class_ "sourceCode" $ H.pre ! A.class_ "sourceCode" $
-    sequence_ . intersperse br $ L.map sourceLineToHtml source
+    sequence_ . intersperse H.br $ L.map sourceLineToHtml source
  where
   for = flip L.map
 
@@ -156,7 +153,7 @@ formatPlain :: Paste -> String -> Html
 formatPlain Paste{pasteId} cont = do
   let l = lines cont
   H.div ! A.class_ "lineNumbers" $ H.pre $
-    sequence_ . intersperse br . for [1..length l] $ \(show->n) ->
+    sequence_ . intersperse H.br . for [1..length l] $ \(show->n) ->
       let name = "line-" ++ n
           url  = "/" ++ pasteId ++ "/#" ++ name
        in H.a ! A.href (toValue url) ! A.name (toValue name) $ toHtml n

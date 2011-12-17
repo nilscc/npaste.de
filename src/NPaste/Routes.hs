@@ -26,8 +26,8 @@ import NPaste.Html.About
 npasteR :: NPaste ()
 npasteR = choice
   [ nullDir >> indexR
-  , dir "f" findR
-  , dir "t" tagR
+  -- , dir "f" findR
+  , dir "v" viewR
   , dir "a" aboutR
   , dir "p" partialR
   , dir "s" staticR

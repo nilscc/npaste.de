@@ -14,32 +14,37 @@ findHtml t pastes = do
   if null pastes then
     H.p ! A.class_ "error" $ "No pastes found."
    else
-    listPastes pastes
+    listPastes pastes (Just 20)
 
 findHtmlNothingFound :: Html
 findHtmlNothingFound = do
   H.h1 ! A.class_ "error" $ "No search results."
 
+
+--------------------------------------------------------------------------------
+-- ** View pastes
+
+viewHtml :: Maybe String -> [Paste] -> Html
+viewHtml mtag pastes = do
+  H.h1 $ toHtml $
+    case mtag of
+         Just t  -> "Pastes filtered by #" ++ t
+         Nothing -> "Most recent pastes"
+  tagSearchForm mtag
+  H.div ! A.id "paste_list" $
+    if null pastes then
+      H.p ! A.class_ "error" $ "No pastes found."
+     else
+      listPastes pastes (Just 20)
+
+
 --------------------------------------------------------------------------------
 -- ** Tags
 
-tagHtml :: String -> [Paste] -> Html
-tagHtml tag pastes = do
-  tagSearchForm $ Just tag
-  H.div ! A.id "tag_list_pastes" $ tagListPastes tag pastes
-
-emptyTagHtml :: Html
-emptyTagHtml = do
-  tagSearchForm Nothing
-  H.div ! A.id "tag_list_pastes" $ return ()
-
-tagListPastes :: String -> [Paste] -> Html
-tagListPastes tag pastes = findHtml ("All pastes for #" ++ tag) pastes
-
 tagSearchForm :: Maybe String -> Html
 tagSearchForm mtag = do
-  H.form ! A.method "post" ! A.action "/t" ! A.id "tag_search_form" $ do
-    H.p "Search for tag: "
+  H.form ! A.method "post" ! A.action "/v/t" ! A.id "tag_search_form" $ do
+    H.p "Filter tags: "
     case mtag of
          Just tag -> H.input ! A.type_ "text" ! A.name "tag" ! A.value (H.toValue tag)
          Nothing  -> H.input ! A.type_ "text" ! A.name "tag"
