@@ -129,7 +129,7 @@ aboutHtml numU numP now = do
 
   H.ul $ do
     H.li $ do "Email: "
-              H.a ! A.href "mailto:mail@n-sch.de" $ "mail@npaste.de"
+              H.a ! A.href "mailto:mail@npaste.de" $ "mail@npaste.de"
     H.li $    "Jabber: mcmaniac@n-sch.de"
     H.li $ do "IRC: McManiaC on "
               H.a ! A.href "irc://irc.freenode.org" $ "irc.freenode.org"
