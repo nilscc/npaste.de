@@ -11,6 +11,7 @@ cabal-version:  >= 1.10
 executable npaste.de
     hs-source-dirs: src
     main-is: Main.hs
+    ghc-options: -Wall
     default-language: Haskell2010
 
     build-depends:
