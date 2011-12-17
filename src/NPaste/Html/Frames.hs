@@ -107,9 +107,9 @@ getSubMenu M_About =
   , H.a ! A.href "/a#disclaimer" $ "Disclaimer"
   ]
 getSubMenu (M_View (Just f)) =
-  [ do "Filtered by:"
-       H.br
-       sequence_ . intercalate [" "] $ map filterToHtml f ]
+  [ "Filtered by:"
+  , sequence_ . intercalate [" "] $ map filterToHtml f
+  ]
  where
   filterToHtml fval =
     let (url,text) = case fval of
