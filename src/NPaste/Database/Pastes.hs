@@ -104,7 +104,7 @@ findPastes limit offset crits =
   joins'  (S_UserName _)        = S.singleton "JOIN users u   ON u.id = p.user_id"
   joins'  (S_Tag _)             = S.singleton "JOIN tags t    ON t.id = p.id"
   joins'  (S_TagId _)           = S.singleton "JOIN tags t    ON t.id = p.id"
-  joins'  (S_ReplyOf _)         = S.singleton "JOIN replies r ON r.reply_id = p.id"
+  joins'  (S_ReplyOf _)         = S.singleton "JOIN replies r ON p.id IN (r.reply_id, r.paste_id)"
   joins'  _                     = S.empty
 
   toWhere (S_And s1 s2)         = "(" ++ toWhere s1 ++ " AND " ++ toWhere s2 ++ ")"
@@ -115,8 +115,8 @@ findPastes limit offset crits =
   toWhere (S_Paste _)           = "p.id = ?"
   toWhere (S_PasteId _)         = "p.id = ?"
   toWhere (S_PasteType _)       = "p.type = ?"
-  toWhere (S_PasteDesc _)       = "p.description = ?"
-  toWhere (S_PasteCont _)       = "to_tsvector(p.content) @@ to_tsquery(?)" -- TODO
+  toWhere (S_PasteDesc _)       = "to_tsvector(p.description) @@ plainto_tsquery(?)"
+  toWhere (S_PasteCont _)       = "to_tsvector(p.content)     @@ plainto_tsquery(?)" -- TODO
   toWhere (S_PasteMd5 _)        = "p.md5 = ?"
   toWhere (S_PasteDate _)       = "p.date = ?"
   toWhere (S_PasteDateBefore _) = "p.date < ?"
@@ -124,7 +124,7 @@ findPastes limit offset crits =
   toWhere (S_PasteHidden _)     = "p.hidden IN (?,FALSE)"
   toWhere (S_Tag _)             = "t.tag = ?"
   toWhere (S_TagId _)           = "t.id = ?"
-  toWhere (S_ReplyOf _)         = "r.paste_id = ?"
+  toWhere (S_ReplyOf _)         = "(NOT p.id = ? AND r.paste_id = ?)"
 
   toSql'  (S_And s1 s2)         = toSql' s1 ++ toSql' s2
   toSql'  (S_Or  s1 s2)         = toSql' s1 ++ toSql' s2
@@ -143,7 +143,7 @@ findPastes limit offset crits =
   toSql'  (S_PasteHidden h)     = [toSql h]
   toSql'  (S_Tag t)             = [toSql t]
   toSql'  (S_TagId i)           = [toSql i]
-  toSql'  (S_ReplyOf i)         = [toSql i]
+  toSql'  (S_ReplyOf i)         = [toSql i, toSql i]
 
 
 
@@ -162,6 +162,7 @@ newPaste muser mtype mdesc hidden cont = runErrorT $ do
   when (B.null cont) $ throwError APE_NoContent
 
   let hash = B.concat . toChunks . md5 $ fromChunks [cont]
+      lang = maybe mtype id $ fmap findLang mtype
 
   pid <- getRandomId 4
 
@@ -171,7 +172,7 @@ newPaste muser mtype mdesc hidden cont = runErrorT $ do
     let uid   = maybe (-1) userId muser
     updateSql_ "INSERT INTO pastes (id, user_id, date, type, description, content, md5, hidden) \
                \     VALUES        (?,  ?,       ?,    ?,    ?,           ?,       ?,   ?     ) "
-               [ toSql pid, toSql uid, toSql now, toSql mtype, toSql mdesc
+               [ toSql pid, toSql uid, toSql now, toSql lang, toSql mdesc
                , byteaPack cont, byteaPack hash, toSql hidden ]
 
     -- Add tags & replies if a description is given
