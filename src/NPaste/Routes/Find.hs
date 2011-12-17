@@ -10,13 +10,13 @@ import NPaste.Database
 import NPaste.State
 import NPaste.Types
 import NPaste.Html
+import NPaste.Utils
 
 --------------------------------------------------------------------------------
 -- Finding
 
 findR :: NPaste ()
 findR = do
-  setNP M_Other -- menu location
   sres <- getSearch
   case sres of
        Just s -> do
@@ -59,9 +59,22 @@ search' constr doit = choice
 -- Specific search queries
 
 tagR :: NPaste ()
-tagR = path $ \t -> do
-  -- unless (validTag t) mzero -- TODO: quit if no valid tag
-  pastes <- findPastes 20 0 (S_Tag t)
-  Title    .= Just $ "Pastes for #" ++ t
-  CSS      .= ["code/hk-pyg.css", "code.css", "recent.css"]
-  HtmlBody .= tagHtml t pastes
+tagR = choice
+  [ methodM POST >> do
+      decodeBody (defaultBodyPolicy "/tmp/" 0 100000 100000)
+      tag <- body $ look "tag"
+      if validTag tag then do
+        let url = "/t/" ++ tag
+        rq <- askRq
+        PlainResponse rq .= seeOther url . toResponse $ "Go to npaste.de" ++ url ++ " to see the results of your query"
+       else
+        mzero
+  , path $ \t -> do
+      pastes <- findPastes 20 0 (S_Tag t)
+      Title    .= Just $ "Pastes for #" ++ t
+      CSS      .= ["code/hk-pyg.css", "code.css", "recent.css"]
+      HtmlBody .= tagHtml t pastes
+  , do
+      Title    .= Just "Searching for tags"
+      HtmlBody .= tagSearchHtml
+  ]

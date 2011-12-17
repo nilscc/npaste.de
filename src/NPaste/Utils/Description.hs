@@ -6,6 +6,8 @@ module NPaste.Utils.Description
     , tagsOnly
     , idsOnly
     , usernamesOnly
+      -- ** Validation
+    , validTag
     ) where
 
 import Control.Applicative
@@ -40,9 +42,17 @@ pasteId', userName, tag, descVal :: Parser DescVal
 pasteId' = try $ char '/' *> fmap newId    (many1 alphaNum) <* char '/'
  where newId i = DescID i -- Nothing
 userName = try $ char '@' *> fmap DescUsername (many1 alphaNum)
-tag      = try $ char '#' *> fmap DescTag      (many1 $ alphaNum <|> oneOf "!\"§$%&/()=?`´\\}][{³²+*~#'÷-_…·<>|^°")
+tag      = try $ char '#' *> fmap DescTag      (many1 $ alphaNum <|> oneOf tagSpecialChars)
 
 descVal = pasteId' <|> userName <|> tag
+
+tagSpecialChars :: [Char]
+tagSpecialChars = "!\"§$%&()=?`´}][{³²+*~#'÷-_…·<>|^°"
+
+validTag :: String -> Bool
+validTag [] = False
+validTag s  = all (`elem` (['A'..'Z'] ++ ['a'..'z'] ++ tagSpecialChars)) s
+
 
 -- put everything together
 parseAll :: Parser Description

@@ -45,7 +45,7 @@ mainFrame :: HtmlContext
           -> HtmlBody
           -> Html
 mainFrame htmlcontext htmlbody = H.docTypeHtml $ do
-  htmlHeader htmlcontext{ css = CSS $ unCSS (css htmlcontext) ++ ["main.css"] }
+  htmlHeader htmlcontext{ css = CSS $ ["main.css"] ++ unCSS (css htmlcontext) }
 
   H.body $ do
     H.header $ mainHeader
@@ -70,10 +70,11 @@ mainHeader = do
 
 -- | Menu
 mainMenu :: MenuSection -> Html
-mainMenu active = sequence_ $ do
-  -- list monad
+mainMenu active = sequence_ $ do -- list monad
   (s,u,t) <- [ (M_AddNewPaste, "/",  "New paste")
              , (M_Recent,      "/r", "Show recent pastes")
+             , (M_Tags,        "/t", "Search tags")
+             , (M_About,       "/a", "About")
              ]
   return $
     (if (active == s) then H.li ! A.class_ "active" else H.li)
