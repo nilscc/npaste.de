@@ -1,5 +1,6 @@
 module NPaste.Utils.Description
     ( parseDesc
+    , descToString
     , DescVal (..)
     , Description
       -- ** Description filters
@@ -27,6 +28,12 @@ idsOnly vals = [ i | DescID i <- vals ]
 usernamesOnly :: Description -> [String]
 usernamesOnly vals = [ u | DescUsername u <- vals ]
 
+descToString :: Description -> String
+descToString (DescText     t:r) =        t ++        descToString r
+descToString (DescTag      t:r) = "#" ++ t ++        descToString r
+descToString (DescUsername u:r) = "@" ++ u ++        descToString r
+descToString (DescID       i:r) = "/" ++ i ++ "/" ++ descToString r
+descToString []                 = ""
 
 --------------------------------------------------------------------------------
 -- Parser

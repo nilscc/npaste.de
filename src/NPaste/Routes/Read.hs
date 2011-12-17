@@ -13,6 +13,7 @@ import NPaste.Database
 import NPaste.Html
 import NPaste.State
 import NPaste.Types
+import NPaste.Utils
 
 
 -- TODO: handle /u/<user>/<id> urls
@@ -45,7 +46,8 @@ showPasteR pid = choice
        -- get all informations, set the language etc pp
        paste     <- fmap setLang `fmap` getPasteById pid
        repl      <-  map pasteId `fmap` getReplies pid 20 0
-       Title     .= Just $ "Paste /" ++ pid ++ "/"
+       Title     .= Just $ "/" ++ pid ++ "/" ++ maybe "" ((" - " ++) . take 50 . descToString)
+                                                      (join $ fmap pasteDescription paste)
        CSS       .= ["code/hk-pyg.css", "code.css", "read.css"]
        Script    .= ["read.js"]
        HtmlFrame .= compactFrame (readInfo paste repl)
