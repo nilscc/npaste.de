@@ -13,6 +13,7 @@ import qualified Text.Blaze.Html5.Attributes  as A
 
 aboutHtml :: Integer -> Integer -> UTCTime -> Html
 aboutHtml numU numP now = do
+
   H.h1 $ H.a ! A.name "about" $ "About npaste.de"
 
   H.p $ do
@@ -51,6 +52,9 @@ aboutHtml numU numP now = do
     H.a ! A.href "/a#contact" $ "contact me"
     "."
 
+  --
+  -- HOWTO
+  --
 
   H.h3 $ H.a ! A.name "howto" $ "How to use npaste.de"
 
@@ -101,6 +105,9 @@ aboutHtml numU numP now = do
       H.pre ! A.class_ "inline" $ "npaste.de/<ID>"
       " without a trailing slash shows the paste as plaintext without HTML markup \
       \(which makes it easy to download a paste)"
+
+  H.p $ do H.a ! A.name "filter" $ return ()
+           "Filter: TODO"
 
   H.p $ "On the main website all pages are accessible via one letter keywords:"
 

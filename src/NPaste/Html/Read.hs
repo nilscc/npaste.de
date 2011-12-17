@@ -21,8 +21,8 @@ formatDesc d =
   sequence_ . for d $ \dval ->
     case dval of
          DescText     t -> toHtml t
-         DescUsername u -> H.a ! A.href (toValue $ "/u/"   ++ u) ! A.class_ "descUser" $ toHtml u
-         DescTag      t -> H.a ! A.href (toValue $ "/v/t/" ++ t) ! A.class_ "descTag"  $ toHtml ("#" ++ t)
+         DescUsername u -> H.a ! A.href (toValue $ "/v/user/" ++ u) ! A.class_ "descUser" $ toHtml ("@" ++ u)
+         DescTag      t -> H.a ! A.href (toValue $ "/v/tag/"  ++ t) ! A.class_ "descTag"  $ toHtml ("#" ++ t)
          DescID       i -> let url = "/" ++ i ++ "/"
                             in H.a ! A.href (toValue url) ! A.class_ "descID" $ toHtml url
  where
@@ -54,11 +54,14 @@ readInfo :: Maybe Paste
 readInfo Nothing  _ = return ()
 readInfo (Just p) r = do
   H.div ! A.class_ "pasteInfo" $ do
-    unless (null r) $ H.p ! A.class_ "replies" $ do
-      "Replies: "
-      sequence_ . intersperse " " . for r $ \pid ->
-        let url = "/" ++ pid ++ "/"
-         in H.a ! A.href (toValue url) $ toHtml url
+    unless (null r) $ do
+      H.p ! A.class_ "replies" $ do
+        "Replies: "
+        sequence_ . intersperse " " . for r $ \pid ->
+          let url = "/" ++ pid ++ "/"
+           in H.a ! A.href (toValue url) $ toHtml url
+      H.p ! A.id "view_all_replies" $
+        H.a ! A.href (toValue $ "/v/id" ++ p_id) $ "View all"
     H.form ! A.action "/" ! A.method "post" ! A.class_ "addReply" $ do
       H.input ! A.type_ "hidden" ! A.name "desc" ! A.value (toValue $ "Reply to " ++ p_id)
       H.input ! A.type_ "submit" ! A.name "asreply" ! A.value "New reply"

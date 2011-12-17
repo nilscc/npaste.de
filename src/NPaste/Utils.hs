@@ -8,11 +8,14 @@ module NPaste.Utils
   , withJust
   , withJust_
 
+  , module NPaste.Utils.Kate
   ) where
 
 import Control.Monad
 import Data.Convertible
 import Data.Maybe
+
+import NPaste.Utils.Kate
 
 convertMaybe :: Convertible a b => a ->  Maybe b
 convertMaybe = either (const Nothing) Just . safeConvert

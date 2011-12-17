@@ -13,7 +13,7 @@ import Data.Convertible
 import Data.Time
 import Data.Typeable
 
-import NPaste.Types.Description
+import NPaste.Types.Parser.Description
 import NPaste.Types.Instances ()
 import NPaste.Utils.Database (byteaUnpack)
 

@@ -1,6 +1,11 @@
 
 /* INFO / DESCRIPTION BOX */
 
+#main form#filter_form p {
+  display: inline-block;
+  margin-right: 20px;
+}
+
 div.pasteInfo {
   background-color: #999;
   border: 1px solid #666;
@@ -54,11 +59,6 @@ div.pasteInfo p a {
   display: inline-block;
   vertical-align: baseline;
   cursor: pointer;
-}
-
-#main form#tag_search_form p {
-  display: inline-block;
-  margin-right: 20px;
 }
 
 div.formatedCode pre.plainText,

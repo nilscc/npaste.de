@@ -14,6 +14,7 @@ header div#compactMenu form {
     margin: 0 15px 0;
   }
 
+  header div#compactMenu p#view_all_replies,
   header div#compactMenu p.replies {
     margin-right: 10px;
   }
@@ -21,6 +22,7 @@ header div#compactMenu form {
     header div#compactMenu p.replies a,
     header div#compactMenu p.desc a.descID,
     header div#compactMenu p.desc a.descTag,
+    header div#compactMenu p#view_all_replies a,
     header div#compactMenu form.addReply input[type=submit] {
       background-color: #aaa;
       padding: 2px 5px 2px;
@@ -47,10 +49,12 @@ header div#compactMenu form {
       font-size: 12px;
     }
 
+    header div#compactMenu p#view_all_replies a,
     header div#compactMenu form.addReply input[type=submit] {
       color: #444;
     }
 
+    header div#compactMenu p#view_all_replies a:hover,
     header div#compactMenu form.addReply input[type=submit]:hover {
       text-decoration: underline;
     }
