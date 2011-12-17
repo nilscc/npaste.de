@@ -60,15 +60,9 @@ div.pasteInfo p a {
   margin-right: 20px;
 }
 
-/* PASTE CONTENT */
-
 div.formatedCode pre.plainText,
 div.formatedCode div.lineNumbers pre,
 div.formatedCode div.sourceCode pre {
-  padding: 0;
-  margin: 0;
-  line-height: 12pt;
-  font-size: 10pt;
-  max-width: 540px;
+  max-width: 580px;
   overflow-x: auto;
 }

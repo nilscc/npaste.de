@@ -75,11 +75,11 @@ tagR =  do
         pastes <- findPastes 20 0 (S_Tag t)
         Title    .= Just $ "Pastes for #" ++ t
         CSS      .= ["code/hk-pyg.css", "code.css", "recent.css"]
-        Script   .= ["recent.js"]
+        -- Script   .= ["recent.js"]
         HtmlBody .= tagHtml t pastes
     , do
         Title    .= Just "Searching for tags"
         CSS      .= ["code/hk-pyg.css", "code.css", "recent.css"]
-        Script   .= ["recent.js"]
+        -- Script   .= ["recent.js"]
         HtmlBody .= emptyTagHtml
     ]

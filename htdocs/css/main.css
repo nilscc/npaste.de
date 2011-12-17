@@ -183,11 +183,13 @@ section#main
         font-style: italic;
     }
 
+    /*
     section#main pre
     {
         margin: 10px 30px 10px;
         font-weight: bold;
     }
+    */
 
     section#main p.moreless
     {

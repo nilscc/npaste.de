@@ -131,13 +131,13 @@ formatCode :: Paste
            -> [SourceLine]      -- ^ Source lines to format
            -> Html
 formatCode Paste{pasteId} source = do
-  H.div ! A.class_ "lineNumbers" $ H.pre $
+  H.div ! A.class_ "lineNumbers" $ H.pre ! A.class_ "lineNumbers" $
     sequence_ . intersperse br . for [1..length source] $ \(show->n) ->
       let name = "line-" ++ n
           url  = "/" ++ pasteId ++ "#" ++ name
        in H.a ! A.href (toValue url) ! A.name (toValue name) $ toHtml n
-  H.div ! A.class_ "sourceCode" $
-    H.pre $ sequence_ . intersperse br $ L.map sourceLineToHtml source
+  H.div ! A.class_ "sourceCode" $ H.pre ! A.class_ "sourceCode" $
+    sequence_ . intersperse br $ L.map sourceLineToHtml source
  where
   for = flip L.map
 
