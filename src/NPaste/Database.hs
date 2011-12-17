@@ -20,5 +20,5 @@ numberOfPastes = do
 
 numberOfUsers :: MonadIO m => m Integer
 numberOfUsers = do
-  [[SqlInteger i]] <- querySql "SELECT count(*) FROM users" []
-  return $ i - 1 -- subtract the "-1" user
+  [[SqlInteger i]] <- querySql "SELECT count(*) FROM users WHERE NOT id = '-1'" []
+  return i
