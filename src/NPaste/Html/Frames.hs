@@ -7,6 +7,7 @@ module NPaste.Html.Frames
   , nullContext
   ) where
 
+import Data.Maybe
 import Text.Blaze (toHtml, toValue, (!))
 import qualified Text.Blaze.Html5             as H
 import qualified Text.Blaze.Html5.Attributes  as A
@@ -71,29 +72,34 @@ mainHeader = do
 -- | Menu
 mainMenu :: MenuSection -> Html
 mainMenu active = sequence_ $ do -- list monad
-  (s,u,t) <- [ (M_AddNewPaste, "/",  "New paste")
-             , (M_Recent,      "/r", "Show recent pastes")
-             , (M_Tags,        "/t", "Search tags")
-             , (M_About,       "/a", "About")
-             ]
+  (s,u,a,t) <- menus
   return $ if (active == s) then
     H.li ! A.class_ "active" $ do
-      case s of
-           M_About -> H.a ! A.href "/a#about" $ t
-           _       -> H.a ! A.href u          $ t
-      subMenu s
+      H.a ! A.href (fromMaybe u a) $ t
+      -- build submenu if available
+      let subm = getSubMenu s
+      unless (null subm) $ H.ul ! A.class_ "submenu" $ do
+        forM_ subm $ \(su,st) -> H.li $ H.a ! A.href su $ st
    else
     H.li $ H.a ! A.href u $ t
 
-subMenu :: MenuSection -> Html
-subMenu M_About = H.ul ! A.class_ "submenu" $ sequence_ $ do
-  (u,t) <- [ ("/a#howto",       "How to")
-           , ("/a#contact",     "Contact")
-           , ("/a#statistics",  "Statistics")
-           , ("/a#disclaimer",  "Disclaimer")
-           ]
-  return $ H.li $ H.a ! A.href u $ t
-subMenu _ = return ()
+menus :: [(MenuSection, H.AttributeValue, Maybe H.AttributeValue, Html)]
+menus =
+  -- Menu section      URL      URL (active)       Title
+  [ (M_AddNewPaste,    "/",     Nothing,           "New paste")
+  , (M_Recent,         "/r",    Nothing,           "Show recent pastes")
+  , (M_Tags,           "/t",    Nothing,           "Search tags")
+  , (M_About,          "/a",    Just "/a#about",   "About")
+  ]
+
+getSubMenu :: MenuSection -> [(H.AttributeValue, Html)]
+getSubMenu M_About =
+  [ ("/a#howto",       "How to")
+  , ("/a#contact",     "Contact")
+  , ("/a#statistics",  "Statistics")
+  , ("/a#disclaimer",  "Disclaimer")
+  ]
+getSubMenu _ = []
 
 --------------------------------------------------------------------------------
 -- Compact frame
