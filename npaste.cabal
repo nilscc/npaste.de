@@ -14,7 +14,6 @@ executable npaste.de
     default-language: Haskell2010
 
     build-depends:
-        npaste                  == 0.3,
         base                    == 4.*,
         bytestring              == 0.9.*,
         containers              == 0.4.*,
