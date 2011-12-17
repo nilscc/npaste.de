@@ -11,9 +11,46 @@ import qualified Text.Blaze.Html5.Attributes  as A
 
 aboutHtml :: Integer -> Integer -> Html
 aboutHtml numU numP = do
-  H.h1 "About npaste.de"
+  H.h1 $ H.a ! A.name "about" $ "About npaste.de"
 
-  H.h3 "How to use npaste.de"
+  H.p $ do
+    "npaste.de is back in it's 3rd version – and it's better than ever! A\
+    \ completly rewritten backend makes it possible to develop new\
+    \ features faster than ever before."
+
+  H.p $ do
+    "With the "
+    H.a ! A.href "http://www.postgresql.org" $ "PostgreSQL"
+    " database backend npaste.de is more reliable and the "
+    H.a ! A.href "http://happstack.com" $ "Happstack"
+    " webserver library offers a powerfull framework."
+
+  H.p $ do
+    "The "
+    H.a ! A.href "http://hackage.haskell.org/cgi-bin/hackage-scripts/package/highlighting-kate"
+        $ "Kate highlighting engine"
+    " offers great support for a variety of programming languages. If support\
+    \ for your favorite programming language is missing, see if it is available for\
+    \ download on "
+    H.a ! A.href "http://kde-files.org/?xcontentmode=680"
+        $ "kde-files.org"
+    " or take a look at "
+    H.a ! A.href "http://kate-editor.org/2005/03/24/writing-a-syntax-highlighting-file/"
+        $ "how to write your own syntax highlighting file"
+    ". If you want me to add your highlighting to npaste.de, please "
+    H.a ! A.href "/a#contact" $ "contact me"
+    "!"
+
+  H.p $ do
+    "If you're interested in the source code of npaste.de, take a look at "
+    H.a ! A.href "http://github.com/mcmaniac/npaste.de" $ "github.com"
+    ". If you have any questions/suggestions or would like to contribute to\
+    \ npaste.de feel free to "
+    H.a ! A.href "/a#contact" $ "contact me"
+    "."
+
+
+  H.h3 $ H.a ! A.name "howto" $ "How to use npaste.de"
 
   H.p $ do
     "To create a paste simply go to "
@@ -84,7 +121,18 @@ aboutHtml numU numP = do
               " "
               H.pre ! A.class_ "inline" $ "#<TAG>"
 
-  H.h3 "Statistics"
+  H.h3 $ H.a ! A.name "contact" $ "Contact"
+
+  H.p "You can contact me via:"
+
+  H.ul $ do
+    H.li $ do "Email: "
+              H.a ! A.href "mailto:mail@n-sch.de" $ "mail@npaste.de"
+    H.li $    "Jabber: mcmaniac@n-sch.de"
+    H.li $ do "IRC: McManiaC on "
+              H.a ! A.href "irc://irc.freenode.org" $ "irc.freenode.org"
+
+  H.h3 $ H.a ! A.name "statistics" $ "Statistics"
 
   H.p "There are currently:"
 

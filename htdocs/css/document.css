@@ -1,5 +1,23 @@
 /* CSS used for documents (e.g. the ABOUT page) */
 
+#main h1 a,
+#main h2 a,
+#main h3 a,
+#main h4 a,
+#main h5 a,
+#main h6 a {
+  color: #666;
+}
+
+#main h1 a:hover,
+#main h2 a:hover,
+#main h3 a:hover,
+#main h4 a:hover,
+#main h5 a:hover,
+#main h6 a:hover {
+  text-decoration: none;
+}
+
 #main pre.inline {
   display: inline-block;
   padding: 0;
@@ -12,4 +30,8 @@
 
 #main ul li {
   margin: 10px;
+}
+
+#main div.small {
+  font-size: 10px;
 }
