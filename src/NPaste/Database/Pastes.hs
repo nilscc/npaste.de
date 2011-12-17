@@ -101,10 +101,10 @@ findPastes limit offset crits =
   joins                         = unwords . S.toList $ joins' crits
   joins'  (S_And s1 s2)         = joins' s1 `S.union` joins' s2
   joins'  (S_Or  s1 s2)         = joins' s1 `S.union` joins' s2
-  joins'  (S_UserName _)        = S.singleton "JOIN users u   ON u.id = p.user_id"
-  joins'  (S_Tag _)             = S.singleton "JOIN tags t    ON t.id = p.id"
-  joins'  (S_TagId _)           = S.singleton "JOIN tags t    ON t.id = p.id"
-  joins'  (S_ReplyOf _)         = S.singleton "JOIN replies r ON p.id IN (r.reply_id, r.paste_id)"
+  joins'  (S_UserName _)        = S.singleton "     JOIN users u   ON u.id = p.user_id"
+  joins'  (S_Tag _)             = S.singleton "     JOIN tags t    ON t.id = p.id"
+  joins'  (S_TagId _)           = S.singleton "     JOIN tags t    ON t.id = p.id"
+  joins'  (S_ReplyOf _)         = S.singleton "LEFT JOIN replies r ON p.id IN (r.reply_id, r.paste_id)"
   joins'  _                     = S.empty
 
   toWhere (S_And s1 s2)         = "(" ++ toWhere s1 ++ " AND " ++ toWhere s2 ++ ")"
@@ -114,7 +114,7 @@ findPastes limit offset crits =
   toWhere (S_UserName _)        = "u.name = ?"
   toWhere (S_Paste _)           = "p.id = ?"
   toWhere (S_PasteId _)         = "p.id = ?"
-  toWhere (S_PasteType _)       = "p.type = ?"
+  toWhere (S_PasteType t)       = "p.type " ++ if isNothing t then "IS NULL" else "= ?"
   toWhere (S_PasteDesc _)       = "to_tsvector(p.description) @@ plainto_tsquery(?)"
   toWhere (S_PasteCont _)       = "to_tsvector(p.content)     @@ plainto_tsquery(?)" -- TODO
   toWhere (S_PasteMd5 _)        = "p.md5 = ?"
@@ -133,7 +133,7 @@ findPastes limit offset crits =
   toSql'  (S_UserName n)        = [toSql n]
   toSql'  (S_Paste p)           = [toSql $ pasteId p]
   toSql'  (S_PasteId i)         = [toSql i]
-  toSql'  (S_PasteType t)       = [toSql t]
+  toSql'  (S_PasteType t)       = if isNothing t then [] else [toSql t]
   toSql'  (S_PasteDesc d)       = [toSql d]
   toSql'  (S_PasteCont c)       = [toSql c]
   toSql'  (S_PasteMd5 m)        = [byteaPack m]

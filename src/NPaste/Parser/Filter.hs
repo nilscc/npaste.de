@@ -52,8 +52,10 @@ filterToSearch [] = Nothing
 filterToSearch f  = Just $ foldr1 S_And $ map toS f
  where
   toS fval = case fval of
-                  FilterID          i -> S_Or (S_PasteId i) (S_ReplyOf i)
-                  FilterUsername    u -> S_UserName u
-                  FilterTag         t -> S_Tag t
-                  FilterLanguage    l -> S_PasteType $ fromMaybe l $ findLang l
-                  FilterDescription d -> S_PasteDesc d
+                  FilterID          i  -> S_Or (S_PasteId i) (S_ReplyOf i)
+                  FilterUsername    u  -> S_UserName u
+                  FilterTag         t  -> S_Tag t
+                  FilterDescription d  -> S_PasteDesc d
+                  FilterLanguage    l
+                    | l == "Plaintext" -> S_PasteType Nothing
+                    | otherwise        -> S_PasteType $ findLang l <|> Just l
