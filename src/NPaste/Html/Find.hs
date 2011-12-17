@@ -1,4 +1,5 @@
 {-# LANGUAGE OverloadedStrings #-}
+{-# OPTIONS -fno-warn-unused-do-bind #-}
 
 module NPaste.Html.Find where
 
@@ -44,9 +45,11 @@ viewHtml mtag pastes = do
 tagSearchForm :: Maybe String -> Html
 tagSearchForm mtag = do
   H.form ! A.method "post" ! A.action "/v/t" ! A.id "tag_search_form" $ do
-    H.p "Filter tags:"
+    H.p $ do
+      "Filter pastes ("
+      H.a ! A.href "/a#filter" $ "help"
+      "):"
     case mtag of
          Just tag -> H.input ! A.type_ "text" ! A.name "tag" ! A.value (H.toValue tag)
          Nothing  -> H.input ! A.type_ "text" ! A.name "tag"
     H.input ! A.type_ "submit"
-    -- H.input ! A.type_ "submit" ! A.name "clearTags" ! A.value "Clear"

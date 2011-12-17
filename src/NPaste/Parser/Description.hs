@@ -1,8 +1,9 @@
-module NPaste.Utils.Description
-    ( parseDesc
-    , descToString
+module NPaste.Parser.Description
+    ( -- * Parse descriptions
+      parseDesc
     , DescVal (..)
     , Description
+    , descToString
       -- ** Description filters
     , tagsOnly
     , idsOnly

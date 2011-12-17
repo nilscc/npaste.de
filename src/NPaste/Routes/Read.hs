@@ -13,7 +13,7 @@ import NPaste.Database
 import NPaste.Html
 import NPaste.State
 import NPaste.Types
-import NPaste.Utils
+import NPaste.Parser
 
 
 -- TODO: handle /u/<user>/<id> urls

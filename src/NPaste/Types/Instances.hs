@@ -12,7 +12,7 @@ import Database.HDBC
 import Happstack.Server
 import Happstack.Server.Internal.MonadPeelIO ()
 
-import NPaste.Utils.Description
+import NPaste.Parser.Description
 
 instance Convertible [SqlValue] Description where
   safeConvert s = fmap (parseDesc . concat) $ mapM safeConvert s

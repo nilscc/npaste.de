@@ -2,14 +2,14 @@ module NPaste.Routes.Partial
   ( partialR
   ) where
 
-import Happstack.Server
+-- import Happstack.Server
 
-import NPaste.Database
+-- import NPaste.Database
 import NPaste.Types
-import NPaste.State
-import NPaste.Utils
+-- import NPaste.State
+-- import NPaste.Parser
 
-import NPaste.Html.Find
+-- import NPaste.Html.Find
 
 partialR :: NPaste ()
 partialR = do
