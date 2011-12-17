@@ -22,12 +22,12 @@ parseFilter :: String -> Either ParseError Filter
 parseFilter = parse parseF "filter"
 
 parseF :: Parser Filter
-parseF = choice [parseId, parseUName, parseTag, parseDesc, parseLang]
+parseF = choice [parseId, {- parseUName, -} parseTag, parseDesc, parseLang]
          `sepEndBy`
          many1 (space <?> "")
 
 -- parse different DescVals:
-parseId, parseUName, parseTag, parseLang, parseDesc :: Parser FilterVal
+parseId, {- parseUName, -} parseTag, parseLang, parseDesc :: Parser FilterVal
 
 parseId = do
   char '/' 
@@ -39,9 +39,9 @@ parseDesc = do
   f <- fmap FilterDescription $ manyTill anyChar (lookAhead (char '"' <?> "a \" to end the description"))
   char '"'
   return f
-parseUName = do
-  char '@' 
-  fmap FilterUsername $ many1 (alphaNum <?> "a valid username")
+-- parseUName = do
+  -- char '@' 
+  -- fmap FilterUsername $ many1 (alphaNum <?> "a valid username")
 parseTag  = char '#' *> (fmap FilterTag      $ many1 ((alphaNum <|> oneOf tagSpecialChars) <?> "a valid tag"))
 parseLang =             (fmap FilterLanguage $ many1 (satisfy (not . isSpace)))
 

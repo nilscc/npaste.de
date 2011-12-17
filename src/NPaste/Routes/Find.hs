@@ -48,7 +48,7 @@ buildFilterFromUrl :: NPaste [String]
 buildFilterFromUrl = choice
   [ dir "id"   $ path $ \i -> fmap (("/" ++ i ++ "/")  :) buildFilterFromUrl
   , dir "tag"  $ path $ \t -> fmap (("#" ++ t)         :) buildFilterFromUrl
-  , dir "user" $ path $ \u -> fmap (("@" ++ u)         :) buildFilterFromUrl
+  -- , dir "user" $ path $ \u -> fmap (("@" ++ u)         :) buildFilterFromUrl
   , dir "lang" $ path $ \l -> fmap ((l)                :) buildFilterFromUrl
   , dir "desc" $ path $ \d -> fmap (("\"" ++ d ++ "\""):) buildFilterFromUrl
   , return []
