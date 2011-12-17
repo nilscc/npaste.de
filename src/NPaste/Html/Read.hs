@@ -6,6 +6,7 @@ module NPaste.Html.Read where
 import Data.ByteString.Char8 (unpack)
 import Data.List                    as L
 import Data.Time
+import Data.Maybe
 import System.Locale
 import Text.Blaze.Html5 (toHtml, toValue, (!))
 import qualified Text.Blaze.Html5             as H
@@ -23,8 +24,7 @@ formatDesc d =
          DescText     t -> toHtml t
          DescUsername u -> H.a ! A.href (toValue $ "/v/user/" ++ u) ! A.class_ "descUser" $ toHtml ("@" ++ u)
          DescTag      t -> H.a ! A.href (toValue $ "/v/tag/"  ++ t) ! A.class_ "descTag"  $ toHtml ("#" ++ t)
-         DescID       i -> let url = "/" ++ i ++ "/"
-                            in H.a ! A.href (toValue url) ! A.class_ "descID" $ toHtml url
+         DescID       i -> H.a ! A.href (toValue $ "/v/id/"   ++ i) ! A.class_ "descID"   $ toHtml ("/" ++ i ++ "/")
  where
   for = flip L.map
 
@@ -110,14 +110,18 @@ pasteInfo Paste{ pasteId, pasteDate, pasteDescription, pasteType } =
   H.div ! A.class_ "pasteInfo" $ do
     H.p ! A.class_ "timestamp" $
       toHtml $ formatTime defaultTimeLocale "%H:%M - %a %Y.%m.%d" pasteDate
-    H.p ! A.class_ "language" $
-      case pasteType of
-           Nothing -> "Plain text"
-           Just t  -> toHtml t
+    H.p ! A.class_ "language" $ do
+      let lang = case pasteType of
+                      Nothing -> "Plaintext"
+                      Just t  -> t
+      H.a ! A.href (toValue $ "/v/lang/" ++ lang) $ toHtml lang
     H.p $ do
       "Paste: "
-      let p_id = "/" ++ pasteId ++ "/"
-      H.a ! A.href (toValue p_id) $ toHtml p_id
+      H.a ! A.href (toValue $ "/v/id/" ++ pasteId)
+          ! A.name (toValue $ "pid-"   ++ pasteId)
+          $ toHtml ("/" ++ pasteId ++ "/")
+      H.a ! A.href (toValue $ "/" ++ pasteId ++ "/")
+          $ "View full paste"
     H.p ! A.class_ "desc" $
       case pasteDescription of
            Just d  -> formatDesc d
