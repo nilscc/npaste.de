@@ -14,9 +14,11 @@ import NPaste.Html.Find
 partialR :: NPaste ()
 partialR = do
   setNP PartialHtmlResponse
+  {-
   choice
     [ dir "t" $ path $ \t -> do
         unless (validTag t) mzero
         ps       <- getPastesByTag t 20 0 False
         HtmlBody .= tagListPastes t ps
     ]
+  -}

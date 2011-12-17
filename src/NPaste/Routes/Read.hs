@@ -20,8 +20,7 @@ import NPaste.Utils
 
 readR :: String -> NPaste ()
 readR pid | length pid >= 2 = showPasteR pid
-readR "r" = showRecentR Nothing 20 0 False
-readR _   = mzero
+readR _                     = mzero
 
 showPasteR :: Id -> NPaste ()
 showPasteR pid = choice
@@ -62,12 +61,3 @@ showPasteR pid = choice
                       , map toLower lang == map toLower l]
                   ++ languagesByExtension lang
                   ++ languagesByFilename lang
-
-showRecentR :: Maybe User -> Int -> Int -> Bool -> NPaste ()
-showRecentR mu l o hidden = do
-  setNP M_Recent -- menu location
-  pastes    <- getRecentPastes mu l o hidden
-  Title     .= Just "Recent pastes"
-  CSS       .= ["code/hk-pyg.css", "code.css", "recent.css"]
-  HtmlFrame .= mainFrame
-  HtmlBody  .= recentHtml pastes

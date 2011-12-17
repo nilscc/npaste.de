@@ -87,8 +87,7 @@ menus :: [(MenuSection, H.AttributeValue, Maybe H.AttributeValue, Html)]
 menus =
   -- Menu section      URL      URL (active)       Title
   [ (M_AddNewPaste,    "/",     Nothing,           "New paste")
-  , (M_Recent,         "/r",    Nothing,           "Show recent pastes")
-  , (M_Tags,           "/t",    Nothing,           "Search tags")
+  , (M_Recent,         "/v",    Nothing,           "View pastes")
   , (M_About,          "/a",    Just "/a#about",   "About")
   ]
 
