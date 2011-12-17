@@ -38,11 +38,11 @@ import qualified NPaste.Parser.Description as P
 -- Queries
 
 instance Select [Paste] where
-  select         = withSelectStr "SELECT p.id, p.user_id, p.date, p.type, p.description, p.content, p.hidden FROM pastes p"
+  select         = withSelectStr "SELECT DISTINCT p.id, p.user_id, p.date, p.type, p.description, p.content, p.hidden FROM pastes p"
   convertFromSql = convertToList
 
 instance Select (Maybe Paste) where
-  select         = withSelectStr "SELECT p.id, p.user_id, p.date, p.type, p.description, p.content, p.hidden FROM pastes p"
+  select         = withSelectStr "SELECT DISTINCT p.id, p.user_id, p.date, p.type, p.description, p.content, p.hidden FROM pastes p"
   convertFromSql = convertListToMaybe
 
 
