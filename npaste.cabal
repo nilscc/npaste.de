@@ -1,5 +1,5 @@
 name:           npaste
-version:        0.3
+version:        3.0
 synopsis:       npaste.de
 author:         Nils Schweinsberg <mail@n-sch.de>
 maintainer:     Nils Schweinsberg <mail@n-sch.de>
@@ -7,81 +7,6 @@ category:       Network
 
 build-type:     Simple
 cabal-version:  >= 1.10
-
-library
-
-    hs-source-dirs: src
-    ghc-options: -Wall
-    default-language: Haskell2010
-
-    build-depends:
-        base                    == 4.*,
-        bytestring              == 0.9.*,
-        containers              == 0.4.*,
-        mtl                     == 2.*,
-        random                  == 1.*,
-        time                    == 1.*,
-        old-locale              == 1.*,
-        MaybeT                  == 0.1.*,
-        parsec                  == 3.*,
-        HDBC                    == 2.*,
-        HDBC-postgresql         == 2.*,
-        mstate                  >= 0.2.5,
-        convertible             == 1.*,
-        monad-peel              == 0.1.*,
-        Crypto                  == 4.*,
-        happstack               == 6.*,
-        happstack-data          == 6.*,
-        happstack-ixset         == 6.*,
-        happstack-server        == 6.*,
-        happstack-state         == 6.*,
-        happstack-util          == 6.*,
-        blaze-html              == 0.4.*,
-        highlighting-kate       == 0.2.*
-
-    exposed-modules:
-        NPaste
-        NPaste.Database
-
-        NPaste.Html
-        NPaste.Html.Frames
-        NPaste.Html.Index
-        NPaste.Html.Read
-
-        NPaste.Routes
-        NPaste.Routes.Index
-        NPaste.Routes.Read
-
-        NPaste.Types
-        NPaste.Utils
-
-    other-modules:
-        Happstack.Server.Internal.MonadPeelIO
-
-        NPaste.Database.Connection
-        NPaste.Database.Users
-        NPaste.Database.Users.Password
-        NPaste.Database.Pastes
-        NPaste.Database.Pastes.Replies
-        NPaste.Database.Pastes.Tags
-
-        NPaste.Routes.Static
-
-        NPaste.Types.Database
-        NPaste.Types.Database.User
-        NPaste.Types.Error
-        NPaste.Types.Error.AddPaste
-        NPaste.Types.Error.AddUser
-        NPaste.Types.Error.NPaste
-        NPaste.Types.Html
-        NPaste.Types.Html.Context
-        NPaste.Types.Html.Index
-        NPaste.Types.Html.Menu
-        NPaste.Types.Html.Valued
-        NPaste.Types.Instances
-        NPaste.Types.State
-
-        NPaste.Utils.Description
 
 executable npaste.de
     hs-source-dirs: src
