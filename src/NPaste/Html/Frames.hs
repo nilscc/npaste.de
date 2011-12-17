@@ -73,30 +73,38 @@ mainHeader = do
 mainMenu :: MenuSection -> Html
 mainMenu active = sequence_ $ do -- list monad
   (s,u,a,t) <- menus
-  return $ if (active == s) then
+  return $ if (isCurrentMenu active s) then
     H.li ! A.class_ "active" $ do
       H.a ! A.href (fromMaybe u a) $ t
       -- build submenu if available
-      let subm = getSubMenu s
-      unless (null subm) $ H.ul ! A.class_ "submenu" $ do
-        forM_ subm $ \(su,st) -> H.li $ H.a ! A.href su $ st
+      let subm = getSubMenu active
+      unless (null subm) $ H.ul ! A.class_ "submenu" $
+        mapM_ H.li subm
    else
     H.li $ H.a ! A.href u $ t
+
+-- | Compare two menu sections, disregard possible context/information
+isCurrentMenu :: MenuSection -> MenuSection -> Bool
+isCurrentMenu (M_View _) (M_View _) = True
+isCurrentMenu  m1         m2        = m1 == m2
 
 menus :: [(MenuSection, H.AttributeValue, Maybe H.AttributeValue, Html)]
 menus =
   -- Menu section      URL      URL (active)       Title
   [ (M_AddNewPaste,    "/",     Nothing,           "New paste")
-  , (M_Recent,         "/v",    Nothing,           "View pastes")
+  , (M_View Nothing,   "/v",    Nothing,           "View pastes")
   , (M_About,          "/a",    Just "/a#about",   "About")
   ]
 
-getSubMenu :: MenuSection -> [(H.AttributeValue, Html)]
+getSubMenu :: MenuSection -> [Html]
 getSubMenu M_About =
-  [ ("/a#howto",       "How to")
-  , ("/a#contact",     "Contact")
-  , ("/a#statistics",  "Statistics")
-  , ("/a#disclaimer",  "Disclaimer")
+  [ H.a ! A.href "/a#howto"      $ "How to"
+  , H.a ! A.href "/a#contact"    $ "Contact"
+  , H.a ! A.href "/a#statistics" $ "Statistics"
+  , H.a ! A.href "/a#disclaimer" $ "Disclaimer"
+  ]
+getSubMenu (M_View (Just t)) =
+  [ toHtml $ "Filtered by #" ++ t
   ]
 getSubMenu _ = []
 
