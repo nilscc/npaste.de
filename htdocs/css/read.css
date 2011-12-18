@@ -1,6 +1,8 @@
 header div#compactMenu p,
 header div#compactMenu form {
   display: inline-block;
+}
+header div#compactMenu p {
   margin-right: 15px;
 }
 
