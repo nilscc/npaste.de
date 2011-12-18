@@ -24,6 +24,18 @@ formatDesc d =
          DescText     t -> toHtml t
          DescUsername u -> H.a ! A.href (toValue $ "/v/user/" ++ u) ! A.class_ "descUser" $ toHtml ("@" ++ u)
          DescTag      t -> H.a ! A.href (toValue $ "/v/tag/"  ++ t) ! A.class_ "descTag"  $ toHtml ("#" ++ t)
+         DescID       i -> H.a ! A.href (toValue $ "/" ++ i ++ "/") ! A.class_ "descID"   $ toHtml ("/" ++ i ++ "/")
+ where
+  for = flip L.map
+
+-- | Show links in description etc
+formatDesc' :: Description -> Html
+formatDesc' d =
+  sequence_ . for d $ \dval ->
+    case dval of
+         DescText     t -> toHtml t
+         DescUsername u -> H.a ! A.href (toValue $ "/v/user/" ++ u) ! A.class_ "descUser" $ toHtml ("@" ++ u)
+         DescTag      t -> H.a ! A.href (toValue $ "/v/tag/"  ++ t) ! A.class_ "descTag"  $ toHtml ("#" ++ t)
          DescID       i -> H.a ! A.href (toValue $ "/v/id/"   ++ i) ! A.class_ "descID"   $ toHtml ("/" ++ i ++ "/")
  where
   for = flip L.map
@@ -124,7 +136,7 @@ pasteInfo Paste{ pasteId, pasteDate, pasteDescription, pasteType } =
           $ "View full paste"
     H.p ! A.class_ "desc" $
       case pasteDescription of
-           Just d  -> formatDesc d
+           Just d  -> formatDesc' d
            Nothing -> "No description."
 
 --------------------------------------------------------------------------------
