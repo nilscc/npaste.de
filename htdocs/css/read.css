@@ -15,8 +15,9 @@ header div#compactMenu form {
   }
 
   header div#compactMenu p#view_all_replies,
+  header div#compactMenu form.addReply input[type=submit],
   header div#compactMenu p.replies {
-    margin-right: 10px;
+    margin: 0 10px 0 0;
   }
 
     header div#compactMenu p.replies a,
@@ -31,6 +32,7 @@ header div#compactMenu form {
       font-size: 11px;
       font-family: sans-serif;
       font-weight: normal;
+      font-style: normal;
       display: inline-block;
       vertical-align: baseline;
       cursor: pointer;
