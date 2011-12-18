@@ -61,9 +61,9 @@ readInfo (Just p) r = do
           let url = "/" ++ pid ++ "/"
            in H.a ! A.href (toValue url) $ toHtml url
       H.p ! A.id "view_all_replies" $
-        H.a ! A.href (toValue $ "/v/id" ++ p_id) $ "View all"
+        H.a ! A.href (toValue $ "/v/id" ++ p_id) $ "Show related"
     H.form ! A.action "/" ! A.method "post" ! A.class_ "addReply" $ do
-      H.input ! A.type_ "hidden" ! A.name "desc" ! A.value (toValue $ "Reply to " ++ p_id)
+      H.input ! A.type_ "hidden" ! A.name "desc"    ! A.value (toValue $ "Reply to " ++ p_id)
       H.input ! A.type_ "submit" ! A.name "asreply" ! A.value "New reply"
     H.p ! A.class_ "timestamp" $
       toHtml $ formatTime defaultTimeLocale "%H:%M - %a %Y.%m.%d" (pasteDate p)
@@ -117,10 +117,10 @@ pasteInfo Paste{ pasteId, pasteDate, pasteDescription, pasteType } =
       H.a ! A.href (toValue $ "/v/lang/" ++ lang) $ toHtml lang
     H.p $ do
       "Paste: "
-      H.a ! A.href (toValue $ "/v/id/" ++ pasteId)
-          $ toHtml ("/" ++ pasteId ++ "/")
       H.a ! A.href (toValue $ "/" ++ pasteId ++ "/")
-          $ "View full paste"
+          $ toHtml ("/" ++ pasteId ++ "/")
+      H.a ! A.href (toValue $ "/v/id/" ++ pasteId)
+          $ "Show related"
     H.p ! A.class_ "desc" $
       case pasteDescription of
            Just d  -> formatDesc d
