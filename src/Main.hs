@@ -35,6 +35,6 @@ logMAccess :: FormatTime t
            -> String
            -> String
            -> IO ()
-logMAccess host user time requestLine responseCode size referer userAgent =
+logMAccess h user time requestLine responseCode size referer userAgent =
   logM "NPaste.AccessLog.Combined" INFO $
-    formatRequestCombined host user time requestLine responseCode size referer userAgent
+    formatRequestCombined h user time requestLine responseCode size referer userAgent
