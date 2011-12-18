@@ -87,7 +87,7 @@ getReplies :: Id
            -> Int             -- ^ offset
            -> Query [Paste]
 getReplies pid limit offset =
-  findPastes limit offset $ S_ReplyOf pid
+  findPastes limit offset $ S_ReplyTo pid
 
 findPastes :: Select res
            => Int         -- ^ Limit
@@ -105,6 +105,7 @@ findPastes limit offset crits =
   joins'  (S_Tag _)             = S.singleton "     JOIN tags t    ON t.id = p.id"
   joins'  (S_TagId _)           = S.singleton "     JOIN tags t    ON t.id = p.id"
   joins'  (S_ReplyOf _)         = S.singleton "LEFT JOIN replies r ON p.id IN (r.reply_id, r.paste_id)"
+  joins'  (S_ReplyTo _)         = S.singleton "LEFT JOIN replies r ON p.id IN (r.reply_id, r.paste_id)"
   joins'  _                     = S.empty
 
   toWhere (S_And s1 s2)         = "(" ++ toWhere s1 ++ " AND " ++ toWhere s2 ++ ")"
@@ -124,7 +125,8 @@ findPastes limit offset crits =
   toWhere (S_PasteHidden _)     = "p.hidden IN (?,FALSE)"
   toWhere (S_Tag _)             = "t.tag = ?"
   toWhere (S_TagId _)           = "t.id = ?"
-  toWhere (S_ReplyOf _)         = "(NOT p.id = ? AND r.paste_id = ?)"
+  toWhere (S_ReplyOf _)         = "(NOT p.id = ? AND r.reply_id = ?)"
+  toWhere (S_ReplyTo _)         = "(NOT p.id = ? AND r.paste_id = ?)"
 
   toSql'  (S_And s1 s2)         = toSql' s1 ++ toSql' s2
   toSql'  (S_Or  s1 s2)         = toSql' s1 ++ toSql' s2
@@ -144,6 +146,7 @@ findPastes limit offset crits =
   toSql'  (S_Tag t)             = [toSql t]
   toSql'  (S_TagId i)           = [toSql i]
   toSql'  (S_ReplyOf i)         = [toSql i, toSql i]
+  toSql'  (S_ReplyTo i)         = [toSql i, toSql i]
 
 
 
