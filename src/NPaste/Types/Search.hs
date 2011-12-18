@@ -33,4 +33,5 @@ data Search
 
     -- Replies
   | S_ReplyOf         Id
+  | S_ReplyTo         Id
   deriving (Eq, Show)
