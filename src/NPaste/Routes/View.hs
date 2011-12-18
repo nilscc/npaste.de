@@ -19,6 +19,8 @@ import NPaste.Parser
 viewR :: NPaste ()
 viewR = do
 
+  CSS .= ["code/hk-pyg.css", "code.css", "view.css"]
+
   f <- choice
     [ do methodM POST
          decodeBody (defaultBodyPolicy "/tmp/" 0 100000 100000)
@@ -26,18 +28,16 @@ viewR = do
     , fmap unwords buildFilterFromUrl
     ]
 
-  CSS       .= ["code/hk-pyg.css", "code.css", "view.css"]
-
   case parseFilter f of
+       Left err -> do
+         M_View    .= Nothing
+         Title     .= Just "Recent pastes"
+         HtmlBody  .= viewHtml (Just f) (Left err)
        Right fl@(filterToSearch -> Just s) -> do
          p <- findPastes 20 0 s
          M_View    .= Just fl
          Title     .= Just "Recent pastes (filtered)"
          HtmlBody  .= viewHtml (Just f) (Right p)
-       Left err -> do
-         M_View    .= Nothing
-         Title     .= Just "Recent pastes"
-         HtmlBody  .= viewHtml (Just f) (Left err)
        _ -> do
          p <- getRecentPastes Nothing 20 0 False -- TODO: support for user/limit/offset/hidden
          M_View    .= Nothing
