@@ -15,11 +15,11 @@ import NPaste.Database
 import NPaste.Types
 import NPaste.State
 
-import NPaste.Routes.Find
 import NPaste.Routes.Index
 import NPaste.Routes.Partial
 import NPaste.Routes.Read
 import NPaste.Routes.Static
+import NPaste.Routes.View
 
 import NPaste.Html.About
 
