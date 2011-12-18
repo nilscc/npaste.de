@@ -1,6 +1,6 @@
 {-# LANGUAGE ViewPatterns #-}
 
-module NPaste.Routes.Find
+module NPaste.Routes.View
   ( viewR
   ) where
 
