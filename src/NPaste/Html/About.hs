@@ -106,8 +106,21 @@ aboutHtml numU numP now = do
       " without a trailing slash shows the paste as plaintext without HTML markup \
       \(which makes it easy to download a paste)"
 
-  H.p $ do H.a ! A.name "filter" $ return ()
-           "Filter: TODO"
+  H.p $ do
+    H.a ! A.name "filter" $ return ()
+    "Filtering pastes is done either by clicking IDs, tags or language links\
+    \ directly, or by using the following rules. Note that you can combine these\
+    \ rules, such that all of them have to be met for a paste to be listed."
+
+  H.ul $ do
+    H.li $ do H.pre ! A.class_ "inline" $ "/<ID>/"
+              ": List all pastes that have or contain (in their description) the given ID"
+    H.li $ do H.pre ! A.class_ "inline" $ "#<TAG>"
+              ": List all pastes that share the same tag"
+    H.li $ do H.pre ! A.class_ "inline" $ "\"<DESC>\""
+              ": List all pastes where <DESC> is part of the description"
+    H.li $ do H.pre ! A.class_ "inline" $ "<LANG>"
+              ": List all pastes with the given language (no special chars needed)"
 
   H.p $ "On the main website all pages are accessible via one letter keywords:"
 
