@@ -60,11 +60,11 @@ readInfo (Just p) r = do
         sequence_ . intersperse " " . for r $ \pid ->
           let url = "/" ++ pid ++ "/"
            in H.a ! A.href (toValue url) $ toHtml url
-      H.p ! A.id "view_all_replies" $
-        H.a ! A.href (toValue $ "/v/id" ++ p_id) $ "Show related"
     H.form ! A.action "/" ! A.method "post" ! A.class_ "addReply" $ do
       H.input ! A.type_ "hidden" ! A.name "desc"    ! A.value (toValue $ "Reply to " ++ p_id)
       H.input ! A.type_ "submit" ! A.name "asreply" ! A.value "New reply"
+    H.p ! A.id "view_all_replies" $
+      H.a ! A.href (toValue $ "/v/id" ++ p_id) $ "Show related"
     H.p ! A.class_ "timestamp" $
       toHtml $ formatTime defaultTimeLocale "%H:%M - %a %Y.%m.%d" (pasteDate p)
     H.form ! A.action (H.toValue p_id) ! A.method "post"

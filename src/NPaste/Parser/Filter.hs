@@ -52,7 +52,7 @@ filterToSearch [] = Nothing
 filterToSearch f  = Just $ foldr1 S_And $ map toS f
  where
   toS fval = case fval of
-                  FilterID          i  -> S_Or (S_PasteId i) (S_ReplyOf i)
+                  FilterID          i  -> S_Or (S_PasteId i) $ S_Or (S_ReplyTo i) (S_ReplyOf i)
                   FilterUsername    u  -> S_UserName u
                   FilterTag         t  -> S_Tag t
                   FilterDescription d  -> S_PasteDesc d
