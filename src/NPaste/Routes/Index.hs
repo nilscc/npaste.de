@@ -49,6 +49,11 @@ indexR = do
                     Right pId -> Right pId
 
   case r of
+       Right pId -> do
+         let url = "/" ++ pId ++ "/"
+         rq <- askRq
+         PlainResponse rq .= seeOther url . toResponse $
+                             "New paste added: http://npaste.de" ++ url ++ "\n"
        Left (Just (APE_AlreadyExists Paste{pasteId})) -> do -- TODO: replace with proper ID
          let url = "/" ++ pasteId ++ "/"
          rq <- askRq
@@ -58,11 +63,6 @@ indexR = do
          HtmlFrame .= mainFrame
          CSS       .= ["index.css"]
          HtmlBody  .= indexHtml pdata err
-       Right pId -> do
-         let url = "/" ++ pId ++ "/"
-         rq <- askRq
-         PlainResponse rq .= seeOther url . toResponse $
-                             "New paste added: http://npaste.de" ++ url ++ "\n"
 
  where
   cutTrailingSpaces :: String -> String
