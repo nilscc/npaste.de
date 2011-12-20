@@ -95,16 +95,16 @@ menus =
   -- Menu section      URL      URL (active)       Title
   [ (M_AddNewPaste,    "/",     Nothing,           "New paste")
   , (M_View Nothing,   "/v",    Nothing,           "View pastes")
-  , (M_About,          "/a",    Just "/a#about",   "About")
+  , (M_About,          "/a",    Nothing,           "About")
   ]
 
 
 getSubMenu :: MenuSection -> [Html]
 getSubMenu M_About =
-  [ H.a ! A.href "/a#howto"      $ "How to"
-  , H.a ! A.href "/a#contact"    $ "Contact"
-  , H.a ! A.href "/a#statistics" $ "Statistics"
-  , H.a ! A.href "/a#disclaimer" $ "Disclaimer"
+  [ H.a ! A.href "/a/howto"      $ "How to"
+  , H.a ! A.href "/a/contact"    $ "Contact"
+  , H.a ! A.href "/a/statistics" $ "Statistics"
+  -- , H.a ! A.href "/a/disclaimer" $ "Disclaimer"
   ]
 getSubMenu (M_View (Just f)) =
   [ "Filtered by:"
