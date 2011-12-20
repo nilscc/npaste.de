@@ -59,12 +59,15 @@ header {
     color: #00b9b9;
   }
 
-  header p#logo {
+  header p#logo,
+  header p.desc {
     padding: 0;
-    margin: 5px 25px 5px 10px;
+    margin: 5px 10px 5px;
     display: inline-block;
+  }
+
+  header p#logo {
     font-weight: bold;
-    text-align: right;
   }
 
   header p#logo a {
@@ -89,11 +92,22 @@ header {
     right: 1px;
   }
 
+  header p.desc {
+    font-size: 14px;
+    color: white;
+  }
+  header p.desc:before {
+    content: "“";
+  }
+  header p.desc:after {
+    content: "”";
+  }
+
   header div#compactMenu {
     color: white;
     font-size: 11px;
     float: right;
-    padding: 0 10px 0 25px;
+    padding: 0 10px 0;
     margin: 0;
     max-width: 50%;
     text-align: right;
