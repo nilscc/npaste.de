@@ -10,12 +10,6 @@ header div#compactMenu p {
     display: block;
   }
 
-  header div#compactMenu p.desc {
-    font-style: italic;
-    font-size: 12px;
-    margin: 0 15px 0;
-  }
-
   header div#compactMenu p#view_all_replies,
   header div#compactMenu form.addReply input[type=submit],
   header div#compactMenu p.replies {
@@ -23,8 +17,8 @@ header div#compactMenu p {
   }
 
     header div#compactMenu p.replies a,
-    header div#compactMenu p.desc a.descID,
-    header div#compactMenu p.desc a.descTag,
+    header                 p.desc a.descID,
+    header                 p.desc a.descTag,
     header div#compactMenu p#view_all_replies a,
     header div#compactMenu form.addReply input[type=submit] {
       background-color: #aaa;
@@ -45,8 +39,8 @@ header div#compactMenu p {
       color: #444;
     }
 
-    header div#compactMenu p.desc a.descID,
-    header div#compactMenu p.desc a.descTag {
+    header p.desc a.descID,
+    header p.desc a.descTag {
       margin-left: 5px;
       margin-right: 5px;
       color: #444;
