@@ -4,6 +4,7 @@ module NPaste.Routes.View
   ( viewR
   ) where
 
+import Control.Applicative
 import Happstack.Server
 
 import NPaste.Database
@@ -34,7 +35,7 @@ viewR = do
          Title     .= Just "View recent pastes"
          HtmlBody  .= viewHtml (Just f) (Left err)
        Right fl@(filterToSearch -> Just s) -> do
-         p <- findPastes 20 0 s
+         p <- findPastes 20 0 =<< addHiddenFilter s
          M_View    .= Just fl
          Title     .= Just "View pastes (filtered)"
          HtmlBody  .= viewHtml (Just f) (Right p)
@@ -53,4 +54,23 @@ buildFilterFromUrl = choice
   , dir "desc" $ path $ \d -> fmap (("\"" ++ d ++ "\""):) buildFilterFromUrl
   , return []
   ]
-  
+
+-- Show hidden pastes if a hidden paste is part of the query, otherwise hide
+-- them
+addHiddenFilter :: Search -> NPaste Search
+addHiddenFilter s = do
+  h <- containsHiddenId s
+  return $
+    if h then s else S_And (S_PasteHidden False) s
+ where
+  containsHiddenId :: Search -> NPaste Bool
+  containsHiddenId (S_And s1 s2) =
+    (||) <$> containsHiddenId s1
+         <*> containsHiddenId s2
+  containsHiddenId (S_Or s1 s2) =
+    (||) <$> containsHiddenId s1
+         <*> containsHiddenId s2
+  containsHiddenId (S_PasteId i) = do
+    mp <- getPasteById i
+    return $ maybe False pasteHidden mp
+  containsHiddenId _ = return False
