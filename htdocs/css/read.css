@@ -51,7 +51,7 @@ header div#compactMenu form {
   display: inline-block;
 }
 header div#compactMenu p {
-  margin-right: 15px;
+  margin: 11px 10px 11px 0;
 }
 
   header div#compactMenu div.pasteInfo {
@@ -106,7 +106,14 @@ header div#compactMenu p {
     }
 
   header div#compactMenu form.languageSelector select {
-    disply: inline-block;
+    display: inline;
+    padding: 1px 2px 1px;
+    margin: 0 10px 0 0;
+    font-size: 11px;
+    background-color: #aaa;
+    color: #444;
+    border: 0;
+    border-radius: 4px;
   }
 
   header div#compactMenu form.languageSelector input[type=submit] {
