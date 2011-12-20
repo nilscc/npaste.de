@@ -134,15 +134,5 @@ compactFrame :: Html        -- ^ header content
 compactFrame compH htmlcontext htmlbody = H.docTypeHtml $ do
   htmlHeader htmlcontext{ css = CSS $ unCSS (css htmlcontext) ++ ["compact.css"] }
   H.body $ do
-    H.header $ compactHeader compH
+    H.header                $ compH
     H.section ! A.id "main" $ unHtmlBody htmlbody
-
--- | Header
-compactHeader :: Html -> Html
-compactHeader compH = do
-  H.div ! A.id "compactMenu" $ compH
-  H.p ! A.id "logo" $ H.a ! A.href "/" $ do
-    H.span ! A.id "n3" $ do
-      "n"
-      H.sup "3"
-    "paste.de"

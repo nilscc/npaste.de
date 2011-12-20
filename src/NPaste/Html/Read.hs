@@ -53,30 +53,40 @@ readInfo :: Maybe Paste
          -> Html
 readInfo Nothing  _ = return ()
 readInfo (Just p) r = do
-  H.div ! A.class_ "pasteInfo" $ do
-    unless (null r) $ do
-      H.p ! A.class_ "replies" $ do
-        "Replies: "
-        sequence_ . intersperse " " . for r $ \pid ->
-          let url = "/" ++ pid ++ "/"
-           in H.a ! A.href (toValue url) $ toHtml url
-    H.form ! A.action "/" ! A.method "post" ! A.class_ "addReply" $ do
-      H.input ! A.type_ "hidden" ! A.name "desc"    ! A.value (toValue $ "Reply to " ++ p_id)
-      H.input ! A.type_ "hidden" ! A.name "hidden"  ! A.value (if pasteHidden p then "on" else "")
-      H.input ! A.type_ "submit" ! A.name "asreply" ! A.value "New reply"
-    H.p ! A.id "view_all_replies" $
-      H.a ! A.href (toValue $ "/v/id" ++ p_id) $ "Show related"
-    H.p ! A.class_ "timestamp" $
-      toHtml $ formatTime defaultTimeLocale "%H:%M - %a %Y.%m.%d" (pasteDate p)
-    H.form ! A.action (H.toValue p_id) ! A.method "post"
-           ! A.class_ "languageSelector" $ do
-      H.select ! A.id "lang" ! A.name "lang" $
-        forM_ ("Plaintext" : languages) $ \l ->
-          if Just l == pasteType p then -- TODO: different highlighting languages
-            H.option ! A.selected "selected" ! A.value (toValue l) $ toHtml l
-           else
-            H.option                         ! A.value (toValue l) $ toHtml l
-      H.input ! A.type_ "submit" ! A.value "Change language"
+
+  -- paste information
+  H.div ! A.id "compactMenu" $
+    H.div ! A.class_ "pasteInfo" $ do
+      unless (null r) $ do
+        H.p ! A.class_ "replies" $ do
+          "Replies: "
+          sequence_ . intersperse " " . for r $ \pid ->
+            let url = "/" ++ pid ++ "/"
+             in H.a ! A.href (toValue url) $ toHtml url
+      H.form ! A.action "/" ! A.method "post" ! A.class_ "addReply" $ do
+        H.input ! A.type_ "hidden" ! A.name "desc"    ! A.value (toValue $ "Reply to " ++ p_id)
+        H.input ! A.type_ "hidden" ! A.name "hidden"  ! A.value (if pasteHidden p then "on" else "")
+        H.input ! A.type_ "submit" ! A.name "asreply" ! A.value "New reply"
+      H.p ! A.id "view_all_replies" $
+        H.a ! A.href (toValue $ "/v/id" ++ p_id) $ "Show related"
+      H.p ! A.class_ "timestamp" $
+        toHtml $ formatTime defaultTimeLocale "%H:%M - %a %Y.%m.%d" (pasteDate p)
+      H.form ! A.action (H.toValue p_id) ! A.method "post"
+             ! A.class_ "languageSelector" $ do
+        H.select ! A.id "lang" ! A.name "lang" $
+          forM_ ("Plaintext" : languages) $ \l ->
+            if Just l == pasteType p then -- TODO: different highlighting languages
+              H.option ! A.selected "selected" ! A.value (toValue l) $ toHtml l
+             else
+              H.option                         ! A.value (toValue l) $ toHtml l
+        H.input ! A.type_ "submit" ! A.value "Change language"
+
+  -- logo & description
+  H.p ! A.id "logo" $ H.a ! A.href "/" $ do
+    H.span ! A.id "n3" $ do
+      "n"
+      H.sup "3"
+    "paste.de"
   case pasteDescription p of
        Just d | not (null d) -> H.p ! A.class_ "desc" $ formatDesc d
        _                     -> return ()
