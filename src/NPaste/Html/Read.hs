@@ -62,6 +62,7 @@ readInfo (Just p) r = do
            in H.a ! A.href (toValue url) $ toHtml url
     H.form ! A.action "/" ! A.method "post" ! A.class_ "addReply" $ do
       H.input ! A.type_ "hidden" ! A.name "desc"    ! A.value (toValue $ "Reply to " ++ p_id)
+      H.input ! A.type_ "hidden" ! A.name "hidden"  ! A.value (if pasteHidden p then "on" else "")
       H.input ! A.type_ "submit" ! A.name "asreply" ! A.value "New reply"
     H.p ! A.id "view_all_replies" $
       H.a ! A.href (toValue $ "/v/id" ++ p_id) $ "Show related"
