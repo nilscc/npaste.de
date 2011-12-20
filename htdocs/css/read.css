@@ -1,3 +1,51 @@
+header p#logo,
+header p.desc {
+  padding: 0;
+  margin: 5px 10px 5px;
+  display: inline-block;
+}
+
+header p#logo {
+  font-weight: bold;
+}
+
+header p#logo a {
+  color: white;
+}
+
+header p#logo a:hover {
+  text-decoration: none;
+}
+
+header p#logo a span#n3 {
+  color: #00b9b9;
+  text-decoration: none;
+  position: relative;
+  left: 2px;
+}
+
+header p#logo a span#n3 sup {
+  font-size: 10px;
+  position: relative;
+  top: -2px;
+  right: 1px;
+}
+
+header p.desc {
+  font-size: 14px;
+  color: white;
+}
+
+header div#compactMenu {
+  color: white;
+  font-size: 11px;
+  float: right;
+  padding: 0 10px 0;
+  margin: 0;
+  max-width: 50%;
+  text-align: right;
+}
+
 header div#compactMenu p,
 header div#compactMenu form {
   display: inline-block;
@@ -29,7 +77,7 @@ header div#compactMenu p {
       font-family: sans-serif;
       font-weight: normal;
       font-style: normal;
-      display: inline-block;
+      display: inline;
       vertical-align: baseline;
       cursor: pointer;
     }
