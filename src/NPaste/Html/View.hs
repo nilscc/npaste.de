@@ -38,7 +38,7 @@ filterForm mf = do
   H.form ! A.method "post" ! A.action "/v" ! A.id "filter_form" $ do
     H.p $ do
       "Filter pastes ("
-      H.a ! A.href "/a#filter" $ "help"
+      H.a ! A.href "/a/howto#filter" $ "help"
       "):"
     case mf of
          Just  f -> H.input ! A.type_ "text" ! A.name "filter" ! A.value (H.toValue f)
