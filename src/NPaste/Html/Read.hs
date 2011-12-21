@@ -51,7 +51,13 @@ readHtml _ = do
 readInfo :: Maybe Paste
          -> [Id]              -- ^ replies
          -> Html
-readInfo Nothing  _ = return ()
+readInfo Nothing  _ = do
+  -- logo & description
+  H.p ! A.id "logo" $ H.a ! A.href "/" $ do
+    H.span ! A.id "n3" $ do
+      "n"
+      H.sup "3"
+    "paste.de"
 readInfo (Just p) r = do
 
   -- paste information
