@@ -4,7 +4,7 @@ import NPaste.Types.Html.Menu
 
 data HtmlContext = HtmlContext
   { title    :: Title
-  , section  :: MenuSection
+  , menu     :: Menu
   , script   :: Script
   , css      :: CSS
   }

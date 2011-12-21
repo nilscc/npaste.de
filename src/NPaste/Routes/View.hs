@@ -31,19 +31,19 @@ viewR = do
 
   case parseFilter f of
        Left err -> do
-         M_View    .= Nothing
-         Title     .= Just "View recent pastes"
-         HtmlBody  .= viewHtml (Just f) (Left err)
+         ActiveMenu .= M_View Nothing
+         Title      .= Just "View recent pastes"
+         HtmlBody   .= viewHtml (Just f) (Left err)
        Right fl@(filterToSearch -> Just s) -> do
          p <- findPastes 20 0 =<< addHiddenFilter s
-         M_View    .= Just fl
-         Title     .= Just "View pastes (filtered)"
-         HtmlBody  .= viewHtml (Just f) (Right p)
+         ActiveMenu .= M_View (Just fl)
+         Title      .= Just "View pastes (filtered)"
+         HtmlBody   .= viewHtml (Just f) (Right p)
        _ -> do
          p <- getRecentPastes Nothing 20 0 False -- TODO: support for user/limit/offset/hidden
-         M_View    .= Nothing
-         Title     .= Just "View recent pastes"
-         HtmlBody  .= viewHtml Nothing (Right p)
+         ActiveMenu .= M_View Nothing
+         Title      .= Just "View recent pastes"
+         HtmlBody   .= viewHtml Nothing (Right p)
 
 buildFilterFromUrl :: NPaste [String]
 buildFilterFromUrl = choice

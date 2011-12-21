@@ -18,16 +18,17 @@ import NPaste.Routes.Index
 import NPaste.Routes.Partial
 import NPaste.Routes.Read
 import NPaste.Routes.Static
+import NPaste.Routes.User
 import NPaste.Routes.View
 
 npasteR :: NPaste ()
 npasteR = choice
   [ nullDir >> indexR
-  -- , dir "f" findR
-  , dir "v" viewR
   , dir "a" aboutR
   , dir "p" partialR
   , dir "s" staticR
+  , dir "u" userR
+  , dir "v" viewR
   , path readR
   , notFoundR
   ]

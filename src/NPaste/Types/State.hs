@@ -97,10 +97,20 @@ instance ModifyNPasteState Title where
                  let (a,t) = f $ title ctxt
                   in (a,ctxt{ title = t })
 
-instance ModifyNPasteState MenuSection where
+instance ModifyNPasteState Menu where
   modifyNP f = modifyNP $ \ctxt ->
-                 let (a,c) = f $ section ctxt
-                  in (a,ctxt{ section = c })
+                 let (a,m) = f $ menu ctxt
+                  in (a,ctxt{ menu = m })
+
+instance ModifyNPasteState ActiveMenu where
+  modifyNP f = modifyNP $ \m ->
+                 let (a,s) = f $ activeMenuSection m
+                  in (a,m{ activeMenuSection = s })
+
+instance ModifyNPasteState MenuStructure where
+  modifyNP f = modifyNP $ \m ->
+                 let (a,s) = f $ menuStructure m
+                  in (a,m{ menuStructure = s })
 
 instance ModifyNPasteState CSS where
   modifyNP f = modifyNP $ \info ->
