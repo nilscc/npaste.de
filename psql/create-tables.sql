@@ -13,6 +13,17 @@ CREATE TABLE users (
 
 INSERT INTO users (id,name,password,email) VALUES (-1, '', '', '');
 
+CREATE TABLE sessions (
+  id                varchar(15),
+  ip                varchar(15),
+  user_agent        varchar(200),
+  expires           timestamp with time zone,
+  user_id           integer,  -- optional
+
+  PRIMARY KEY (id),
+  FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+);
+
 
 -- PASTES ----------------------------------------------------------------------
 
