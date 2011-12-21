@@ -51,7 +51,9 @@ showPasteR pid = choice
        HtmlBody  .= readHtml paste
   , do paste <- getPasteById pid
        rq    <- askRq
-       maybe mzero ((.=) (PlainResponse rq) . return . toResponse . unpack . pasteContent) paste
+       case paste of
+            Just p  -> PlainResponse rq .= ok . toResponse . unpack $ pasteContent p
+            Nothing -> PlainResponse rq .= notFound $ toResponse "Paste not found.\n"
   ]
  where
   checkPath     = join $ choice [ nullDir >> return trailingSlash, return (return ()) ]
