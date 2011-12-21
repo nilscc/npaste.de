@@ -9,7 +9,7 @@ import Text.Highlighting.Kate (languages)
 
 import NPaste.Types
 
-indexHtml :: IndexPostData -> Maybe AddPasteError -> Html
+indexHtml :: PostData -> Maybe AddPasteError -> Html
 indexHtml pdata err = do
   H.h1 "New paste"
 

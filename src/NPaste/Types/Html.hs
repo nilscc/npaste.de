@@ -6,15 +6,11 @@ module NPaste.Types.Html
     -- ** Websites
   , Html
   , AttributeValue
-  , module NPaste.Types.Html.Index
-
-    -- ** Type classes
-  , module NPaste.Types.Html.Valued
+  , module NPaste.Types.Html.PostData
   ) where
 
 import Text.Blaze
 
 import NPaste.Types.Html.Context
 import NPaste.Types.Html.Menu
-import NPaste.Types.Html.Index
-import NPaste.Types.Html.Valued
+import NPaste.Types.Html.PostData

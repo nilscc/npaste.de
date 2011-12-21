@@ -13,13 +13,13 @@ import Text.Blaze (toHtml, toValue, (!))
 import qualified Text.Blaze.Html5             as H
 import qualified Text.Blaze.Html5.Attributes  as A
 
+import NPaste.Html.Menu
 import NPaste.Types
-import NPaste.Utils
 
 nullContext :: HtmlContext
 nullContext = HtmlContext
   { title = Title Nothing
-  , section = M_Other
+  , menu = nullMenu
   , script = Script []
   , css = CSS []
   }
@@ -52,7 +52,7 @@ mainFrame htmlcontext htmlbody = H.docTypeHtml $ do
 
   H.body $ do
     H.header $ mainHeader
-    H.menu   $ mainMenu (section htmlcontext)
+    H.menu   $ mainMenu (menu htmlcontext)
     H.section ! A.id "main" $ unHtmlBody htmlbody
 
 -- | Header
@@ -69,59 +69,23 @@ mainHeader = do
     "IO String"
   H.p ! A.id "info" $
     "a haskell happstack pastebin"
-  
 
 -- | Menu
-mainMenu :: MenuSection -> Html
-mainMenu active = sequence_ $ do -- list monad
-  (s,u,a,t) <- menus
-  return $ if (isCurrentMenu active s) then
-    H.li ! A.class_ "active" $ do
-      H.a ! A.href (fromMaybe u a) $ t
-      -- build submenu if available
-      let subm = getSubMenu active
-      unless (null subm) $ H.ul ! A.class_ "submenu" $
-        mapM_ H.li subm
-   else
-    H.li $ H.a ! A.href u $ t
-
--- | Compare two menu sections, disregard possible context/information
-isCurrentMenu :: MenuSection -> MenuSection -> Bool
-isCurrentMenu (M_View _) (M_View _) = True
-isCurrentMenu  m1         m2        = m1 == m2
-
-menus :: [(MenuSection, H.AttributeValue, Maybe H.AttributeValue, Html)]
-menus =
-  -- Menu section      URL      URL (active)       Title
-  [ (M_AddNewPaste,    "/",     Nothing,           "New paste")
-  , (M_View Nothing,   "/v",    Nothing,           "View pastes")
-  , (M_About,          "/a",    Nothing,           "About")
-  ]
-
-
-getSubMenu :: MenuSection -> [Html]
-getSubMenu M_About =
-  [ H.a ! A.href "/a/howto"      $ "How to"
-  , H.a ! A.href "/a/contact"    $ "Contact"
-  , H.a ! A.href "/a/statistics" $ "Statistics"
-  -- , H.a ! A.href "/a/disclaimer" $ "Disclaimer"
-  ]
-getSubMenu (M_View (Just f)) =
-  [ "Filtered by:"
-  , sequence_ . intercalate [" "] $ map filterToHtml f
-  ]
- where
-  filterToHtml fval =
-    let (url,text) = case fval of
-                          FilterID          i -> ("/id/"   ++ i, "/"  ++ i ++ "/")
-                          FilterDescription d -> ("/desc/" ++ d, "\"" ++ d ++ "\"")
-                          FilterTag         t -> ("/tag/"  ++ t, "#"  ++ t)
-                          FilterUsername    u -> ("/user/" ++ u, "@"  ++ u)
-                          FilterLanguage    l -> let l' = maybe l id $ findLang l
-                                                  in ("/lang/" ++ l', l')
-     in [ H.a ! A.href (toValue $ "/v" ++ url) $ toHtml text ]
-getSubMenu _ = []
-
+mainMenu :: Menu -> Html
+mainMenu Menu{ activeMenuSection = ActiveMenu active
+             , menuStructure     = MenuStructure mstr } =
+  sequence_ $ do -- list monad
+    s <- mstr
+    return $
+      if (isCurrentMenu active s) then
+         H.li ! A.class_ "active" $ do
+           H.a ! A.href (menuLink s) $ menuTitle s
+           -- build submenu if available
+           let subm = subMenu active
+           unless (null subm) $ H.ul ! A.class_ "submenu" $
+             mapM_ H.li subm
+       else
+         H.li $ H.a ! A.href (menuLink s) $ menuTitle s
 
 
 --------------------------------------------------------------------------------

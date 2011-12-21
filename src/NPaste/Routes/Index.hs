@@ -17,11 +17,10 @@ import NPaste.State
 indexR :: NPaste ()
 indexR = do
 
-  -- set menu location
-  setNP M_AddNewPaste
+  ActiveMenu .= M_Index
 
   pdata <- choice
-    [ methodM POST >> getIndexPostData
+    [ methodM POST >> getPostData
     , return nullPostData ]
 
   r <- if pdata == nullPostData then
@@ -78,10 +77,10 @@ indexR = do
 --------------------------------------------------------------------------------
 -- Post data
 
-getIndexPostData :: NPaste IndexPostData
-getIndexPostData = do
+getPostData :: NPaste PostData
+getPostData = do
   decodeBody (defaultBodyPolicy "/tmp/npaste.de/" 1000000 1000000 1000000)
-  fmap IndexPostData $ body lookPairs
+  fmap PostData $ body lookPairs
 
-nullPostData :: IndexPostData
-nullPostData = IndexPostData []
+nullPostData :: PostData
+nullPostData = PostData []
