@@ -7,6 +7,7 @@ module NPaste.Utils
   , convertToList
   , withJust
   , withJust_
+  , require
 
   , module NPaste.Utils.Kate
   ) where
@@ -38,3 +39,6 @@ withJust_ m s =
   case m of
        Just a   -> s a
        Nothing  -> return ()
+
+require :: MonadPlus m => m (Maybe a) -> m a
+require np = np >>= maybe mzero return

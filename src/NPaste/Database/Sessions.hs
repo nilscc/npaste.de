@@ -3,7 +3,6 @@ module NPaste.Database.Sessions
   , addSession
   ) where
 
-import Control.Applicative
 import Data.Time
 import System.Random
 
@@ -23,12 +22,17 @@ getSession :: String      -- ^ session ID
 getSession sid ip ua = do
   removeOldSessions
   mr <- fmap convertListToMaybe $
-             querySql "SELECT user_id FROM sessions WHERE id = ?, ip = ?, ua = ?"
+             querySql "SELECT expires, user_id FROM sessions \
+                      \ WHERE id = ? AND ip = ? AND user_agent = ?"
                       [ toSql sid, toSql ip, toSql ua ]
-  mu <- case join mr of
-             Just uid -> getUserById uid
-             _        -> return Nothing
-  return $ Session sid mu <$ mr
+  case mr of
+       Just (expires, Just uid) -> do
+         mu <- getUserById uid
+         return . Just $ Session sid expires mu
+       Just (expires, Nothing) ->
+         return . Just $ Session sid expires Nothing
+       _ ->
+         return Nothing
 
 
 --------------------------------------------------------------------------------
@@ -50,7 +54,7 @@ addSession mu ip ua = do
   updateSql_ "INSERT INTO sessions(id, ip, user_agent, expires, user_id)\
              \     VALUES         (? , ? , ?         , ?      , ?      )"
              [ toSql i, toSql ip, toSql ua, toSql expires, toSql (fmap userId mu) ]
-  return $ Session i mu
+  return $ Session i expires mu
  where
   genId g = do
     let i = map (chars !!) . take 15 $ randomRs (0,length chars-1) g
