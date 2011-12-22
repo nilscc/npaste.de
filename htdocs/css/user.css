@@ -6,7 +6,17 @@
   margin-bottom: 5px;
 }
 
-#logout-form input {
+p#logout-links a {
+  background-color: #777;
+  color: white;
+  border: 1px solid #666;
+  font-family: 'Ubuntu', sans-serif;
+  font-weight: bold;
+  padding: 10px;
+  margin: 5px 0 5px;
+  border-radius: 3px;
   display: inline-block;
+  box-shadow: 3px 3px 10px #666;
+  cursor: pointer;
   margin-right: 20px;
 }

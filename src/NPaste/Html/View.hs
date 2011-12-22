@@ -23,7 +23,7 @@ viewHtml mf epastes = do
   H.h1 $ do
     "Most recent pastes"
     maybe (return ()) (const " (filtered)") mf
-  filterForm mf
+  filterForm "/v" mf
   H.div ! A.id "paste_list" $
     case epastes of
          Right [] -> H.p ! A.class_ "error" $ "No pastes found."
@@ -33,9 +33,11 @@ viewHtml mf epastes = do
              (errorMessages err)
          Right ps -> listPastes ps (Just 20)
 
-filterForm :: Maybe String -> Html
-filterForm mf = do
-  H.form ! A.method "post" ! A.action "/v" ! A.id "filter_form" $ do
+filterForm :: AttributeValue    -- ^ "action" url of the html form
+           -> Maybe String
+           -> Html
+filterForm action mf = do
+  H.form ! A.method "post" ! A.action action ! A.id "filter_form" $ do
     H.p $ do
       "Filter pastes ("
       H.a ! A.href "/a/howto#filter" $ "help"
