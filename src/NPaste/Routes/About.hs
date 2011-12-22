@@ -11,7 +11,7 @@ import NPaste.Html
 
 aboutR :: NPaste ()
 aboutR = do
-  ActiveMenu .= M_About
+  ActiveMenu .= Just M_About
   CSS        .= ["document.css"]
   choice
     [ nullDir >> do

@@ -28,7 +28,7 @@ data NPasteState = NPasteState
   , htmlContext       :: HtmlContext
   , htmlFrame         :: HtmlFrame
   , htmlBody          :: HtmlBody
-  , currentUser       :: CurrentUser
+  , currentSession    :: CurrentSession
   , runBeforeResponse :: [ServerPart ()]
   }
   deriving Show
@@ -46,80 +46,96 @@ data ResponseFormat
   -- | JsonResponse -- TODO
   deriving Show
 
-newtype ResponseCode = ResponseCode { unResponseCode :: Response -> ServerPart Response } deriving Show
-newtype HtmlBody     = HtmlBody     { unHtmlBody     :: Html }                            deriving Show
-newtype HtmlFrame    = HtmlFrame    { unHtmlFrame    :: HtmlContext -> HtmlBody -> Html } deriving Show
-newtype CurrentUser  = CurrentUser  { unCurrentUser  :: Maybe User                      } deriving Show
+newtype ResponseCode   = ResponseCode   { unResponseCode   :: Response -> ServerPart Response } deriving Show
+newtype HtmlBody       = HtmlBody       { unHtmlBody       :: Html }                            deriving Show
+newtype HtmlFrame      = HtmlFrame      { unHtmlFrame      :: HtmlContext -> HtmlBody -> Html } deriving Show
+newtype CurrentSession = CurrentSession { unCurrentSession :: Maybe Session                   } deriving Show
 
 -- ** State modification
 
--- | Minimal complete definition: `modifyNP`
+-- | Minimal complete definition: `modifyNP` and `getsNP`
 class ModifyNPasteState t where
   modifyNP  :: (t -> (a,t)) -> NPaste a
-  setNP     ::  t           -> NPaste ()
   modifyNP_ :: (t -> t)     -> NPaste ()
+  setNP     ::  t           -> NPaste ()
+  getNP     :: NPaste t
+  getsNP    :: (t -> a)     -> NPaste a
   modifyNP_ f = modifyNP  $ \t -> ((),f t)
   setNP     t = modifyNP_ $ \_ -> t
+  getNP       = getsNP id
 
 instance ModifyNPasteState NPasteState where
   modifyNP f = lift . modifyM $ \st -> f st
+  getsNP f   = gets f
 
 instance ModifyNPasteState ResponseFormat where
   modifyNP f = lift . modifyM $ \st ->
                  let (a,rsp) = f $ responseFormat st
                   in (a,st{ responseFormat = rsp })
+  getsNP f   = gets $ f . responseFormat
 
 instance ModifyNPasteState ResponseCode where
   modifyNP f = lift . modifyM $ \st ->
                  let (a,c) = f $ responseCode st
                   in (a,st{ responseCode = c })
+  getsNP f   = gets $ f . responseCode
 
 instance ModifyNPasteState HtmlContext where
   modifyNP f = lift . modifyM $ \st ->
                  let (a,frm) = f $ htmlContext st
                   in (a,st{ htmlContext = frm })
+  getsNP f   = gets $ f . htmlContext
 
 instance ModifyNPasteState HtmlFrame where
   modifyNP f = lift . modifyM $ \st ->
                  let (a,frm) = f $ htmlFrame st
                   in (a,st{ htmlFrame = frm })
+  getsNP f   = gets $ f . htmlFrame
 
 instance ModifyNPasteState HtmlBody where
   modifyNP f = lift . modifyM $ \st ->
                  let (a,bdy) = f $ htmlBody st
                   in (a,st{ htmlBody = bdy })
+  getsNP f   = gets $ f . htmlBody
 
-instance ModifyNPasteState CurrentUser where
+instance ModifyNPasteState CurrentSession where
   modifyNP f = lift . modifyM $ \st ->
-                 let (a,usr) = f $ currentUser st
-                  in (a,st{ currentUser = usr })
+                 let (a,s) = f $ currentSession st
+                  in (a,st{ currentSession = s })
+  getsNP f   = gets $ f . currentSession
 
 instance ModifyNPasteState Title where
   modifyNP f = modifyNP $ \ctxt ->
                  let (a,t) = f $ title ctxt
                   in (a,ctxt{ title = t })
+  getsNP f   = gets $ f . title . htmlContext
 
 instance ModifyNPasteState Menu where
   modifyNP f = modifyNP $ \ctxt ->
                  let (a,m) = f $ menu ctxt
                   in (a,ctxt{ menu = m })
+  getsNP f   = gets $ f . menu . htmlContext
 
 instance ModifyNPasteState ActiveMenu where
   modifyNP f = modifyNP $ \m ->
                  let (a,s) = f $ activeMenuSection m
                   in (a,m{ activeMenuSection = s })
+  getsNP f   = gets $ f . activeMenuSection . menu . htmlContext
 
 instance ModifyNPasteState MenuStructure where
   modifyNP f = modifyNP $ \m ->
                  let (a,s) = f $ menuStructure m
                   in (a,m{ menuStructure = s })
+  getsNP f   = gets $ f . menuStructure . menu . htmlContext
 
 instance ModifyNPasteState CSS where
-  modifyNP f = modifyNP $ \info ->
-                 let (a,c) = f $ css info
-                  in (a,info{ css = c })
+  modifyNP f = modifyNP $ \ctxt ->
+                 let (a,c) = f $ css ctxt
+                  in (a,ctxt{ css = c })
+  getsNP f   = gets $ f . css . htmlContext
 
 instance ModifyNPasteState Script where
   modifyNP f = modifyNP $ \info ->
                  let (a,c) = f $ script info
                   in (a,info{ script = c })
+  getsNP f   = gets $ f . script . htmlContext

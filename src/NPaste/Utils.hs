@@ -2,7 +2,8 @@
 
 module NPaste.Utils
   ( -- * Convenient helper functions
-    convertMaybe
+    readMaybe
+  , convertMaybe
   , convertListToMaybe
   , convertToList
   , withJust
@@ -17,6 +18,11 @@ import Data.Convertible
 import Data.Maybe
 
 import NPaste.Utils.Kate
+
+readMaybe :: Read a => String -> Maybe a
+readMaybe s = case reads s of
+  [(a, "")] -> Just a
+  _         -> Nothing
 
 convertMaybe :: Convertible a b => a ->  Maybe b
 convertMaybe = either (const Nothing) Just . safeConvert

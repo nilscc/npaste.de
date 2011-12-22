@@ -1,6 +1,12 @@
-#login-form p {
+#login-form p,
+#registration-form p {
   display: inline-block;
   width: 150px;
   margin-top: 5px;
   margin-bottom: 5px;
+}
+
+#logout-form input {
+  display: inline-block;
+  margin-right: 20px;
 }

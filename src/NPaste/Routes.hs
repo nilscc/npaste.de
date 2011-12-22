@@ -42,4 +42,5 @@ notFoundR :: NPaste ()
 notFoundR = do
   ResponseCode .= notFound
   Title        .= Just "Page not found"
+  ActiveMenu   .= Nothing
   HtmlBody     .= H.h2 ! A.class_ "error" $ "The page you requested was not found."

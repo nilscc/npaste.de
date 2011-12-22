@@ -72,20 +72,22 @@ mainHeader = do
 
 -- | Menu
 mainMenu :: Menu -> Html
-mainMenu Menu{ activeMenuSection = ActiveMenu active
+mainMenu Menu{ activeMenuSection = ActiveMenu mactive
              , menuStructure     = MenuStructure mstr } =
   sequence_ $ do -- list monad
     s <- mstr
     return $
-      if (isCurrentMenu active s) then
-         H.li ! A.class_ "active" $ do
-           H.a ! A.href (menuLink s) $ menuTitle s
-           -- build submenu if available
-           let subm = subMenu active
-           unless (null subm) $ H.ul ! A.class_ "submenu" $
-             mapM_ H.li subm
-       else
-         H.li $ H.a ! A.href (menuLink s) $ menuTitle s
+      case mactive of
+           Just active | isCurrentMenu active s ->
+             H.li ! A.class_ "active highlight" $ do
+               menuLink s $ menuTitle s
+               -- build submenu if available
+               let subm = subMenu active
+               unless (null subm) $ H.ul ! A.class_ "submenu" $
+                 mapM_ H.li subm
+           _ -> 
+             (if s == M_HR then H.li else H.li ! A.class_ "highlight") $
+               menuLink s $ menuTitle s
 
 
 --------------------------------------------------------------------------------

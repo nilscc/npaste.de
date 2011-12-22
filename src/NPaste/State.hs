@@ -1,5 +1,6 @@
 module NPaste.State
   ( addCookie
+  , expireCookie
 
   , runNPaste, evalNPaste, execNPaste
   , runOutputM, evalOutputM, execOutputM
@@ -23,6 +24,11 @@ addCookie :: HS.CookieLife -> HS.Cookie -> NPaste ()
 addCookie l c =
   modifyNP_ $ \s ->
     s{ runBeforeResponse = runBeforeResponse s ++ [HS.addCookie l c] }
+
+expireCookie :: String -> NPaste ()
+expireCookie n =
+  modifyNP_ $ \s ->
+    s{ runBeforeResponse = runBeforeResponse s ++ [HS.expireCookie n] }
 
 
 --------------------------------------------------------------------------------
@@ -57,7 +63,7 @@ npasteNullState = NPasteState
   , htmlContext       = nullContext
   , htmlFrame         = HtmlFrame mainFrame
   , htmlBody          = HtmlBody $ return ()
-  , currentUser       = CurrentUser Nothing
+  , currentSession    = CurrentSession Nothing
   , runBeforeResponse = []
   }
 

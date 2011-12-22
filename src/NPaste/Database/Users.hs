@@ -1,16 +1,19 @@
 {-# LANGUAGE NamedFieldPuns #-}
 
 module NPaste.Database.Users
-  ( -- ** Queries
+  ( -- * Queries
     getUserByName
   , getUserByEmail
   , getUserById
   -- , getAllUsers
   , checkPassword
 
-    -- ** Updates
-  , newUser
+    -- * Updates
+  , addUser
   , changePassword
+    -- ** Inactive users
+  , addInactiveUser
+  , rmInactiveUser
   ) where
 
 -- import Data.Maybe
@@ -57,11 +60,11 @@ getNextId = do
 --------------------------------------------------------------------------------
 -- Updates
 
-newUser :: String           -- ^ username
+addUser :: String           -- ^ username
         -> String           -- ^ password (plaintext)
         -> Maybe String     -- ^ optional email
         -> Update (Either AddUserError User)
-newUser un pw me = runErrorT $ do
+addUser un pw me = runErrorT $ do
   unless (all (`elem` validChars) un) $
     throwError $ AUE_InvalidUsername un
   i <- getNextId
@@ -82,7 +85,28 @@ validChars = ['0'..'9'] ++ ['A'..'Z'] ++ ['a'..'z']
 sqlErrorToAUE :: SqlError -> AddUser ()
 sqlErrorToAUE e =
   case seState e of
-       l | l == uniqueViolation ->
+       l | l == uniqueViolation -> do
            throwError $ AUE_AlreadyExists
          | otherwise ->
            throwError $ AUE_Other (show e)
+
+
+--------------------------------------------------------------------------------
+-- Inactive users
+
+addInactiveUser :: User
+                -> String     -- ^ activation key
+                -> Update ()
+addInactiveUser User{ userId } akey = do
+  updateSql_ "INSERT INTO inactive_users (user_id, activation_key) \
+             \     VALUES                (?      , ?             ) "
+             [toSql userId, toSql akey]
+
+rmInactiveUser :: Int             -- ^ user id
+               -> String          -- ^ activation key
+               -> Update Bool     -- ^ true on success
+rmInactiveUser userId akey = do
+  r <- updateSql "DELETE FROM inactive_users \
+                 \      WHERE user_id = ? AND activation_key = ? "
+                 [toSql userId, toSql akey]
+  return $ r == 1

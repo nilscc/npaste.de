@@ -11,6 +11,7 @@ section#main .settings
   margin: 0;
   padding: 5px 1px 5px;
   border-radius: 3px;
+  box-shadow: 3px 3px 10px #666;
 }
 
 section#main ul.settings
@@ -66,25 +67,6 @@ section#main textarea
   width: 652px;
   height: 400px;
 }
-
-section#main input[type=submit]
-{
-  background-color: #777;
-  color: white;
-  border: 1px solid #666;
-  font-family: 'Ubuntu', sans-serif;
-  font-weight: bold;
-  padding: 10px;
-  margin: 5px 0 5px;
-  border-radius: 3px;
-  display: block;
-}
-
-  section#main input[type=submit]:hover
-  {
-    cursor: pointer;
-    text-decoration: underline;
-  }
 
   section#main input#email
   {

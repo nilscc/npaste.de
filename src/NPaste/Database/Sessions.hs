@@ -1,6 +1,9 @@
+{-# LANGUAGE NamedFieldPuns #-}
+
 module NPaste.Database.Sessions
   ( getSession
   , addSession
+  , rmSession
   ) where
 
 import Data.Time
@@ -64,3 +67,8 @@ addSession mu ip ua = do
      else
        genId (snd $ next g)
   chars = ['A'..'Z'] ++ ['a'..'z'] ++ ['0'..'9']
+
+rmSession :: Session
+          -> Update ()
+rmSession Session{ sessionId } =
+  updateSql_ "DELETE FROM sessions WHERE id = ?" [toSql sessionId]
