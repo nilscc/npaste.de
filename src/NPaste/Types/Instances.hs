@@ -52,12 +52,12 @@ instance WebMonad a m => WebMonad a (MState t m) where
 
 -- ** HasRqData instances
 
-instance (MonadPeelIO m, HasRqData m) => HasRqData (MState t m) where
+instance (MonadPlus m, MonadPeelIO m, HasRqData m) => HasRqData (MState t m) where
   askRqEnv       = lift askRqEnv
   localRqEnv f m = mapMState_ (localRqEnv f) m
-  rqDataError  e = lift $ rqDataError e
+  rqDataError  _ = mzero -- lift $ rqDataError e
 
 instance (Error err, MonadIO m, HasRqData m) => HasRqData (ErrorT err m) where
   askRqEnv       = lift askRqEnv
   localRqEnv f m = mapErrorT (localRqEnv f) m
-  rqDataError  e = lift $ rqDataError e
+  rqDataError  _ = mzero -- lift $ rqDataError e
