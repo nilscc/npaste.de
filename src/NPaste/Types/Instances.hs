@@ -4,10 +4,12 @@
 
 module NPaste.Types.Instances where
 
+import Control.Applicative
 import Control.Concurrent.MState
 import Control.Monad.Error
 import Control.Monad.IO.Peel
 import Data.Convertible
+import Data.Time
 import Database.HDBC
 import Happstack.Server
 import Happstack.Server.Internal.MonadPeelIO ()
@@ -24,9 +26,10 @@ instance Convertible [SqlValue] Description where
 instance Convertible SqlValue Description where
   safeConvert s = fmap (parseDesc)          $      safeConvert s
 
-instance Convertible [SqlValue] (Maybe Int) where
-  safeConvert [i] = safeConvert i
-  safeConvert a   = convError "" a
+instance Convertible [SqlValue] (UTCTime, Maybe Int) where
+  safeConvert [t,i] = (,) <$> safeConvert t
+                          <*> safeConvert i
+  safeConvert a     = convError "" a
 
 
 --------------------------------------------------------------------------------

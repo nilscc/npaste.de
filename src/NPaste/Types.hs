@@ -31,4 +31,4 @@ import NPaste.Types.Html
 
 import Control.Concurrent.MState
 import Control.Monad.Error
-import Happstack.Server.Monads
+import Happstack.Server.Monads hiding (require)

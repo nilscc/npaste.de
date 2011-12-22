@@ -1,5 +1,7 @@
 module NPaste.State
-  ( runNPaste, evalNPaste, execNPaste
+  ( addCookie
+
+  , runNPaste, evalNPaste, execNPaste
   , runOutputM, evalOutputM, execOutputM
 
   , npasteNullState
@@ -9,9 +11,18 @@ module NPaste.State
   , (.=)
   ) where
 
-import Happstack.Server
+import qualified Happstack.Server as HS
 import NPaste.Html
 import NPaste.Types
+
+
+--------------------------------------------------------------------------------
+-- * Happstack functions mapped to statefull NPaste monad
+
+addCookie :: HS.CookieLife -> HS.Cookie -> NPaste ()
+addCookie l c =
+  modifyNP_ $ \s ->
+    s{ runBeforeResponse = runBeforeResponse s ++ [HS.addCookie l c] }
 
 
 --------------------------------------------------------------------------------
@@ -41,12 +52,13 @@ execOutputM s n = fmap snd $ runMState n s
 
 npasteNullState :: NPasteState
 npasteNullState = NPasteState
-  { responseFormat  = HtmlResponse
-  , responseCode    = ResponseCode ok
-  , htmlContext     = nullContext
-  , htmlFrame       = HtmlFrame mainFrame
-  , htmlBody        = HtmlBody $ return ()
-  , currentUser     = CurrentUser Nothing
+  { responseFormat    = HtmlResponse
+  , responseCode      = ResponseCode HS.ok
+  , htmlContext       = nullContext
+  , htmlFrame         = HtmlFrame mainFrame
+  , htmlBody          = HtmlBody $ return ()
+  , currentUser       = CurrentUser Nothing
+  , runBeforeResponse = []
   }
 
 -- ** Other

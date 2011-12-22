@@ -23,12 +23,13 @@ type OutputM a = MState NPasteState (ServerPartT IO) a
 -- * The server state
 
 data NPasteState = NPasteState
-  { responseFormat  :: ResponseFormat
-  , responseCode    :: ResponseCode
-  , htmlContext     :: HtmlContext
-  , htmlFrame       :: HtmlFrame
-  , htmlBody        :: HtmlBody
-  , currentUser     :: CurrentUser
+  { responseFormat    :: ResponseFormat
+  , responseCode      :: ResponseCode
+  , htmlContext       :: HtmlContext
+  , htmlFrame         :: HtmlFrame
+  , htmlBody          :: HtmlBody
+  , currentUser       :: CurrentUser
+  , runBeforeResponse :: [ServerPart ()]
   }
   deriving Show
 

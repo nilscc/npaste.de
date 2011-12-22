@@ -7,12 +7,13 @@ module NPaste.Routes.User
 
 import qualified Data.ByteString.Char8 as B8
 import Data.Maybe
-import Happstack.Server
+import Happstack.Server hiding (require, addCookie)
 
 import NPaste.Database
 import NPaste.State
 import NPaste.Types
 import NPaste.Html
+import NPaste.Utils
 
 userR :: NPaste ()
 userR = do
@@ -33,17 +34,32 @@ loginR :: NPaste ()
 loginR = choice
   [ do methodM POST
        pdata <- getPostData
-       mu    <- getUserByEmail  (getValue pdata "email")
-       isOk  <- case mu of
-                     Just u -> checkPassword u (getValue pdata "password")
-                     _      -> return False
-       if isOk then do
-          ResponseCode .= seeOther ("/" :: String)
-          HtmlBody     .= loginCorrectHtml
-        else do
-          HtmlBody     .= loginHtml (Just "Wrong email or password.") pdata
+       choice
+         [ do -- require that both email and password are correct
+              u    <- require $ getUserByEmail  (getValue pdata "email")
+              isOk <-           checkPassword u (getValue pdata "password")
+              unless isOk mzero
+              -- add session to DB
+              rq <- askRq
+              let ip = fromMaybe (fst $ rqPeer rq) $
+                         getHeader' "x-forwarded-for" (rqHeaders rq)
+                  ua = fromMaybe "" $
+                         getHeader' "user-agent"      (rqHeaders rq)
+              s  <- addSession (Just u) ip ua
+              -- set session cookie
+              let clife = Expires (sessionExpires s)
+                  ck    = mkCookie "sessionId" (sessionId s)
+              addCookie clife ck
+              -- forward to index page
+              ResponseCode .= seeOther ("/" :: String)
+              HtmlBody     .= loginCorrectHtml
+           -- throw error otherwise
+         , HtmlBody .= loginHtml (Just "Wrong email or password.") pdata
+         ]
   , HtmlBody .= loginHtml Nothing nullPData
   ]
+ where
+  getHeader' h = fmap B8.unpack . getHeader h
 
 registerR :: NPaste ()
 registerR = return ()
@@ -65,7 +81,7 @@ profileR _ = return ()
 -- probably be used only once (hence the awfully long name).
 getCurrentUserFromSessionCookie :: NPaste (Maybe User)
 getCurrentUserFromSessionCookie = fmap join . optional $ do
-  s  <- lookCookieValue "sessionID"
+  s  <- lookCookieValue "sessionId"
   rq <- askRq
   let ip = fromMaybe (fst $ rqPeer rq) $
             getHeader' "x-forwarded-for" (rqHeaders rq)
