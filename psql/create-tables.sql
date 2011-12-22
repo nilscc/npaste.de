@@ -24,6 +24,18 @@ CREATE TABLE sessions (
   FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
 );
 
+CREATE TABLE inactive_users (
+  user_id           integer,
+  activation_key    varchar(15),
+
+  PRIMARY KEY (user_id),
+  FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+);
+
+CREATE VIEW active_users AS
+  SELECT u.id, u.name, u.password, u.email, u.default_hidden
+    FROM users u LEFT JOIN inactive_users i ON u.id = i.user_id
+   WHERE i.user_id IS NULL;
 
 -- PASTES ----------------------------------------------------------------------
 

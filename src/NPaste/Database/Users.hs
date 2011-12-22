@@ -29,29 +29,22 @@ getUserById :: Int -> Query (Maybe User)
 getUserById (-1) = return Nothing
 getUserById uid  =
   fmap convertListToMaybe $
-       querySql "SELECT id, name, email, default_hidden FROM users WHERE id = ?"
+       querySql "SELECT id, name, email, default_hidden FROM active_users WHERE id = ?"
                 [toSql uid]
 
 getUserByEmail :: String -> Query (Maybe User)
 getUserByEmail "" = return Nothing
 getUserByEmail email  =
   fmap convertListToMaybe $
-       querySql "SELECT id, name, email, default_hidden FROM users WHERE email = ?"
+       querySql "SELECT id, name, email, default_hidden FROM active_users WHERE email = ?"
                 [toSql email]
 
 getUserByName :: String -> Query (Maybe User)
 getUserByName ""   = return Nothing
 getUserByName name =
   fmap convertListToMaybe $
-       querySql "SELECT id, name, email, default_hidden FROM users WHERE name = ?"
+       querySql "SELECT id, name, email, default_hidden FROM active_users WHERE name = ?"
                 [toSql name]
-
-{-
-getAllUsers :: Query [User]
-getAllUsers = do
-  fmap (catMaybes . map convertMaybe) $
-       querySql "SELECT id, name, password, email, default_hidden FROM users" []
--}
 
 getNextId :: Query Int
 getNextId = do
