@@ -13,6 +13,8 @@ import NPaste.Html
 import NPaste.Types
 import NPaste.State
 
+import NPaste.Routes.User
+
 
 indexR :: NPaste ()
 indexR = do
@@ -40,8 +42,8 @@ indexR = do
          if asReply then
             return $ Left Nothing
           else do
-            e <- newPaste Nothing   -- TODO: no user lookup function/support yet
-                          filetype desc hidden content
+            mu <- getCurrentUser
+            e <- newPaste mu filetype desc hidden content
             return $
               case e of
                     Left err  -> Left $ Just err

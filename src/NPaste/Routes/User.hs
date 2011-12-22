@@ -3,6 +3,14 @@
 module NPaste.Routes.User
   ( userR
   , setupUserMenu
+    -- * User management
+  , getCurrentUser
+  , requireUser
+  , requireNoUser
+    -- * Session management
+  , getCurrentSession
+  , requireSession
+  , requireNoSession
   ) where
 
 import qualified Data.ByteString.Char8 as B8
@@ -211,6 +219,10 @@ getCurrentSession = unCurrentSession `fmap` getNP
 requireSession :: NPaste Session
 requireSession =
   maybe mzero return =<< getCurrentSession
+
+requireNoSession :: NPaste ()
+requireNoSession =
+  maybe (return ()) (const mzero) =<< getCurrentSession
 
 
 --------------------------------------------------------------------------------
