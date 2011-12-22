@@ -6,7 +6,8 @@
   margin-bottom: 5px;
 }
 
-p#logout-links a {
+#user-activated-links a,
+#logout-links a {
   background-color: #777;
   color: white;
   border: 1px solid #666;

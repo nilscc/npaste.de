@@ -135,7 +135,7 @@ activateSuccessHtml User{ userName } = do
     toHtml userName
     "\" successfully activated."
 
-  H.p $ do
+  H.p ! A.id "user-activated-links" $ do
     H.a ! A.href "/u" $ "View your profile"
     H.a ! A.href "/"  $ "Add new pastes"
 
