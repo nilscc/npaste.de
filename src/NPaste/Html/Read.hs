@@ -173,9 +173,8 @@ formatCode :: Paste
 formatCode Paste{pasteId} source = do
   H.div ! A.class_ "lineNumbers" $ H.pre ! A.class_ "lineNumbers" $
     sequence_ . intersperse H.br . for [1..length source] $ \(show->n) ->
-      let name = "line-" ++ n
-          url  = "/" ++ pasteId ++ "/#" ++ name
-       in H.a ! A.href (toValue url) ! A.name (toValue name) $ toHtml n
+      let url  = "/" ++ pasteId ++ "/#" ++ n
+       in H.a ! A.href (toValue url) ! A.name (toValue n) $ toHtml n
   H.div ! A.class_ "sourceCode" $ H.pre ! A.class_ "sourceCode" $
     sequence_ . intersperse H.br $ L.map sourceLineToHtml source
  where
@@ -197,9 +196,8 @@ formatPlain Paste{pasteId} cont = do
   let l = lines cont
   H.div ! A.class_ "lineNumbers" $ H.pre $
     sequence_ . intersperse H.br . for [1..length l] $ \(show->n) ->
-      let name = "line-" ++ n
-          url  = "/" ++ pasteId ++ "/#" ++ name
-       in H.a ! A.href (toValue url) ! A.name (toValue name) $ toHtml n
+      let url  = "/" ++ pasteId ++ "/#" ++ n
+       in H.a ! A.href (toValue url) ! A.name (toValue n) $ toHtml n
   H.pre ! A.class_ "plainText" $ toHtml cont
  where
   for = flip L.map
