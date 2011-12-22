@@ -1,5 +1,6 @@
-header p#logo,
-header p.desc {
+/* Logo */
+
+header p#logo {
   padding: 0;
   margin: 5px 10px 5px;
   display: inline-block;
@@ -31,112 +32,165 @@ header p#logo a span#n3 sup {
   right: 1px;
 }
 
-header p.desc {
+
+/* Description */
+
+p.desc {
+  padding: 0;
+  margin: 5px 10px 5px;
+  display: inline-block;
   font-size: 14px;
   color: white;
 }
 
-header div#compactMenu {
+p.desc a.descID,
+p.desc a.descTag {
+  margin-left:  3px;
+  margin-right: 3px;
+  color: #444;
+  font-size: 12px;
+}
+
+
+/* Menü */
+
+.compact-menu {
   color: white;
   font-size: 11px;
   float: right;
-  padding: 0 10px 0;
+  padding: 7px 10px 7px;
   margin: 0;
   max-width: 50%;
   text-align: right;
 }
 
-header div#compactMenu p,
-header div#compactMenu form {
+.compact-menu * {
+  text-align: left;
+}
+
+
+.compact-menu > p {
+  margin: 0 5px 0;
   display: inline-block;
 }
 
-header p.private,
-header p.user {
+.replies {
+  margin: 0 10px 0 0;
+}
+
+.replies a,
+.desc    a.descID,
+.desc    a.descTag {
+  background-color: #aaa;
+  padding: 2px 5px 2px;
+  border: 0;
+  border-radius: 4px;
+  font-size: 11px;
+  font-family: sans-serif;
+  font-weight: normal;
+  font-style: normal;
   display: inline;
+  vertical-align: baseline;
+  cursor: pointer;
 }
 
-header div#compactMenu p {
-  margin: 11px 10px 11px 0;
+.replies a {
+  margin-left: 5px;
+  color: #444;
 }
 
-  header div#compactMenu div.pasteInfo {
-    display: block;
+.timestamp {
+  margin: 11px 5px 11px;
+}
+
+.paste-functions,
+.language-selector {
+  display: inline-block;
+  padding: 0;
+  display: inline-block;
+  margin: 0 5px 0;
+}
+
+.paste-functions   > form input[type=submit],
+.language-selector > p {
+  display: inline-block;
+  padding: 2px 5px 2px;
+  margin: 0 0 5px;
+  font-size: 11px;
+  background-color: #aaa;
+  color: #444;
+  border: 0;
+  border-radius: 4px;
+  position: relative;
+}
+
+  .paste-functions > form input[type=submit] {
+    cursor: pointer;
+  }
+  .paste-functions > form input[type=submit]:hover {
+    text-decoration: underline;
   }
 
-  header div#compactMenu p#view_all_replies,
-  header div#compactMenu form.addReply input[type=submit],
-  header div#compactMenu p.replies {
-    margin: 0 10px 0 0;
+  .language-selector > p {
+    cursor: default;
+    min-width: 150px;
+  }
+  .language-selector > ul {
+    width: 160px;
   }
 
-    header div#compactMenu p.replies a,
-    header                 p.desc a.descID,
-    header                 p.desc a.descTag,
-    header                 p.private,
-    header                 p.user a,
-    header div#compactMenu p#view_all_replies a,
-    header div#compactMenu form.addReply input[type=submit] {
-      background-color: #aaa;
-      padding: 2px 5px 2px;
-      border: 0;
-      border-radius: 4px;
-      font-size: 11px;
-      font-family: sans-serif;
-      font-weight: normal;
-      font-style: normal;
-      display: inline;
-      vertical-align: baseline;
-      cursor: pointer;
-    }
+.paste-functions   > ul,
+.language-selector > ul {
+  display: none;
+}
 
-    header p.private {
-      cursor: default;
-      background-color: #faa;
-    }
+.paste-functions:hover   > ul,
+.language-selector:hover > ul {
+  z-index: 10;
+  list-style: none;
+  position: absolute;
+  display: block;
+  max-height: 300px;
+  overflow: auto;
+  margin: 0;
+  padding: 0;
+  background-color: #aaa;
+  border: 1px solid #666;
+  border-radius: 4px;
+  box-shadow: 3px 3px 10px #666;
+  padding: 0;
+}
 
-    header p.user a {
-      background-color: #aaf;
-    }
+.paste-functions:hover   > ul > li {
+  margin: 0;
+  padding: 2px 5px 2px;
+}
 
-    header div#compactMenu p.replies a {
-      margin-left: 5px;
-      color: #444;
-    }
+.language-selector:hover > ul > li {
+  margin: 0;
+  padding: 0px 5px 0px;
+}
 
-    header p.desc a.descID,
-    header p.desc a.descTag,
-    header p.private,
-    header p.user a {
-      margin-left: 5px;
-      margin-right: 5px;
-      color: #444;
-      font-size: 12px;
-    }
+.paste-functions:hover   > ul > li.spacer,
+.language-selector:hover > ul > li.spacer {
+  margin: 2px 0 2px;
+  padding: 0;
+}
 
-    header div#compactMenu p#view_all_replies a,
-    header div#compactMenu form.addReply input[type=submit] {
-      color: #444;
-    }
+.paste-functions:hover   > ul > li.spacer > hr,
+.language-selector:hover > ul > li.spacer > hr {
+  margin: 0;
+  border: 0;
+  height: 1px;
+  background-color: #666;
+}
 
-    header div#compactMenu p#view_all_replies a:hover,
-    header div#compactMenu form.addReply input[type=submit]:hover {
-      text-decoration: underline;
-    }
+.paste-functions:hover   > ul > li a,
+.language-selector:hover > ul > li a {
+  display: inline-block;
+  width: 100%;
+  color: #444;
+  font-size: 11px;
+}
 
-  header div#compactMenu form.languageSelector select {
-    display: inline;
-    padding: 1px 2px 1px;
-    margin: 0 10px 0 0;
-    font-size: 11px;
-    background-color: #aaa;
-    color: #444;
-    border: 0;
-    border-radius: 4px;
-  }
-
-  header div#compactMenu form.languageSelector input[type=submit] {
-    /* display: none; */
-  }
-
-  header p#logo { clear: right; }
+header p#logo { clear: right; }

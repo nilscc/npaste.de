@@ -47,12 +47,12 @@ header {
   /* position: fixed;
   top: 0;
   left: 0;
-  z-index: 5; */
-  padding: 10px;
+  z-index: 5;
+  width: 100%; */
+  padding: 10px 0 10px;
   font-size: 16px;
   border-bottom: 1px solid #444;
   box-shadow: 0 3px 10px #444;
-  overflow: hidden;
 }
 
   header a {
@@ -63,17 +63,13 @@ header {
 /**  MAIN SECTION  ************************************************************/
 
 section#main {
-  margin: 20px 0 0 0;
+  margin: 20px;
 }
 
   section#main .error {
     font-weight: bold;
     color: #c20;
   }
-
-    section#main h3.error { /* Paste not found message */
-      margin: 20px;
-    }
 
   section#main .warning {
     color: #c20;
@@ -87,18 +83,4 @@ section#main {
   section#main .info {
     font-weight: bold;
     font-style: italic;
-  }
-
-  /*
-  section#main pre {
-    margin: 10px 30px 10px;
-    font-weight: bold;
-  }
-  */
-  section#main div.formatedCode {
-    margin: 20px;
-  }
-
-  section#main p.moreless {
-    text-align: right;
   }
