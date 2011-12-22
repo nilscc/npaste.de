@@ -13,8 +13,6 @@ import NPaste.Html
 import NPaste.Types
 import NPaste.State
 
-import NPaste.Routes.User
-
 
 indexR :: NPaste ()
 indexR = do

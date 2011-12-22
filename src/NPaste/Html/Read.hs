@@ -49,34 +49,40 @@ readHtml _ = do
 
 -- | Information for the compact header
 readInfo :: Maybe Paste
+         -> Maybe User
          -> [Id]              -- ^ replies
          -> Html
-readInfo Nothing  _ = do
+readInfo Nothing _ _ = do
   -- logo & description
   H.p ! A.id "logo" $ H.a ! A.href "/" $ do
     H.span ! A.id "n3" $ do
       "n"
       H.sup "3"
     "paste.de"
-readInfo (Just p) r = do
+readInfo (Just p) mu r = do
 
   -- paste information
   H.div ! A.id "compactMenu" $
     H.div ! A.class_ "pasteInfo" $ do
+      -- list all replies
       unless (null r) $ do
         H.p ! A.class_ "replies" $ do
           "Replies: "
           sequence_ . intersperse " " . for r $ \pid ->
             let url = "/" ++ pid ++ "/"
              in H.a ! A.href (toValue url) $ toHtml url
+      -- "New reply" button
       H.form ! A.action "/" ! A.method "post" ! A.class_ "addReply" $ do
         H.input ! A.type_ "hidden" ! A.name "desc"    ! A.value (toValue $ "Reply to " ++ p_id)
         H.input ! A.type_ "hidden" ! A.name "hidden"  ! A.value (if pasteHidden p then "on" else "")
         H.input ! A.type_ "submit" ! A.name "asreply" ! A.value "New reply"
+      -- "Show related" button
       H.p ! A.id "view_all_replies" $
         H.a ! A.href (toValue $ "/v/id" ++ p_id) $ "Show related"
+      -- timestamp
       H.p ! A.class_ "timestamp" $
         toHtml $ formatTime defaultTimeLocale "%H:%M - %a %Y.%m.%d" (pasteDate p)
+      -- language selector
       H.form ! A.action (H.toValue p_id) ! A.method "post"
              ! A.class_ "languageSelector" $ do
         H.select ! A.id "lang" ! A.name "lang" $
@@ -87,15 +93,25 @@ readInfo (Just p) r = do
               H.option                         ! A.value (toValue l) $ toHtml l
         H.input ! A.type_ "submit" ! A.value "Change language"
 
-  -- logo & description
+  -- logo
   H.p ! A.id "logo" $ H.a ! A.href "/" $ do
     H.span ! A.id "n3" $ do
       "n"
       H.sup "3"
     "paste.de"
+
+  -- description
   case pasteDescription p of
        Just d | not (null d) -> H.p ! A.class_ "desc" $ formatDesc d
        _                     -> return ()
+
+  when (pasteHidden p) $
+    H.p ! A.class_ "private" $ "(private)"
+
+  maybe (return ()) `flip` mu $ \User{ userName } ->
+    H.p ! A.class_ "user" $
+      H.a ! A.href (toValue $ "/u/profile/" ++ userName) $ toHtml userName
+
  where
   for = flip L.map
   p_id = "/" ++ pasteId p ++ "/"

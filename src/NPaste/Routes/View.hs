@@ -57,9 +57,13 @@ buildFilterFromUrl = choice
 -- them
 addHiddenFilter :: Search -> NPaste Search
 addHiddenFilter s = do
-  h <- containsHiddenId s
-  return $
-    if h then s else S_And (S_PasteHidden False) s
+  h  <- containsHiddenId s
+  if h then
+     return s
+   else do
+     mu <- getCurrentUser
+     return $ S_And `flip` s $
+       maybe (S_PasteHidden False) (S_Or (S_PasteHidden False) . S_User) mu
  where
   containsHiddenId :: Search -> NPaste Bool
   containsHiddenId (S_And s1 s2) =

@@ -50,6 +50,12 @@ header div#compactMenu p,
 header div#compactMenu form {
   display: inline-block;
 }
+
+header p.private,
+header p.user {
+  display: inline;
+}
+
 header div#compactMenu p {
   margin: 11px 10px 11px 0;
 }
@@ -67,6 +73,8 @@ header div#compactMenu p {
     header div#compactMenu p.replies a,
     header                 p.desc a.descID,
     header                 p.desc a.descTag,
+    header                 p.private,
+    header                 p.user a,
     header div#compactMenu p#view_all_replies a,
     header div#compactMenu form.addReply input[type=submit] {
       background-color: #aaa;
@@ -82,13 +90,24 @@ header div#compactMenu p {
       cursor: pointer;
     }
 
+    header p.private {
+      cursor: default;
+      background-color: #faa;
+    }
+
+    header p.user a {
+      background-color: #aaf;
+    }
+
     header div#compactMenu p.replies a {
       margin-left: 5px;
       color: #444;
     }
 
     header p.desc a.descID,
-    header p.desc a.descTag {
+    header p.desc a.descTag,
+    header p.private,
+    header p.user a {
       margin-left: 5px;
       margin-right: 5px;
       color: #444;
