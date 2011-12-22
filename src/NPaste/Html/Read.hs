@@ -15,6 +15,7 @@ import qualified Text.Blaze.Html5.Attributes  as A
 import Text.Highlighting.Kate
 
 import NPaste.Types
+import NPaste.Utils
 
 -- | Show links in description etc
 formatDesc :: Description -> Html
@@ -61,37 +62,47 @@ readInfo Nothing _ _ = do
     "paste.de"
 readInfo (Just p) mu r = do
 
-  -- paste information
-  H.div ! A.id "compactMenu" $
-    H.div ! A.class_ "pasteInfo" $ do
-      -- list all replies
-      unless (null r) $ do
-        H.p ! A.class_ "replies" $ do
-          "Replies: "
-          sequence_ . intersperse " " . for r $ \pid ->
-            let url = "/" ++ pid ++ "/"
-             in H.a ! A.href (toValue url) $ toHtml url
+  H.div ! A.class_ "compact-menu" $ do
+
+    -- list all replies
+    unless (null r) $ do
+      H.p ! A.class_ "replies" $ do
+        "Replies: "
+        sequence_ . intersperse " " . for r $ \pid ->
+          let url = "/" ++ pid ++ "/"
+           in H.a ! A.href (toValue url) $ toHtml url
+
+    H.div ! A.class_ "paste-functions" $ do
       -- "New reply" button
       H.form ! A.action "/" ! A.method "post" ! A.class_ "addReply" $ do
         H.input ! A.type_ "hidden" ! A.name "desc"    ! A.value (toValue $ "Reply to " ++ p_id)
         H.input ! A.type_ "hidden" ! A.name "hidden"  ! A.value (if pasteHidden p then "on" else "")
         H.input ! A.type_ "submit" ! A.name "asreply" ! A.value "New reply"
-      -- "Show related" button
-      H.p ! A.id "view_all_replies" $
-        H.a ! A.href (toValue $ "/v/id" ++ p_id) $ "Show related"
-      -- timestamp
-      H.p ! A.class_ "timestamp" $
-        toHtml $ formatTime defaultTimeLocale "%H:%M - %a %Y.%m.%d" (pasteDate p)
-      -- language selector
-      H.form ! A.action (H.toValue p_id) ! A.method "post"
-             ! A.class_ "languageSelector" $ do
-        H.select ! A.id "lang" ! A.name "lang" $
-          forM_ ("Plaintext" : languages) $ \l ->
-            if Just l == pasteType p then -- TODO: different highlighting languages
-              H.option ! A.selected "selected" ! A.value (toValue l) $ toHtml l
-             else
-              H.option                         ! A.value (toValue l) $ toHtml l
-        H.input ! A.type_ "submit" ! A.value "Change language"
+      -- more functions (popout menu)
+      H.ul ! A.class_ "functions" $ do
+        -- "Show related" link
+        H.li $
+          H.a ! A.href (toValue $ "/v/id" ++ p_id) $ "Show related"
+        -- User profile link
+        maybe (return ()) `flip` mu $ \User{ userName } ->
+          H.li $ H.a ! A.href (toValue $ "/u/profile/" ++ userName) $
+            toHtml $ "Profile: " ++ userName
+
+
+    -- timestamp
+    H.p ! A.class_ "timestamp" $
+      toHtml $ formatTime defaultTimeLocale "%H:%M - %a %Y.%m.%d" (pasteDate p)
+
+    -- language selector
+    H.div ! A.class_ "language-selector" $ do
+      H.p $ toHtml $ ("Language: " ++) . fromMaybe "Plaintext" $
+                     join . fmap findLang $ pasteType p
+      H.ul $ do
+        H.li $ H.a ! A.href (toValue p_id)                  $ "Default language"
+        H.li $ H.a ! A.href (toValue $ p_id ++ "Plaintext") $ "Plaintext"
+        H.li ! A.class_ "spacer" $ H.hr
+        forM_ (languages) $ \l ->
+          H.li $ H.a ! A.href (toValue $ p_id ++ l) $ toHtml l
 
   -- logo
   H.p ! A.id "logo" $ H.a ! A.href "/" $ do
@@ -104,13 +115,6 @@ readInfo (Just p) mu r = do
   case pasteDescription p of
        Just d | not (null d) -> H.p ! A.class_ "desc" $ formatDesc d
        _                     -> return ()
-
-  when (pasteHidden p) $
-    H.p ! A.class_ "private" $ "(private)"
-
-  maybe (return ()) `flip` mu $ \User{ userName } ->
-    H.p ! A.class_ "user" $
-      H.a ! A.href (toValue $ "/u/profile/" ++ userName) $ toHtml userName
 
  where
   for = flip L.map
