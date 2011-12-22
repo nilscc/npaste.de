@@ -101,11 +101,13 @@ findPastes limit offset crits =
   joins                         = unwords . S.toList $ joins' crits
   joins'  (S_And s1 s2)         = joins' s1 `S.union` joins' s2
   joins'  (S_Or  s1 s2)         = joins' s1 `S.union` joins' s2
-  joins'  (S_UserName _)        = S.singleton "     JOIN users u   ON u.id = p.user_id"
-  joins'  (S_Tag _)             = S.singleton "     JOIN tags t    ON t.id = p.id"
-  joins'  (S_TagId _)           = S.singleton "     JOIN tags t    ON t.id = p.id"
-  joins'  (S_ReplyOf _)         = S.singleton "LEFT JOIN replies r ON p.id IN (r.reply_id, r.paste_id)"
-  joins'  (S_ReplyTo _)         = S.singleton "LEFT JOIN replies r ON p.id IN (r.reply_id, r.paste_id)"
+  joins'  (S_User _)            = S.singleton "     JOIN active_users u ON u.id = p.user_id"
+  joins'  (S_UserId _)          = joins' $ S_User undefined
+  joins'  (S_UserName _)        = joins' $ S_User undefined
+  joins'  (S_Tag _)             = S.singleton "     JOIN tags t         ON t.id = p.id"
+  joins'  (S_TagId _)           = joins' $ S_Tag undefined
+  joins'  (S_ReplyOf _)         = S.singleton "LEFT JOIN replies r      ON p.id IN (r.reply_id, r.paste_id)"
+  joins'  (S_ReplyTo _)         = joins' $ S_ReplyOf undefined
   joins'  _                     = S.empty
 
   toWhere (S_And s1 s2)         = "(" ++ toWhere s1 ++ " AND " ++ toWhere s2 ++ ")"
