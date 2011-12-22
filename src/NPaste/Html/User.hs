@@ -52,10 +52,11 @@ logoutHtml = do
 
   H.h1 "Log out"
 
-  H.form ! A.method "post" ! A.action "/u/logout" ! A.id "logout-form" $ do
-    H.p "Are you sure you want to log out?"
-    H.input ! A.type_ "submit" ! A.name "logout"    ! A.value "Yes, log me out."
-    H.input ! A.type_ "submit" ! A.name "no-logout" ! A.value "No, get me back to my profile."
+  H.p "Are you sure you want to log out?"
+
+  H.p ! A.id "logout-links" $ do
+    H.a ! A.href "/u/logout/confirm" $ "Yes, log me out!"
+    H.a ! A.href "/u"                $ "No, get me back to my profile."
 
 logoutSuccessfulHtml :: Html
 logoutSuccessfulHtml = do
@@ -156,7 +157,7 @@ profileHtml mf epastes = do
   H.h1 $ do
     "My pastes"
     maybe (return ()) (const " (filtered)") mf
-  filterForm mf
+  filterForm "/u" mf
   H.div ! A.id "paste_list" $
     case epastes of
          Right [] -> H.p ! A.class_ "error" $ "No pastes found."

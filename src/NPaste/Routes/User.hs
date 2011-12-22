@@ -77,20 +77,13 @@ performLogin u = do
 
 logoutR :: User -> NPaste ()
 logoutR _ = choice
-  [ do methodM POST
-       pdata <- getPostData
-       choice
-         [ do when (null $ getValue pdata "no-logout") mzero
-              ResponseCode .= seeOther ("/u" :: String)
-              HtmlBody     .= logoutCancelHtml
-         , do when (null $ getValue pdata "logout") mzero
-              s <- requireSession
-              rmSession s
-              expireCookie "sessionId"
-              ResponseCode .= seeOther ("/" :: String)
-              HtmlBody     .= logoutSuccessfulHtml
-         ]
-  , do HtmlBody     .= logoutHtml
+  [ do nullDir
+       HtmlBody     .= logoutHtml
+  , dir "confirm" $ do
+       rmSession =<< requireSession
+       expireCookie "sessionId"
+       ResponseCode .= seeOther ("/" :: String)
+       HtmlBody     .= logoutSuccessfulHtml
   ]
 
 lostPasswordR :: NPaste ()
