@@ -15,10 +15,8 @@ data MenuSection
   | M_View          (Maybe Filter)
   | M_User          (Maybe User)
   | M_About
+  | M_HR
   deriving (Eq, Show)
 
-newtype ActiveMenu    = ActiveMenu    { unActiveMenu    ::  MenuSection  }
-  deriving (Eq, Show)
-
-newtype MenuStructure = MenuStructure { unMenuStructure :: [MenuSection] }
-  deriving (Eq, Show)
+newtype ActiveMenu    = ActiveMenu    { unActiveMenu    :: Maybe MenuSection } deriving (Eq, Show)
+newtype MenuStructure = MenuStructure { unMenuStructure :: [MenuSection]     } deriving (Eq, Show)

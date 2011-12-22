@@ -1,8 +1,6 @@
 {-# LANGUAGE ViewPatterns #-}
 
-module NPaste.Routes.View
-  ( viewR
-  ) where
+module NPaste.Routes.View where
 
 import Control.Applicative
 import Happstack.Server
@@ -31,17 +29,17 @@ viewR = do
 
   case parseFilter f of
        Left err -> do
-         ActiveMenu .= M_View Nothing
+         ActiveMenu .= Just $ M_View Nothing
          Title      .= Just "View recent pastes"
          HtmlBody   .= viewHtml (Just f) (Left err)
        Right fl@(filterToSearch -> Just s) -> do
          p <- findPastes 20 0 =<< addHiddenFilter s
-         ActiveMenu .= M_View (Just fl)
+         ActiveMenu .= Just $ M_View (Just fl)
          Title      .= Just "View pastes (filtered)"
          HtmlBody   .= viewHtml (Just f) (Right p)
        _ -> do
          p <- getRecentPastes Nothing 20 0 False -- TODO: support for user/limit/offset/hidden
-         ActiveMenu .= M_View Nothing
+         ActiveMenu .= Just $ M_View Nothing
          Title      .= Just "View recent pastes"
          HtmlBody   .= viewHtml Nothing (Right p)
 

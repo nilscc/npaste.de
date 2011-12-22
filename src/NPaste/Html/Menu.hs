@@ -1,4 +1,5 @@
 {-# LANGUAGE OverloadedStrings #-}
+{-# OPTIONS -fno-warn-unused-do-bind #-}
 
 module NPaste.Html.Menu
   ( nullMenu
@@ -21,7 +22,7 @@ import NPaste.Utils
 
 nullMenu :: Menu
 nullMenu = Menu
-  { activeMenuSection = ActiveMenu    M_Index
+  { activeMenuSection = ActiveMenu    (Just M_Index)
   , menuStructure     = MenuStructure anonMenu
   }
 
@@ -30,7 +31,9 @@ anonMenu :: [MenuSection]
 anonMenu =
   [ M_Index
   , M_View Nothing
+  , M_HR
   , M_User Nothing
+  , M_HR
   , M_About
   ]
 
@@ -38,7 +41,9 @@ userMenu :: User -> [MenuSection]
 userMenu u =
   [ M_Index
   , M_View Nothing
+  , M_HR
   , M_User (Just u)
+  , M_HR
   , M_About
   ]
 
@@ -53,13 +58,15 @@ menuTitle s = case s of
   M_User (Just _) -> "My account"
   M_User Nothing  -> "Login"
   M_About         -> "About"
+  M_HR            -> H.hr
 
-menuLink :: MenuSection -> AttributeValue
+menuLink :: MenuSection -> Html -> Html
 menuLink s = case s of
-  M_View _      -> "/v"
-  M_User _      -> "/u"
-  M_About       -> "/a"
-  _             -> "/"
+  M_Index       -> H.a ! A.href "/"
+  M_View _      -> H.a ! A.href "/v"
+  M_User _      -> H.a ! A.href "/u"
+  M_About       -> H.a ! A.href "/a"
+  M_HR          -> id
 
 subMenu :: MenuSection -> [Html]
 subMenu (M_About) =
@@ -67,13 +74,22 @@ subMenu (M_About) =
   , H.a ! A.href "/a/contact"    $ "Contact"
   , H.a ! A.href "/a/statistics" $ "Statistics"
   ]
+subMenu (M_User (Just u)) =
+  [ H.span ! A.class_ "info" $ do
+      "Logged in as "
+      toHtml $ userName u
+  , H.a ! A.href "/u/settings" $ "Settings"
+  , H.a ! A.href "/u/logout"   $ "Logout"
+  ]
 subMenu (M_User Nothing) =
   [ H.a ! A.href "/u/register"      $ "Register"
   , H.a ! A.href "/u/lost-password" $ "Password lost"
   ]
 subMenu (M_View (Just f)) =
-  [ "Filtered by:"
-  , sequence_ . intercalate [" "] $ map filterToHtml f
+  [ H.span ! A.class_ "info" $
+      "Filtered by:"
+  , H.span ! A.class_ "info" $
+      sequence_ . intercalate [" "] $ map filterToHtml f
   ]
  where
   filterToHtml fval =

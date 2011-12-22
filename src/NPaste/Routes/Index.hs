@@ -17,7 +17,7 @@ import NPaste.State
 indexR :: NPaste ()
 indexR = do
 
-  ActiveMenu .= M_Index
+  ActiveMenu .= Just M_Index
 
   pdata <- choice
     [ methodM POST >> getPostData
