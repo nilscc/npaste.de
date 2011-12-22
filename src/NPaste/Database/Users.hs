@@ -32,21 +32,21 @@ getUserById :: Int -> Query (Maybe User)
 getUserById (-1) = return Nothing
 getUserById uid  =
   fmap convertListToMaybe $
-       querySql "SELECT id, name, email, default_hidden FROM active_users WHERE id = ?"
+       querySql "SELECT id, name, email, default_hidden, public_profile FROM active_users WHERE id = ?"
                 [toSql uid]
 
 getUserByEmail :: String -> Query (Maybe User)
 getUserByEmail "" = return Nothing
 getUserByEmail email  =
   fmap convertListToMaybe $
-       querySql "SELECT id, name, email, default_hidden FROM active_users WHERE email = ?"
+       querySql "SELECT id, name, email, default_hidden, public_profile FROM active_users WHERE email = ?"
                 [toSql email]
 
 getUserByName :: String -> Query (Maybe User)
 getUserByName ""   = return Nothing
 getUserByName name =
   fmap convertListToMaybe $
-       querySql "SELECT id, name, email, default_hidden FROM active_users WHERE name = ?"
+       querySql "SELECT id, name, email, default_hidden, public_profile FROM active_users WHERE name = ?"
                 [toSql name]
 
 getNextId :: Query Int
@@ -68,7 +68,7 @@ addUser un pw me = runErrorT $ do
   unless (all (`elem` validChars) un) $
     throwError $ AUE_InvalidUsername un
   i <- getNextId
-  let u = User i un me False
+  let u = User i un me False True
   mpw <- packPassword pw
   case mpw of
        Nothing    -> throwError AUE_NoPassword

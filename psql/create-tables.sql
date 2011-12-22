@@ -11,6 +11,9 @@ CREATE TABLE users (
   PRIMARY KEY (id)
 );
 
+ALTER TABLE users ADD COLUMN
+  public_profile    boolean DEFAULT TRUE;
+
 INSERT INTO users (id,name,password,email) VALUES (-1, '', '', '');
 
 CREATE TABLE sessions (
@@ -33,7 +36,7 @@ CREATE TABLE inactive_users (
 );
 
 CREATE VIEW active_users AS
-  SELECT u.id, u.name, u.password, u.email, u.default_hidden
+  SELECT u.id, u.name, u.password, u.email, u.default_hidden, u.public_profile
     FROM users u LEFT JOIN inactive_users i ON u.id = i.user_id
    WHERE i.user_id IS NULL;
 

@@ -150,13 +150,20 @@ activateFailHtml err = do
 --------------------------------------------------------------------------------
 -- Profile & settings
 
-profileHtml :: Maybe String
+profileHtml :: Maybe String               -- ^ user name (if /u/profile/<name>)
+            -> Maybe String               -- ^ filter string
             -> Either ParseError [Paste]
             -> Html
-profileHtml mf epastes = do
-  H.h1 $ do
-    "My pastes"
-    maybe (return ()) (const " (filtered)") mf
+profileHtml muname mf epastes = do
+  H.h1 $
+    case muname of
+         Nothing -> do
+           "My pastes"
+           maybe (return ()) (const " (filtered)") mf
+         Just uname -> do
+           "Pastes by "
+           toHtml uname
+           maybe (return ()) (const " (filtered)") mf
   filterForm "/u" mf
   H.div ! A.id "paste_list" $
     case epastes of
@@ -166,6 +173,17 @@ profileHtml mf epastes = do
              "Invalid filter request: Unexpected" "end of input"
              (errorMessages err)
          Right ps -> listPastes ps (Just 20)
+
+profileErrorHtml :: Maybe User -> String -> Html
+profileErrorHtml mu err = do
+
+  H.h1 $ case mu of
+              Just User{ userName } -> do
+                "Pastes by "
+                toHtml userName
+              _ -> "Error"
+
+  H.p ! A.class_ "error" $ toHtml err
 
 settingsHtml :: PostData -> Html
 settingsHtml _ = return ()
