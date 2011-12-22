@@ -28,7 +28,7 @@ data NPasteState = NPasteState
   , htmlContext     :: HtmlContext
   , htmlFrame       :: HtmlFrame
   , htmlBody        :: HtmlBody
-  , currentUser     :: Maybe User
+  , currentUser     :: CurrentUser
   }
   deriving Show
 
@@ -48,6 +48,7 @@ data ResponseFormat
 newtype ResponseCode = ResponseCode { unResponseCode :: Response -> ServerPart Response } deriving Show
 newtype HtmlBody     = HtmlBody     { unHtmlBody     :: Html }                            deriving Show
 newtype HtmlFrame    = HtmlFrame    { unHtmlFrame    :: HtmlContext -> HtmlBody -> Html } deriving Show
+newtype CurrentUser  = CurrentUser  { unCurrentUser  :: Maybe User                      } deriving Show
 
 -- ** State modification
 
@@ -87,7 +88,7 @@ instance ModifyNPasteState HtmlBody where
                  let (a,bdy) = f $ htmlBody st
                   in (a,st{ htmlBody = bdy })
 
-instance ModifyNPasteState (Maybe User) where
+instance ModifyNPasteState CurrentUser where
   modifyNP f = lift . modifyM $ \st ->
                  let (a,usr) = f $ currentUser st
                   in (a,st{ currentUser = usr })

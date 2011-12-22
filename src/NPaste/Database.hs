@@ -2,6 +2,8 @@ module NPaste.Database
   ( -- * Users
     module NPaste.Database.Users
   , getNumberOfUsers
+    -- * Sessions
+  , module NPaste.Database.Sessions
     -- * Pastes
   , module NPaste.Database.Pastes
   , getNumberOfPastes
@@ -9,6 +11,7 @@ module NPaste.Database
 
 import NPaste.Database.Users
 import NPaste.Database.Pastes
+import NPaste.Database.Sessions
 
 import Control.Monad.Trans
 import NPaste.Database.Connection

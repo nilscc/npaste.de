@@ -22,16 +22,18 @@ import NPaste.Routes.User
 import NPaste.Routes.View
 
 npasteR :: NPaste ()
-npasteR = choice
-  [ nullDir >> indexR
-  , dir "a" aboutR
-  , dir "p" partialR
-  , dir "s" staticR
-  , dir "u" userR
-  , dir "v" viewR
-  , path readR
-  , notFoundR
-  ]
+npasteR = do
+  setupUserMenu
+  choice
+    [ nullDir >> indexR
+    , dir "a" aboutR
+    , dir "p" partialR
+    , dir "s" staticR
+    , dir "u" userR
+    , dir "v" viewR
+    , path readR
+    , notFoundR
+    ]
 
 --------------------------------------------------------------------------------
 -- Simple routes

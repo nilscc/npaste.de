@@ -14,11 +14,20 @@ import Happstack.Server.Internal.MonadPeelIO ()
 
 import NPaste.Parser.Description
 
+
+--------------------------------------------------------------------------------
+-- * Convertible instances
+
 instance Convertible [SqlValue] Description where
   safeConvert s = fmap (parseDesc . concat) $ mapM safeConvert s
 
 instance Convertible SqlValue Description where
   safeConvert s = fmap (parseDesc)          $      safeConvert s
+
+instance Convertible [SqlValue] (Maybe Int) where
+  safeConvert [i] = safeConvert i
+  safeConvert a   = convError "" a
+
 
 --------------------------------------------------------------------------------
 -- * Happstack instances

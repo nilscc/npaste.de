@@ -4,14 +4,10 @@ module NPaste.Types.Database.Session
   ( Session (..)
   ) where
 
-import Control.Applicative
-import Data.Convertible
-import Data.Typeable
-import Database.HDBC
+import NPaste.Types.Database.User
 
-newtype Session = Session { unSession :: String }
-  deriving (Eq, Show, Typeable)
-
-instance Convertible [SqlValue] Session where
-  safeConvert [i] = Session <$> safeConvert i
-  safeConvert a   = convError "" a
+data Session = Session
+  { sessionId   :: String
+  , sessionUser :: Maybe User
+  }
+  deriving (Eq, Show)

@@ -5,6 +5,7 @@ module NPaste.State
   , npasteNullState
 
   , choice
+  , optional
   , (.=)
   ) where
 
@@ -45,7 +46,7 @@ npasteNullState = NPasteState
   , htmlContext     = nullContext
   , htmlFrame       = HtmlFrame mainFrame
   , htmlBody        = HtmlBody $ return ()
-  , currentUser     = Nothing
+  , currentUser     = CurrentUser Nothing
   }
 
 -- ** Other
@@ -55,6 +56,9 @@ choice :: [NPaste a] -> NPaste a
 choice val = do
   t <- get
   msum [ msum [ v, setNP t >> mzero ] | v <- val ]
+
+optional :: NPaste a -> NPaste (Maybe a)
+optional np = choice [ Just `fmap` np, return Nothing ]
 
 -- | Convenient `setNP` alias
 infixr 0 .=

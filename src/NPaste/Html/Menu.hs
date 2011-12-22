@@ -30,7 +30,7 @@ anonMenu :: [MenuSection]
 anonMenu =
   [ M_Index
   , M_View Nothing
-  -- , M_User Nothing
+  , M_User Nothing
   , M_About
   ]
 
@@ -38,7 +38,7 @@ userMenu :: User -> [MenuSection]
 userMenu u =
   [ M_Index
   , M_View Nothing
-  -- , M_User (Just u)
+  , M_User (Just u)
   , M_About
   ]
 
@@ -66,6 +66,10 @@ subMenu (M_About) =
   [ H.a ! A.href "/a/howto"      $ "How to"
   , H.a ! A.href "/a/contact"    $ "Contact"
   , H.a ! A.href "/a/statistics" $ "Statistics"
+  ]
+subMenu (M_User Nothing) =
+  [ H.a ! A.href "/u/register"      $ "Register"
+  , H.a ! A.href "/u/lost-password" $ "Password lost"
   ]
 subMenu (M_View (Just f)) =
   [ "Filtered by:"

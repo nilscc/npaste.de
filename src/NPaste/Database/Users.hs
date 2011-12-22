@@ -3,6 +3,7 @@
 module NPaste.Database.Users
   ( -- ** Queries
     getUserByName
+  , getUserByEmail
   , getUserById
   -- , getAllUsers
   , checkPassword
@@ -30,6 +31,13 @@ getUserById uid  =
   fmap convertListToMaybe $
        querySql "SELECT id, name, password, email, default_hidden FROM users WHERE id = ?"
                 [toSql uid]
+
+getUserByEmail :: String -> Query (Maybe User)
+getUserByEmail "" = return Nothing
+getUserByEmail email  =
+  fmap convertListToMaybe $
+       querySql "SELECT id, name, password, email, default_hidden FROM users WHERE email = ?"
+                [toSql email]
 
 getUserByName :: String -> Query (Maybe User)
 getUserByName ""   = return Nothing
