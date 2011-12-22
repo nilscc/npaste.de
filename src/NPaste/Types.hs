@@ -1,14 +1,11 @@
 {-# OPTIONS -fno-warn-dodgy-exports #-}
 
 module NPaste.Types
-  ( module NPaste.Types.State
+  ( module NPaste.Types.Database
+  , module NPaste.Types.State
   , module NPaste.Types.Parser
   , module NPaste.Types.Instances
   , module NPaste.Types.Search
-
-    -- * Database types
-  , Query, Update
-  , Paste (..), Id, User(..)
 
     -- * HTML types
   , module NPaste.Types.Html
