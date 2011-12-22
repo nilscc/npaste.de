@@ -38,4 +38,6 @@ executable npaste.de
         happstack-util          == 6.*,
         blaze-html              == 0.4.*,
         hslogger                == 1.*,
-        highlighting-kate       == 0.2.*
+        highlighting-kate       == 0.2.*,
+        SMTPClient              == 1.*,
+        email-validate          == 0.2.*

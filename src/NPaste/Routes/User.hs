@@ -8,6 +8,7 @@ import qualified Data.ByteString.Char8 as B8
 import Data.Maybe
 import Happstack.Server hiding (require, addCookie, expireCookie)
 import System.Random
+import Text.Email.Validate
 
 import NPaste.Database
 import NPaste.State
@@ -71,6 +72,8 @@ performLogin u = do
   let clife = Expires (sessionExpires s)
       ck    = mkCookie "sessionId" (sessionId s)
   addCookie clife ck
+  -- update menu
+  MenuStructure .= userMenu u
  where
   getHeader' h = fmap B8.unpack . getHeader h
 
@@ -180,15 +183,27 @@ registerR = choice
                   uname = getValue pdata "username"
                   pw    = getValue pdata "password"
               when (any null [email, uname, pw]) mzero
-              -- TODO: validate email?
-              mu <- addUser uname pw (Just email)
-              case mu of
-                   Left err -> HtmlBody .= registerHtml (Just err) pdata
-                   Right  u -> do
-                     akey <- genActivationKey
-                     addInactiveUser u akey
-                     -- TODO: send email with activation key
-                     HtmlBody .= registerCompleteHtml email
+              case validate email of
+                   Left  _ -> HtmlBody .= registerHtml (Just $ AUE_Other "Invalid email address.")
+                                                       pdata
+                   Right _ -> do
+                     mu  <- addUser uname pw (Just email)
+                     case mu of
+                         Left err -> HtmlBody .= registerHtml (Just err) pdata
+                         Right  u -> do
+                           akey <- genActivationKey
+                           addInactiveUser u akey
+                           sendEMail [(Nothing, email)]
+                                     "Your npaste.de activation key" $
+                                     "Hello " ++ uname ++ "!\n\n\
+                                     \Your registration on npaste.de was successful. To activate your account, \
+                                     \go to:\n\n\
+                                     \  http://npaste.de/u/activate/id/" ++ show( userId u) ++ "/key/" ++ akey ++ "\n\n\
+                                     \If you did not request this account, please ignore this email and do not \
+                                     \reply to it.\n\n\n\
+                                     \Thank you for using npaste.de,\n\n\
+                                     \ - your webmaster"
+                           HtmlBody .= registerCompleteHtml email
          , HtmlBody .= registerHtml (Just $ AUE_Other "Missing email, username or password.") pdata
          ]
   , HtmlBody .= registerHtml Nothing nullPostData
@@ -208,7 +223,8 @@ activateR = choice
         if success then do
            Just u <- getUserById uid
            performLogin u
-           HtmlBody .= activateSuccessHtml u
+           ActiveMenu .= Just $ M_User (Just u)
+           HtmlBody   .= activateSuccessHtml u
          else
            HtmlBody .= activateFailHtml "Incorrect activation key."
   , HtmlBody .= activateFailHtml "Incomplete information."
