@@ -11,6 +11,7 @@ module NPaste.Utils
   , require
 
   , module NPaste.Utils.Kate
+  , module NPaste.Utils.Mail
   ) where
 
 import Control.Monad
@@ -18,6 +19,7 @@ import Data.Convertible
 import Data.Maybe
 
 import NPaste.Utils.Kate
+import NPaste.Utils.Mail
 
 readMaybe :: Read a => String -> Maybe a
 readMaybe s = case reads s of
