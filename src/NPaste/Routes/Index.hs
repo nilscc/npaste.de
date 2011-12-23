@@ -41,7 +41,7 @@ indexR = do
             return $ Left Nothing
           else do
             mu <- getCurrentUser
-            e <- newPaste mu filetype desc hidden content
+            e <- addPaste mu filetype desc hidden content
             return $
               case e of
                     Left err  -> Left $ Just err
