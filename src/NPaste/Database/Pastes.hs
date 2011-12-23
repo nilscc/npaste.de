@@ -12,7 +12,7 @@ module NPaste.Database.Pastes
   , findPastes
 
     -- ** Updates
-  , newPaste
+  , addPaste
   ) where
 
 import Data.ByteString (ByteString)
@@ -156,13 +156,13 @@ findPastes limit offset crits =
 --------------------------------------------------------------------------------
 -- Updates
 
-newPaste :: Maybe User
+addPaste :: Maybe User
          -> Maybe String          -- ^ type
          -> Maybe String          -- ^ description
          -> Bool                  -- ^ hidden?
          -> ByteString            -- ^ content
          -> Update (Either AddPasteError Id)
-newPaste muser mtype mdesc hidden cont = runErrorT $ do
+addPaste muser mtype mdesc hidden cont = runErrorT $ do
 
   when (B.null cont) $ throwError APE_NoContent
 

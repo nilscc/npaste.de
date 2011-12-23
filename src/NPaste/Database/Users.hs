@@ -10,7 +10,9 @@ module NPaste.Database.Users
 
     -- * Updates
   , addUser
-  , changePassword
+  , updateUserPassword
+  , updateUserEmail
+  , updateUserSettings
     -- ** Inactive users
   , addInactiveUser
   , rmInactiveUser
@@ -89,6 +91,21 @@ sqlErrorToAUE e =
            throwError $ AUE_AlreadyExists
          | otherwise ->
            throwError $ AUE_Other (show e)
+
+updateUserPassword :: User -> String -> Update ()
+updateUserPassword u p = changePassword u p >> return ()
+
+updateUserEmail :: User -> Update ()
+updateUserEmail u =
+  updateSql_ "UPDATE users SET email = ? WHERE id = ?"
+             [ toSql (userEmail u), toSql (userId u) ]
+
+updateUserSettings :: User -> Update ()
+updateUserSettings u =
+  updateSql_ "UPDATE users SET default_hidden = ?, public_profile = ?\
+             \ WHERE id = ?"
+             [ toSql (userDefaultHidden u), toSql (userPublicProfile u)
+             , toSql (userId u) ]
 
 
 --------------------------------------------------------------------------------
