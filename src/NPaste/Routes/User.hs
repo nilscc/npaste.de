@@ -38,6 +38,8 @@ userR = do
     , dir "lost-password" $ requireNoUser >> lostPasswordR
     ]
 
+invalidPw :: String -> Bool
+invalidPw pw = length pw < 6
 
 --------------------------------------------------------------------------------
 -- Log in/out
@@ -92,14 +94,14 @@ requireLogin :: String      -- ^ <H1> content
 requireLogin h1 doWhenLoggedIn = choice
   [ requireUser >>= \_ -> doWhenLoggedIn
   , do method POST
-       pdata <- getPostData'
+       pdata <- getPostData
        u     <- require $ getUserByEmail  (getValue pdata "email")
        isOk  <-           checkPassword u (getValue pdata "password")
        unless isOk mzero
        performLogin u
        localRq (\rq -> rq{ rqMethod = GET }) doWhenLoggedIn
   , do -- show login form if we're not logged in
-       pdata <- getPostData'
+       pdata <- getPostData
        rq    <- askRq
        err   <- choice [ method POST >> return "Wrong email or password."
                        ,                return "Login required" ]
@@ -118,14 +120,71 @@ logoutR _ = choice
   ]
 
 lostPasswordR :: NPaste ()
-lostPasswordR = return ()
+lostPasswordR = do
+
+  pdata <- getPostData
+
+  choice
+    [ dir "change" $ do
+        res <- choice
+          [ do methodM POST
+
+               let email = getValue pdata "email"
+                   key   = getValue pdata "key"
+                   pw1   = getValue pdata "pw1"
+                   pw2   = getValue pdata "pw2"
+
+               mu <- getUserByEmail email
+               case mu of
+                    Nothing                -> err "Unknown email address."
+                    Just u | pw1 /= pw2    -> err "Both passwords have to match."
+                           | invalidPw pw1 -> err "Invalid password. Make sure it is at least 6 characters long."
+                           | otherwise     -> do
+                      s <- changeLostPassword u key pw1
+                      if not s then err "Invalid key." else do
+                         performLogin u
+                         success (u,"Password changed.")
+          , return Nothing
+          ]
+        case res of
+             Just (Right (u,s)) -> HtmlBody .= settingsHtml u (Just s) []
+             _                  -> HtmlBody .= lostPasswordChangeHtml res pdata
+    , do res <- choice
+           [ do methodM POST
+                let email = getValue pdata "email"
+                mu <- getUserByEmail email
+                case mu of
+                     Nothing -> err "Unknown email address."
+                     Just u  -> do
+                       k <- genActivationKey
+                       addLostPasswordKey u k
+                       sendEMail [(Nothing, email)]
+                                 "npaste.de - Your lost password" $
+                                 "Hello " ++ userName u ++ ",\n\n\
+                                 \You have requested a new password. To set your \
+                                 \new password, go to:\n\n\
+                                 \  https://npaste.de/u/lost-password/change\n\n\
+                                 \And enter the following key:\n\n\
+                                 \  " ++ k ++ "\n\n\
+                                 \If you did not request a new password, please \
+                                 \ignore this email and do not reply to it.\n\n\n\
+                                 \Thank you for using npaste.de,\n\n\
+                                 \ - your webmaster"
+                       success $ "An email has been sent to \"" ++ email ++ "\"."
+           , return Nothing
+           ]
+         HtmlBody .= lostPasswordHtml res pdata
+    ]
+ where
+  err     = return . Just . Left
+  success = return . Just . Right
 
 
 --------------------------------------------------------------------------------
 -- Profile & settings
 
 profileR :: NPaste ()
-profileR = do
+profileR = do -- | TODO: Show statistics instead of current profile and use @user show a users pastes
 
   modifyNP_ $ \(CSS cur) ->
     CSS $ cur ++ ["code/hk-pyg.css", "code.css", "view.css"]
@@ -242,8 +301,8 @@ settingsR = do
                            \Thank you for using npaste.de,\n\n\
                            \ - your webmaster"
                  return . Just $
-                   "An email with the verification code for your new email address has\
-                   \ been sent to \"" ++ email ++ "\"."
+                   "The verification code for your new email address has been sent to \""
+                   ++ email ++ "\"."
                else
                  throwError "Email address already in use."
 
@@ -289,7 +348,7 @@ registerR = choice
          [ do let email = getValue pdata "email"
                   uname = getValue pdata "username"
                   pw    = getValue pdata "password"
-              when (any null [email, uname, pw]) mzero
+              when (any null [email, uname] || invalidPw pw) mzero
               case validate email of
                    Left  _ -> HtmlBody .= registerHtml (Just $ AUE_Other "Invalid email address.")
                                                        pdata
@@ -301,8 +360,8 @@ registerR = choice
                            akey <- genActivationKey
                            addInactiveUser u akey
                            sendEMail [(Nothing, email)]
-                                     "Your npaste.de activation key" $
-                                     "Hello " ++ uname ++ "!\n\n\
+                                     "npaste.de - Your activation key" $
+                                     "Hello " ++ uname ++ ",\n\n\
                                      \Your registration on npaste.de was successful. To activate your account, \
                                      \go to:\n\n\
                                      \  http://npaste.de/u/activate/id/" ++ show( userId u) ++ "/key/" ++ akey ++ "\n\n\
@@ -311,7 +370,9 @@ registerR = choice
                                      \Thank you for using npaste.de,\n\n\
                                      \ - your webmaster"
                            HtmlBody .= registerCompleteHtml email
-         , HtmlBody .= registerHtml (Just $ AUE_Other "Missing email, username or password.") pdata
+         , HtmlBody .= registerHtml (Just $ AUE_Other "Missing email, username or password \
+                                                      \(make sure it is at least 6 characters long).")
+                                    pdata
          ]
   , HtmlBody .= registerHtml Nothing nullPostData
   ]

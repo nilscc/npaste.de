@@ -51,6 +51,15 @@ CREATE TABLE new_emails (
   FOREIGN key (user_id) REFERENCES users(id) ON DELETE CASCADE
 );
 
+CREATE TABLE lost_password_keys (
+  user_id           integer,
+  key               varchar(15),
+  expires           timestamp with time zone,
+
+  PRIMARY KEY (user_id, key),
+  FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+);
+
 
 -- PASTES ----------------------------------------------------------------------
 
