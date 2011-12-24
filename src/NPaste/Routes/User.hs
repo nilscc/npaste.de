@@ -36,8 +36,6 @@ userR = do
     , dir "register"      $ requireNoUser >> registerR
     , dir "activate"      $ requireNoUser >> activateR
     , dir "lost-password" $ requireNoUser >> lostPasswordR
-
-    , dir "fu" $ requireLogin "Fu!" $ HtmlBody .= "le fuuu"
     ]
 
 
@@ -105,7 +103,6 @@ requireLogin h1 doWhenLoggedIn = choice
        rq    <- askRq
        err   <- choice [ method POST >> return "Wrong email or password."
                        ,                return "Login required" ]
-       -- liftIO $ print loginErr -- debug
        HtmlBody .= requireLoginHtml h1 (rqUri rq ++ rqQuery rq) (Just err) pdata
   ]
 

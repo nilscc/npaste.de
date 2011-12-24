@@ -121,9 +121,7 @@ addIncativeEmail User{ userId } email akey =
      else 
        return False
  where
-  onSqlError e = do
-    liftIO $ hPutStrLn stderr (seErrorMsg e) -- debug
-    return False
+  onSqlError e = return False
 
 activateEmail :: User
               -> String                 -- ^ activation key
@@ -142,9 +140,7 @@ activateEmail User{ userId } akey =
                  [ toSql userId ]
       return $ Just email
  where
-  onSqlError e = do
-    liftIO $ hPutStrLn stderr (seErrorMsg e) -- debug
-    return Nothing
+  onSqlError e = return Nothing
 
 rmOldInactiveEmails :: Update ()
 rmOldInactiveEmails =
