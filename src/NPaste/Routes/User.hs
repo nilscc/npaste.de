@@ -296,7 +296,7 @@ settingsR = do
                            "Hello " ++ userName u ++ ",\n\n\
                            \You have requested to change your email. To verify your \
                            \new email address, go to:\n\n\
-                           \  http://npaste.de/u/settings/new-email/" ++ akey ++ "\n\n\
+                           \  https://npaste.de/u/settings/new-email/" ++ akey ++ "\n\n\
                            \Please do not reply to this email.\n\n\n\
                            \Thank you for using npaste.de,\n\n\
                            \ - your webmaster"
@@ -364,7 +364,7 @@ registerR = choice
                                      "Hello " ++ uname ++ ",\n\n\
                                      \Your registration on npaste.de was successful. To activate your account, \
                                      \go to:\n\n\
-                                     \  http://npaste.de/u/activate/id/" ++ show( userId u) ++ "/key/" ++ akey ++ "\n\n\
+                                     \  https://npaste.de/u/activate/id/" ++ show( userId u) ++ "/key/" ++ akey ++ "\n\n\
                                      \If you did not request this account, please ignore this email and do not \
                                      \reply to it.\n\n\n\
                                      \Thank you for using npaste.de,\n\n\
