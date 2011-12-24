@@ -10,6 +10,7 @@ import NPaste.State
 import NPaste.Types
 import NPaste.Html
 import NPaste.Parser
+import NPaste.Utils
 
 
 --------------------------------------------------------------------------------

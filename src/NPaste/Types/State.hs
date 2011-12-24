@@ -4,20 +4,16 @@
 
 module NPaste.Types.State where
 
-import Control.Monad.Error
 import Control.Concurrent.MState
 import Happstack.Server
 
 import NPaste.Types.Database
-import NPaste.Types.Error
 import NPaste.Types.Html
 
 --------------------------------------------------------------------------------
 -- * The server monads
 
-type NPaste a = ErrorT NPasteError (MState NPasteState (ServerPartT IO)) a
-type OutputM a = MState NPasteState (ServerPartT IO) a
-
+type NPaste a  = MState NPasteState (ServerPartT IO) a
 
 --------------------------------------------------------------------------------
 -- * The server state
@@ -65,41 +61,41 @@ class ModifyNPasteState t where
   getNP       = getsNP id
 
 instance ModifyNPasteState NPasteState where
-  modifyNP f = lift . modifyM $ \st -> f st
+  modifyNP f = modifyM $ \st -> f st
   getsNP f   = gets f
 
 instance ModifyNPasteState ResponseFormat where
-  modifyNP f = lift . modifyM $ \st ->
+  modifyNP f = modifyM $ \st ->
                  let (a,rsp) = f $ responseFormat st
                   in (a,st{ responseFormat = rsp })
   getsNP f   = gets $ f . responseFormat
 
 instance ModifyNPasteState ResponseCode where
-  modifyNP f = lift . modifyM $ \st ->
+  modifyNP f = modifyM $ \st ->
                  let (a,c) = f $ responseCode st
                   in (a,st{ responseCode = c })
   getsNP f   = gets $ f . responseCode
 
 instance ModifyNPasteState HtmlContext where
-  modifyNP f = lift . modifyM $ \st ->
+  modifyNP f = modifyM $ \st ->
                  let (a,frm) = f $ htmlContext st
                   in (a,st{ htmlContext = frm })
   getsNP f   = gets $ f . htmlContext
 
 instance ModifyNPasteState HtmlFrame where
-  modifyNP f = lift . modifyM $ \st ->
+  modifyNP f = modifyM $ \st ->
                  let (a,frm) = f $ htmlFrame st
                   in (a,st{ htmlFrame = frm })
   getsNP f   = gets $ f . htmlFrame
 
 instance ModifyNPasteState HtmlBody where
-  modifyNP f = lift . modifyM $ \st ->
+  modifyNP f = modifyM $ \st ->
                  let (a,bdy) = f $ htmlBody st
                   in (a,st{ htmlBody = bdy })
   getsNP f   = gets $ f . htmlBody
 
 instance ModifyNPasteState CurrentSession where
-  modifyNP f = lift . modifyM $ \st ->
+  modifyNP f = modifyM $ \st ->
                  let (a,s) = f $ currentSession st
                   in (a,st{ currentSession = s })
   getsNP f   = gets $ f . currentSession

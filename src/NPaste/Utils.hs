@@ -10,6 +10,16 @@ module NPaste.Utils
   , withJust_
   , require
 
+    -- ** Happstack helper functions
+  , module NPaste.Utils.Happstack
+
+    -- ** State functions
+  , module NPaste.Utils.State
+
+    -- ** Database functions
+  , module NPaste.Utils.Database
+
+    -- ** Other
   , module NPaste.Utils.Kate
   , module NPaste.Utils.Mail
   ) where
@@ -18,8 +28,11 @@ import Control.Monad
 import Data.Convertible
 import Data.Maybe
 
+import NPaste.Utils.Database
 import NPaste.Utils.Kate
 import NPaste.Utils.Mail
+import NPaste.Utils.State
+import NPaste.Utils.Happstack
 
 readMaybe :: Read a => String -> Maybe a
 readMaybe s = case reads s of

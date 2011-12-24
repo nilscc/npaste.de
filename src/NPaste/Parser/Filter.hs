@@ -13,7 +13,7 @@ import Text.ParserCombinators.Parsec hiding (many, optional, (<|>))
 import NPaste.Types.Parser.Filter
 import NPaste.Types.Search
 import NPaste.Parser.Description (tagSpecialChars)
-import NPaste.Utils
+import NPaste.Utils hiding (choice)
 
 --------------------------------------------------------------------------------
 -- Parser

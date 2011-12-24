@@ -12,6 +12,7 @@ import Text.Blaze ((!))
 
 import NPaste.Types
 import NPaste.State
+import NPaste.Utils
 
 import NPaste.Routes.About
 import NPaste.Routes.Index

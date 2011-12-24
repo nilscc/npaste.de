@@ -38,7 +38,8 @@ pre {
   font-size: 10pt;
 }
 
-form input[type=submit] {
+form input[type=submit],
+form input[type=reset] {
   background-color: #777;
   color: white;
   border: 1px solid #666;
@@ -220,6 +221,7 @@ section#main
 
     section#main .success
     {
+        color: #0a3;
     }
 
     section#main .info

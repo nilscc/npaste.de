@@ -5,9 +5,9 @@ module NPaste.Routes.About
 import Happstack.Server
 
 import NPaste.Database
-import NPaste.State
 import NPaste.Types
 import NPaste.Html
+import NPaste.Utils
 
 aboutR :: NPaste ()
 aboutR = do

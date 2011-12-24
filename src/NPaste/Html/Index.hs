@@ -9,8 +9,8 @@ import Text.Highlighting.Kate (languages)
 
 import NPaste.Types
 
-indexHtml :: PostData -> Maybe AddPasteError -> Html
-indexHtml pdata err = do
+indexHtml :: Maybe User -> PostData -> Maybe AddPasteError -> Html
+indexHtml u pdata err = do
   H.h1 "New paste"
 
   -- show error messages
@@ -55,10 +55,9 @@ indexHtml pdata err = do
 
       H.li $ do
         H.p "Hide from recent pastes:"
-        if getValue pdata "hidden" == "on" then
-          H.input ! A.type_ "checkbox" ! A.id "hidden" ! A.name "hidden"
-                  ! A.checked "checked"
-         else
+        (if fmap userDefaultHidden u == Just True
+            || getValue pdata "hidden" == "on"
+         then (! A.checked "checked") else Prelude.id) $
           H.input ! A.type_ "checkbox" ! A.id "hidden" ! A.name "hidden"
 
     -- spam checker, this shouldn't be visible at all. not sure if it's really

@@ -9,7 +9,6 @@ import Happstack.Server
 
 import NPaste.Database
 import NPaste.Html
-import NPaste.State
 import NPaste.Types
 import NPaste.Parser
 import NPaste.Utils

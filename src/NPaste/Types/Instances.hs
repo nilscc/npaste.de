@@ -26,6 +26,14 @@ instance Convertible [SqlValue] Description where
 instance Convertible SqlValue Description where
   safeConvert s = fmap (parseDesc)          $      safeConvert s
 
+instance Convertible [SqlValue] String where
+  safeConvert [s] = safeConvert s
+  safeConvert a   = convError "" a
+
+instance Convertible [SqlValue] Int where
+  safeConvert [i] = safeConvert i
+  safeConvert a   = convError "" a
+
 instance Convertible [SqlValue] (UTCTime, Maybe Int) where
   safeConvert [t,i] = (,) <$> safeConvert t
                           <*> safeConvert i

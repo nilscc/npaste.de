@@ -12,6 +12,7 @@ import NPaste.Database
 import NPaste.Html
 import NPaste.Types
 import NPaste.State
+import NPaste.Utils
 
 
 indexR :: NPaste ()
@@ -59,9 +60,10 @@ indexR = do
          PlainResponse rq .= seeOther url . toResponse $
                              "Paste already exists at: http://npaste.de" ++ url ++ "\n"
        Left err -> do
+         mu <- getCurrentUser
          HtmlFrame .= mainFrame
          CSS       .= ["index.css"]
-         HtmlBody  .= indexHtml pdata err
+         HtmlBody  .= indexHtml mu pdata err
 
  where
   cutTrailingSpaces :: String -> String
@@ -73,14 +75,3 @@ indexR = do
     listToMaybe $ [ l | l <- languages, map toLower l == map toLower t ]
                ++ languagesByExtension t
                ++ languagesByFilename t
-
---------------------------------------------------------------------------------
--- Post data
-
-getPostData :: NPaste PostData
-getPostData = do
-  decodeBody (defaultBodyPolicy "/tmp/npaste.de/" 1000000 1000000 1000000)
-  fmap PostData $ body lookPairs
-
-nullPostData :: PostData
-nullPostData = PostData []

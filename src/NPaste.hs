@@ -9,10 +9,8 @@ import NPaste.Types
 
 npaste :: ServerPart Response
 npaste = do
-  (res, newstate) <- runNPaste npasteNullState npasteR
-  case res of
-       Right _   -> compose newstate
-       Left  err -> handleError newstate err
+  ((), newstate) <- runNPaste npasteNullState npasteR
+  compose newstate
 
 compose :: NPasteState -> ServerPart Response
 compose st = do
@@ -28,9 +26,3 @@ compose st = do
          code . toResponse . unHtmlBody $ htmlBody st
        PlainResponse rq rsp ->
          localRq (const rq) rsp
-
-handleError :: NPasteState
-            -> NPasteError
-            -> ServerPart Response
-handleError _ _ =
-  internalServerError $ toResponse "An error occured. Please try again later."
