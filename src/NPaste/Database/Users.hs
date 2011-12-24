@@ -1,4 +1,4 @@
-{-# LANGUAGE NamedFieldPuns #-}
+{-# LANGUAGE NamedFieldPuns, ScopedTypeVariables #-}
 
 module NPaste.Database.Users
   ( -- * Queries
@@ -10,8 +10,9 @@ module NPaste.Database.Users
 
     -- * Updates
   , addUser
+  , addIncativeEmail
+  , activateEmail
   , updateUserPassword
-  , updateUserEmail
   , updateUserSettings
     -- ** Inactive users
   , addInactiveUser
@@ -19,7 +20,9 @@ module NPaste.Database.Users
   ) where
 
 -- import Data.Maybe
+import Data.Time
 import Database.HDBC.PostgreSQL
+import System.IO
 
 import NPaste.Database.Connection
 import NPaste.Database.Users.Password
@@ -95,10 +98,58 @@ sqlErrorToAUE e =
 updateUserPassword :: User -> String -> Update ()
 updateUserPassword u p = changePassword u p >> return ()
 
-updateUserEmail :: User -> Update ()
-updateUserEmail u =
-  updateSql_ "UPDATE users SET email = ? WHERE id = ?"
-             [ toSql (userEmail u), toSql (userId u) ]
+addIncativeEmail :: User
+                 -> String         -- ^ new email
+                 -> String         -- ^ activation key
+                 -> Update Bool    -- ^ true on success, false on UNIQUE violation/other
+addIncativeEmail User{ userId } email akey =
+  handleSql onSqlError $ do
+    rmOldInactiveEmails
+    -- make sure the email really is unique
+    c <- fmap convertListToMaybe $
+              querySql "SELECT count(*) \
+                       \  FROM users u LEFT JOIN new_emails ne ON u.id = ne.user_id \
+                       \ WHERE u.email = ?"
+                       [ toSql email ]
+    if c == Just (0 :: Int) then do
+       now <- liftIO getCurrentTime
+       let expires = addUTCTime (60 * 60 * 24 * 7) now
+       updateSql_ "INSERT INTO new_emails(user_id, activation_key, email, expires) \
+                  \     VALUES           (?      , ?             , ?    , ?      ) "
+                  [ toSql userId, toSql akey, toSql email, toSql expires ]
+       return True
+     else 
+       return False
+ where
+  onSqlError e = do
+    liftIO $ hPutStrLn stderr (seErrorMsg e) -- debug
+    return False
+
+activateEmail :: User
+              -> String                 -- ^ activation key
+              -> Update (Maybe String)  -- ^ (Just newEmail) on success
+activateEmail User{ userId } akey =
+  handleSql onSqlError $ do
+    rmOldInactiveEmails
+    res <- fmap convertListToMaybe $
+                querySql "SELECT email FROM new_emails \
+                         \ WHERE user_id = ? AND activation_key = ?"
+                         [ toSql userId, toSql akey ]
+    maybe (return Nothing) `flip` res $ \(email :: String) -> do
+      updateSql_ "UPDATE users SET email = ? WHERE id = ?"
+                 [ toSql email, toSql userId ]
+      updateSql_ "DELETE FROM new_emails WHERE user_id = ?"
+                 [ toSql userId ]
+      return $ Just email
+ where
+  onSqlError e = do
+    liftIO $ hPutStrLn stderr (seErrorMsg e) -- debug
+    return Nothing
+
+rmOldInactiveEmails :: Update ()
+rmOldInactiveEmails =
+  updateSql_ "DELETE FROM new_emails WHERE expires < now ()" []
+
 
 updateUserSettings :: User -> Update ()
 updateUserSettings u =
@@ -115,15 +166,23 @@ addInactiveUser :: User
                 -> String     -- ^ activation key
                 -> Update ()
 addInactiveUser User{ userId } akey = do
-  updateSql_ "INSERT INTO inactive_users (user_id, activation_key) \
-             \     VALUES                (?      , ?             ) "
-             [toSql userId, toSql akey]
+  rmOldInactiveUsers
+  now <- liftIO getCurrentTime
+  let expires = addUTCTime (60 * 60 * 24 * 7) now
+  updateSql_ "INSERT INTO inactive_users (user_id, activation_key, expires) \
+             \     VALUES                (?      , ?             , ?      ) "
+             [toSql userId, toSql akey, toSql expires]
 
 rmInactiveUser :: Int             -- ^ user id
                -> String          -- ^ activation key
                -> Update Bool     -- ^ true on success
 rmInactiveUser userId akey = do
+  rmOldInactiveUsers
   r <- updateSql "DELETE FROM inactive_users \
                  \      WHERE user_id = ? AND activation_key = ? "
                  [toSql userId, toSql akey]
   return $ r == 1
+
+rmOldInactiveUsers :: Update ()
+rmOldInactiveUsers =
+  updateSql_ "DELETE FROM inactive_users WHERE expires < now()" []

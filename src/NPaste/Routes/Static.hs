@@ -2,7 +2,7 @@ module NPaste.Routes.Static where
 
 import Happstack.Server
 import NPaste.Types
-import NPaste.State
+import NPaste.Utils
 
 staticR :: NPaste ()
 staticR = choice

@@ -20,7 +20,6 @@ module NPaste.Database.Connection
 
     -- * Reexport
   , module Database.HDBC
-  , module NPaste.Utils.Database
   ) where
 
 import Control.Monad
@@ -32,7 +31,6 @@ import Database.HDBC.PostgreSQL
 import qualified Database.HDBC as H
 
 import NPaste.Types
-import NPaste.Utils.Database
 
 conStr :: String
 conStr = "host=localhost user=nils dbname=npaste-test password=1234"

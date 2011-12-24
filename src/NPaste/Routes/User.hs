@@ -5,7 +5,9 @@ module NPaste.Routes.User
   ) where
 
 import qualified Data.ByteString.Char8 as B8
+import Data.Either
 import Data.Maybe
+import Data.List (intercalate)
 import Happstack.Server hiding (require, addCookie, expireCookie)
 import System.Random
 import Text.Email.Validate
@@ -27,13 +29,15 @@ userR = do
   choice
     [ nullDir >> choice   [ requireNoUser >> loginR
                           ,                  profileR ]
-    , dir "login"         $ requireNoUser >> loginR
+    , dir "profile"       $                  profileR
+    , dir "settings"      $ requireLogin "Settings" settingsR
     , dir "logout"        $ requireUser  >>= logoutR
+    , dir "login"         $ requireNoUser >> loginR
     , dir "register"      $ requireNoUser >> registerR
     , dir "activate"      $ requireNoUser >> activateR
     , dir "lost-password" $ requireNoUser >> lostPasswordR
-    , dir "settings"      $ requireUser  >>= settingsR
-    , dir "profile"       $                  profileR
+
+    , dir "fu" $ requireLogin "Fu!" $ HtmlBody .= "le fuuu"
     ]
 
 
@@ -53,8 +57,8 @@ loginR = choice
               -- forward to index page
               ResponseCode .= seeOther ("/u" :: String)
               HtmlBody     .= loginCorrectHtml
-           -- throw error otherwise
-         , HtmlBody .= loginHtml (Just "Wrong email or password.") pdata
+         , -- throw error otherwise
+           HtmlBody .= loginHtml (Just "Wrong email or password.") pdata
          ]
   , HtmlBody .= loginHtml Nothing nullPostData
   ]
@@ -67,15 +71,43 @@ performLogin u = do
              getHeader' "x-forwarded-for" (rqHeaders rq)
       ua = fromMaybe "" $
              getHeader' "user-agent"      (rqHeaders rq)
+  -- add session
   s  <- addSession (Just u) ip ua
+  CurrentSession .= Just s
   -- set session cookie
   let clife = Expires (sessionExpires s)
       ck    = mkCookie "sessionId" (sessionId s)
   addCookie clife ck
-  -- update menu
+  -- update menu structure
+  am <- getsNP unActiveMenu
+  case am of
+       Just (M_User Nothing) -> ActiveMenu .= Just $ M_User (Just u)
+       _                     -> return ()
   MenuStructure .= userMenu u
  where
   getHeader' h = fmap B8.unpack . getHeader h
+
+-- perform login if necessary
+requireLogin :: String      -- ^ <H1> content
+             -> NPaste ()
+             -> NPaste ()
+requireLogin h1 doWhenLoggedIn = choice
+  [ requireUser >>= \_ -> doWhenLoggedIn
+  , do method POST
+       pdata <- getPostData'
+       u     <- require $ getUserByEmail  (getValue pdata "email")
+       isOk  <-           checkPassword u (getValue pdata "password")
+       unless isOk mzero
+       performLogin u
+       localRq (\rq -> rq{ rqMethod = GET }) doWhenLoggedIn
+  , do -- show login form if we're not logged in
+       pdata <- getPostData'
+       rq    <- askRq
+       err   <- choice [ method POST >> return "Wrong email or password."
+                       ,                return "Login required" ]
+       -- liftIO $ print loginErr -- debug
+       HtmlBody .= requireLoginHtml h1 (rqUri rq ++ rqQuery rq) (Just err) pdata
+  ]
 
 logoutR :: User -> NPaste ()
 logoutR _ = choice
@@ -131,7 +163,7 @@ profileR = do
 
         , do -- <username> is an existing user
              u@User{ userName } <- maybe mzero return =<< getUserByName uname
-             Title .= Just $ "Profile: " ++ userName
+             Title .= Just $ "Pastes by " ++ userName
              case parseFilter f of
                   Left err -> do
                     ActiveMenu .= Just $ M_View Nothing
@@ -146,7 +178,7 @@ profileR = do
                     HtmlBody   .= profileHtml (Just userName) Nothing (Right p)
 
         , do -- <username> is no valid user
-             Title    .= Just "Profile: User not found"
+             Title    .= Just "User not found"
              HtmlBody .= profileErrorHtml Nothing "User not found"
         ]
     ]
@@ -166,9 +198,87 @@ profileR = do
            HtmlBody   .= profileHtml Nothing Nothing (Right p)
 
 
-settingsR :: User -> NPaste ()
-settingsR _ = return () -- TODO
+settingsR :: NPaste ()
+settingsR = do
+  Title .= Just "Settings"
+  choice
+    [ -- verify/activate new email addresses
+      dir "new-email" $ path $ \akey -> do
+        s <- requireSession
+        u <- requireUser
+        r <- activateEmail u akey
+        case r of
+             Just newEmail -> do
+               let u' = u{ userEmail = Just newEmail }
+               CurrentSession .= Just s{ sessionUser = Just u' }
+               HtmlBody       .= settingsHtml u' (Just "Email verified.") []
+             Nothing -> do
+               HtmlBody       .= settingsHtml u Nothing [ "Invalid email verification code." ]
 
+    , do -- change and save new settings
+         methodM POST
+         u <- requireUser
+
+         -- account details
+         pdata <- getPostData
+         let email = getValue pdata "email" 
+             pw1   = getValue pdata "pw1"
+             pw2   = getValue pdata "pw2"
+             pwCur = getValue pdata "pw-cur"
+
+         -- change email
+         emailRes <- runErrorT $
+           if (null email || userEmail u == Just email) then return Nothing else do
+              when (isLeft $ validate email) $
+                 throwError "Invalid email address."
+              akey <- genActivationKey
+              suc  <- addIncativeEmail u email akey
+              -- send activation email on success
+              if suc then do
+                 sendEMail [(Nothing, email)]
+                           "npaste.de - Email address verification" $
+                           "Hello " ++ userName u ++ ",\n\n\
+                           \You have requested to change your email. To verify your \
+                           \new email address, go to:\n\n\
+                           \  http://npaste.de/u/settings/new-email/" ++ akey ++ "\n\n\
+                           \Please do not reply to this email.\n\n\n\
+                           \Thank you for using npaste.de,\n\n\
+                           \ - your webmaster"
+                 return . Just $
+                   "An email with the verification code for your new email address has\
+                   \ been sent to \"" ++ email ++ "\"."
+               else
+                 throwError "Email address already in use."
+
+         -- change password
+         pwRes <- runErrorT $
+           if (null pw1 && null pw2) then return Nothing else do
+              when (pw1 /= pw2) $
+                throwError "New password and password confirmation have to match."
+              pwOk <- checkPassword u pwCur
+              unless pwOk $
+                throwError "Current password is wrong."
+              updateUserPassword u pw1
+              return $ Just "Password changed."
+
+         -- update user settings
+         let u' = u { userDefaultHidden = getValue pdata "default_hidden" == "on"
+                    , userPublicProfile = getValue pdata "public_profile" == "on" }
+         updateUserSettings u'
+
+         let (errs,msgs) = partitionEithers [emailRes, pwRes]
+             msgs' | null msgs = []
+                   | otherwise = "Settings saved." : catMaybes msgs
+         HtmlBody .= settingsHtml u' (Just $ intercalate " " msgs') errs
+
+    , do -- show default page
+         u <- requireUser
+         HtmlBody .= settingsHtml u Nothing []
+    ]
+ where
+  isLeft (Left  _) = True
+  isLeft (Right _) = False
+  
 
 --------------------------------------------------------------------------------
 -- Registration & activation
@@ -208,10 +318,12 @@ registerR = choice
          ]
   , HtmlBody .= registerHtml Nothing nullPostData
   ]
+
+genActivationKey :: MonadIO m => m String
+genActivationKey = do
+  g <- liftIO newStdGen
+  return $ map (chars !!) . take 15 $ randomRs (0,length chars-1) g
  where
-  genActivationKey = do
-    g <- liftIO newStdGen
-    return $ map (chars !!) . take 15 $ randomRs (0,length chars-1) g
   chars = ['0'..'9'] ++ ['A'..'Z'] ++ ['a'..'z']
 
 activateR :: NPaste ()
@@ -229,15 +341,3 @@ activateR = choice
            HtmlBody .= activateFailHtml "Incorrect activation key."
   , HtmlBody .= activateFailHtml "Incomplete information."
   ]
-
-
---------------------------------------------------------------------------------
--- Post data
-
-getPostData :: NPaste PostData
-getPostData = do
-  decodeBody (defaultBodyPolicy "/tmp/npaste.de/" 1000000 1000000 1000000)
-  fmap PostData $ body lookPairs
-
-nullPostData :: PostData
-nullPostData = PostData []

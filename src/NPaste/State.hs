@@ -3,13 +3,8 @@ module NPaste.State
   , expireCookie
 
   , runNPaste, evalNPaste, execNPaste
-  , runOutputM, evalOutputM, execOutputM
 
   , npasteNullState
-
-  , choice
-  , optional
-  , (.=)
 
     -- * Menu stuff
   , setupUserMenu
@@ -32,6 +27,7 @@ import qualified Happstack.Server      as HS
 import NPaste.Database
 import NPaste.Html
 import NPaste.Types
+import NPaste.Utils
 
 
 --------------------------------------------------------------------------------
@@ -51,25 +47,14 @@ expireCookie n =
 --------------------------------------------------------------------------------
 -- * State management
 
-runNPaste :: NPasteState -> NPaste a -> ServerPart (Either NPasteError a, NPasteState)
-runNPaste s n = runMState (runErrorT n) s
+runNPaste :: NPasteState -> NPaste a -> ServerPart (a, NPasteState)
+runNPaste s n = runMState n s
 
-evalNPaste :: NPasteState -> NPaste a -> ServerPart (Either NPasteError a)
+evalNPaste :: NPasteState -> NPaste a -> ServerPart a
 evalNPaste s n = fmap fst $ runNPaste s n
 
 execNPaste :: NPasteState -> NPaste a -> ServerPart NPasteState
 execNPaste s n = fmap snd $ runNPaste s n
-
--- ** Output stuff
-
-runOutputM :: NPasteState -> OutputM a -> ServerPart (a, NPasteState)
-runOutputM s n = runMState n s
-
-evalOutputM :: NPasteState -> OutputM a -> ServerPart a
-evalOutputM s n = fmap fst $ runMState n s
-
-execOutputM :: NPasteState -> OutputM a -> ServerPart NPasteState
-execOutputM s n = fmap snd $ runMState n s
 
 -- ** Default values
 
@@ -84,24 +69,6 @@ npasteNullState = NPasteState
   , runBeforeResponse = []
   }
 
--- ** Other
-
--- | Sensible version of `msum` that resets the state after a failed attempt
-choice :: [NPaste a] -> NPaste a
-choice val = do
-  t <- get
-  msum [ msum [ v, setNP t >> mzero ] | v <- val ]
-
-optional :: NPaste a -> NPaste (Maybe a)
-optional np = choice [ Just `fmap` np, return Nothing ]
-
--- | Convenient `setNP` alias
-infixr 0 .=
-(.=) :: ModifyNPasteState t
-     => (a -> t)
-     -> a
-     -> NPaste ()
-con .= val = setNP $ con val
 
 --------------------------------------------------------------------------------
 -- * User management
