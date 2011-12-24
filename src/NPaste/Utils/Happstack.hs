@@ -10,7 +10,7 @@ import NPaste.Types
 
 getPostData :: NPaste PostData
 getPostData = choice
-  [ do methodM POST
+  [ do method POST
        _ <- optional $ decodeBody (defaultBodyPolicy "/tmp/npaste.de/" 1000000 1000000 1000000)
        fmap PostData $ body lookPairs
   , return nullPostData
@@ -18,7 +18,7 @@ getPostData = choice
 
 getPostData' :: NPaste PostData
 getPostData' = choice
-  [ do method POST
+  [ do methodM POST
        _ <- optional $ decodeBody (defaultBodyPolicy "/tmp/npaste.de/" 1000000 1000000 1000000)
        fmap PostData $ body lookPairs
   , return nullPostData

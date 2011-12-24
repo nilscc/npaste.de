@@ -17,12 +17,14 @@ module NPaste.Database.Users
     -- ** Inactive users
   , addInactiveUser
   , rmInactiveUser
+    -- ** Lost passwords
+  , addLostPasswordKey
+  , changeLostPassword
   ) where
 
 -- import Data.Maybe
 import Data.Time
 import Database.HDBC.PostgreSQL
-import System.IO
 
 import NPaste.Database.Connection
 import NPaste.Database.Users.Password
@@ -121,7 +123,7 @@ addIncativeEmail User{ userId } email akey =
      else 
        return False
  where
-  onSqlError e = return False
+  onSqlError _ = return False
 
 activateEmail :: User
               -> String                 -- ^ activation key
@@ -140,7 +142,7 @@ activateEmail User{ userId } akey =
                  [ toSql userId ]
       return $ Just email
  where
-  onSqlError e = return Nothing
+  onSqlError _ = return Nothing
 
 rmOldInactiveEmails :: Update ()
 rmOldInactiveEmails =
@@ -153,6 +155,35 @@ updateUserSettings u =
              \ WHERE id = ?"
              [ toSql (userDefaultHidden u), toSql (userPublicProfile u)
              , toSql (userId u) ]
+
+addLostPasswordKey :: User
+                   -> String       -- ^ the key
+                   -> Update ()
+addLostPasswordKey u k = do
+  now <- liftIO getCurrentTime
+  let expires = addUTCTime (60 * 60 * 24 * 7) now
+  handleSql (\_ -> return ()) $
+    updateSql_ "INSERT INTO lost_password_keys(user_id, key, expires)\
+               \     VALUES                   (?      , ?  , ?      )"
+               [ toSql (userId u), toSql k, toSql expires ]
+
+changeLostPassword :: User 
+                   -> String        -- ^ the key
+                   -> String        -- ^ the new password
+                   -> Update Bool
+changeLostPassword u k pw = do
+  -- remove expired passwords
+  updateSql_ "DELETE FROM lost_password_keys WHERE expires < now()" []
+  r <- updateSql "DELETE FROM lost_password_keys \
+                 \ WHERE user_id = ? AND key = ?"
+                 [ toSql (userId u), toSql k ]
+  if r == 1 then do
+     pwr <- changePassword u pw
+     -- clean up any other password requests
+     updateSql_ "DELETE FROM lost_password_keys WHERE user_id = ?" [ toSql (userId u) ]
+     return pwr
+   else
+     return False
 
 
 --------------------------------------------------------------------------------

@@ -90,9 +90,64 @@ logoutCancelHtml = do
     H.a ! A.href "/u" $ "profile"
     "."
 
-lostPasswordHtml :: PostData -> Html
-lostPasswordHtml _ = return ()
+lostPasswordHtml :: Maybe (Either String String) -> PostData -> Html
+lostPasswordHtml res pdata = do
 
+  H.h1 "Lost password"
+
+  H.p "To request a new password, please enter your email below. You will then \
+      \receive an email with further instructions."
+
+  H.p $ do
+    "If you already received your key you can change your password "
+    H.a ! A.href "/u/lost-password/change" $ "here"
+    "."
+
+  withJust_ res $
+    either ((H.p ! A.class_ "error")   . toHtml)
+           ((H.p ! A.class_ "success") . toHtml)
+
+  unless (isSuccess res) $ do
+    H.form ! A.method "post" ! A.action "/u/lost-password"
+           ! A.id "lost-password-form" $ do
+      H.p ! A.class_ "label" $ "Email:"
+      H.input ! A.type_ "text" ! A.name "email" ! A.value (pdata? "email")
+      H.input ! A.type_ "submit"
+ where
+  isSuccess (Just (Right _)) = True
+  isSuccess _                = False
+
+lostPasswordChangeHtml :: Maybe (Either String (User,String)) -> PostData -> Html
+lostPasswordChangeHtml res pdata = do
+
+  H.h1 "Lost password"
+
+  H.p "To change your password insert your email and the private key in the \
+      \text boxes below."
+
+  withJust_ res $
+    either ((H.p ! A.class_ "error")   . toHtml)
+           ((H.p ! A.class_ "success") . toHtml . snd)
+
+  H.form ! A.method "post" ! A.action "/u/lost-password/change"
+         ! A.id "lost-password-change-form" $ do
+
+    H.p ! A.class_ "label" $ "Your email:"
+    H.input ! A.type_ "text" ! A.name "email" ! A.value (pdata ? "email")
+    H.br
+
+    H.p ! A.class_ "label" $ "Key:"
+    H.input ! A.type_ "text" ! A.name "key" ! A.value (pdata ? "key")
+    H.br
+
+    H.p ! A.class_ "label" $ "New password:"
+    H.input ! A.type_ "password" ! A.name "pw1"
+    H.br
+
+    H.p ! A.class_ "label" $ "Confirm password:"
+    H.input ! A.type_ "password" ! A.name "pw2"
+
+    H.input ! A.type_ "submit"
 
 --------------------------------------------------------------------------------
 -- Registration & activation
