@@ -25,6 +25,8 @@ npasteConf = nullConf
 -- Other
 
 -- | Access logger (taken from Happstack.Server.Internal.Types)
+--
+-- TODO: Add proper logging to all of npastes routines (most import: database -- access)
 logMAccess :: FormatTime t
            => String
            -> String
