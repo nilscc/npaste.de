@@ -6,7 +6,6 @@ import Happstack.Server
 import Data.ByteString.Char8 (pack)
 import Data.Char
 import Data.Maybe
-import Text.Highlighting.Kate
 
 import NPaste.Database
 import NPaste.Html
@@ -27,7 +26,7 @@ indexR = do
   r <- if pdata == nullPostData then
          return $ Left Nothing
         else do
-         let filetype  = lookupLanguage $ getValue pdata "lang"
+         let filetype  = findLang $ getValue pdata "lang"
              desc      = case getValue pdata "desc" of
                               d | null d    -> Nothing
                                 | otherwise -> Just d
@@ -68,10 +67,3 @@ indexR = do
  where
   cutTrailingSpaces :: String -> String
   cutTrailingSpaces = unlines . map (reverse . dropWhile isSpace . reverse) . lines
-
-  lookupLanguage :: String -> Maybe String
-  lookupLanguage t =
-    -- pick one of the following:
-    listToMaybe $ [ l | l <- languages, map toLower l == map toLower t ]
-               ++ languagesByExtension t
-               ++ languagesByFilename t

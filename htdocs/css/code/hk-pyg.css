@@ -16,16 +16,40 @@ div.lineNumbers {
 div.sourceCode {
   padding-left: 5px;
 }
-div.sourceCode span.kw { color: #007020; font-weight: bold; }
-div.sourceCode span.dt { color: #902000; }
+
+/* keywords & names */
+div.sourceCode span.k,
+div.sourceCode span.kd,
+div.sourceCode span.kr { color: #007020; font-weight: bold; }   /* reserved kw */
+div.sourceCode span.kt { color: #902000; }                      /* type kw */
+
+/* comments */
+div.sourceCode span.c,
+div.sourceCode span.cm,
+div.sourceCode span.c1,
+div.sourceCode span.c2 { color: #60a0b0; font-style: italic; }  /* comments */
+
+/* symbols */
+div.sourceCode span.p  { color: #4070a0; }                      /* paranthesis */
+div.sourceCode span.o  { color: #06287e; }
+div.sourceCode span.ow { color: #06287e; }
+
+/* values */
+div.sourceCode span.mi,
+div.sourceCode span.s  { color: #4970a0; }                      /* integers & strings */
+
+/* error & other */
+div.sourceCode span.err { color: red; font-weight: bold; }
+
+/*
 div.sourceCode span.dv { color: #40a070; }
 div.sourceCode span.bn { color: #40a070; }
 div.sourceCode span.fl { color: #40a070; }
 div.sourceCode span.ch { color: #4070a0; }
 div.sourceCode span.st { color: #4070a0; }
-div.sourceCode span.co { color: #60a0b0; font-style: italic; }
 div.sourceCode span.ot { color: #007020; }
 div.sourceCode span.al { color: red; font-weight: bold; }
 div.sourceCode span.fu { color: #06287e; }
 div.sourceCode span.re { }
 div.sourceCode span.er { color: red; font-weight: bold; }
+*/
