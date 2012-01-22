@@ -1,24 +1,27 @@
 module NPaste.Database
   ( -- * Users
     module NPaste.Database.Users
-  , numberOfUsers
+  , getNumberOfUsers
+    -- * Sessions
+  , module NPaste.Database.Sessions
     -- * Pastes
   , module NPaste.Database.Pastes
-  , numberOfPastes
+  , getNumberOfPastes
   ) where
 
 import NPaste.Database.Users
 import NPaste.Database.Pastes
+import NPaste.Database.Sessions
 
 import Control.Monad.Trans
 import NPaste.Database.Connection
 
-numberOfPastes :: MonadIO m => m Integer
-numberOfPastes = do
+getNumberOfPastes :: MonadIO m => m Integer
+getNumberOfPastes = do
   [[SqlInteger i]] <- querySql "SELECT count(*) FROM pastes" []
   return i
 
-numberOfUsers :: MonadIO m => m Integer
-numberOfUsers = do
-  [[SqlInteger i]] <- querySql "SELECT count(*) FROM users WHERE NOT id = '-1'" []
+getNumberOfUsers :: MonadIO m => m Integer
+getNumberOfUsers = do
+  [[SqlInteger i]] <- querySql "SELECT count(*) FROM active_users WHERE NOT id = '-1'" []
   return i

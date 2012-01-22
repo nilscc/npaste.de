@@ -13,7 +13,7 @@ import Data.Convertible
 import Data.Time
 import Data.Typeable
 
-import NPaste.Types.Description
+import NPaste.Types.Parser.Description
 import NPaste.Types.Instances ()
 import NPaste.Utils.Database (byteaUnpack)
 
@@ -40,7 +40,3 @@ instance Convertible [SqlValue] Paste where
           <*> Right (byteaUnpack cont)
           <*> safeConvert h
   safeConvert a = convError "" a
-
-instance Convertible [SqlValue] Id where
-  safeConvert [s] = safeConvert s
-  safeConvert a   = convError "" a

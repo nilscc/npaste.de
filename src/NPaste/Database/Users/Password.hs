@@ -17,6 +17,7 @@ import Numeric
 
 import NPaste.Database.Connection
 import NPaste.Types
+import NPaste.Utils
 
 
 

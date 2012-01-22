@@ -38,6 +38,25 @@ pre {
   font-size: 10pt;
 }
 
+form input[type=submit],
+form input[type=reset] {
+  background-color: #777;
+  color: white;
+  border: 1px solid #666;
+  font-family: 'Ubuntu', sans-serif;
+  font-weight: bold;
+  padding: 10px;
+  margin: 5px 0 5px;
+  border-radius: 3px;
+  display: block;
+  box-shadow: 3px 3px 10px #666;
+  cursor: pointer;
+}
+
+form input[type=submit]:hover {
+  text-decoration: underline;
+}
+
 
 /* {{{ Logo */
 
@@ -119,6 +138,7 @@ menu
     vertical-align: middle;
     background-color: #666;
     border-radius: 5px;
+    box-shadow: 3px 3px 10px #444;
 }
     menu li
     {
@@ -129,7 +149,7 @@ menu
         text-align: center;
     }
 
-    menu li:hover,
+    menu li.highlight:hover,
     menu li.active
     {
         background-color: #777;
@@ -140,17 +160,45 @@ menu
         display: inline;
     }
 
-    menu li a      { color: #fff; }
+    menu li a {
+        width: 100%;
+        display: inline-block;
+        color: #fff;
+    }
 
     menu hr
     {
-        width: 80%;
+        margin: 0 auto 0;
+        width: 60%;
         border: 0;
-        height: 2px;
-        color: #555;
-        background-color: #555;
+        height: 1px;
+        background-color: #777;
     }
 
+    menu ul.submenu
+    {
+        border-top: 1px dotted #aaa;
+        list-style-type: none;
+        margin: 4px auto 0;
+        padding: 0;
+        width: 60%;
+    }
+
+    menu ul.submenu li {
+        margin: 4px 2px 2px;
+        padding: 0;
+        font-size: 10px;
+        width: 100%;
+        background-color: #777;
+    }
+
+    menu ul.submenu li span.info {
+        color: #aaa;
+    }
+
+    menu ul.submenu li a {
+        color: #ddd;
+    }
 
 /* }}} */
 
@@ -173,8 +221,7 @@ section#main
 
     section#main .success
     {
-        font-weight: bold;
-        font-style: italic;
+        color: #0a3;
     }
 
     section#main .info

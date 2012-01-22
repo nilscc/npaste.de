@@ -25,6 +25,8 @@ npasteConf = nullConf
 -- Other
 
 -- | Access logger (taken from Happstack.Server.Internal.Types)
+--
+-- TODO: Add proper logging to all of npastes routines (most import: database -- access)
 logMAccess :: FormatTime t
            => String
            -> String
@@ -35,6 +37,6 @@ logMAccess :: FormatTime t
            -> String
            -> String
            -> IO ()
-logMAccess host user time requestLine responseCode size referer userAgent =
+logMAccess h user time requestLine responseCode size referer userAgent =
   logM "NPaste.AccessLog.Combined" INFO $
-    formatRequestCombined host user time requestLine responseCode size referer userAgent
+    formatRequestCombined h user time requestLine responseCode size referer userAgent

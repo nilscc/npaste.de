@@ -12,7 +12,7 @@ module NPaste.Database.Pastes
   , findPastes
 
     -- ** Updates
-  , newPaste
+  , addPaste
   ) where
 
 import Data.ByteString (ByteString)
@@ -31,18 +31,18 @@ import NPaste.Database.Pastes.Tags
 import NPaste.Database.Connection
 import NPaste.Types
 import NPaste.Utils
-import qualified NPaste.Utils.Description as P
+import qualified NPaste.Parser.Description as P
 
 
 --------------------------------------------------------------------------------
 -- Queries
 
 instance Select [Paste] where
-  select         = withSelectStr "SELECT p.id, p.user_id, p.date, p.type, p.description, p.content, p.hidden FROM pastes p"
+  select         = withSelectStr "SELECT DISTINCT p.id, p.user_id, p.date, p.type, p.description, p.content, p.hidden FROM pastes p"
   convertFromSql = convertToList
 
 instance Select (Maybe Paste) where
-  select         = withSelectStr "SELECT p.id, p.user_id, p.date, p.type, p.description, p.content, p.hidden FROM pastes p"
+  select         = withSelectStr "SELECT DISTINCT p.id, p.user_id, p.date, p.type, p.description, p.content, p.hidden FROM pastes p"
   convertFromSql = convertListToMaybe
 
 
@@ -87,7 +87,7 @@ getReplies :: Id
            -> Int             -- ^ offset
            -> Query [Paste]
 getReplies pid limit offset =
-  findPastes limit offset $ S_ReplyOf pid
+  findPastes limit offset $ S_ReplyTo pid
 
 findPastes :: Select res
            => Int         -- ^ Limit
@@ -101,10 +101,13 @@ findPastes limit offset crits =
   joins                         = unwords . S.toList $ joins' crits
   joins'  (S_And s1 s2)         = joins' s1 `S.union` joins' s2
   joins'  (S_Or  s1 s2)         = joins' s1 `S.union` joins' s2
-  joins'  (S_UserName _)        = S.singleton "JOIN users u   ON u.id = p.user_id"
-  joins'  (S_Tag _)             = S.singleton "JOIN tags t    ON t.id = p.id"
-  joins'  (S_TagId _)           = S.singleton "JOIN tags t    ON t.id = p.id"
-  joins'  (S_ReplyOf _)         = S.singleton "JOIN replies r ON r.reply_id = p.id"
+  joins'  (S_User _)            = S.singleton "     JOIN active_users u ON u.id = p.user_id"
+  joins'  (S_UserId _)          = joins' $ S_User undefined
+  joins'  (S_UserName _)        = joins' $ S_User undefined
+  joins'  (S_Tag _)             = S.singleton "     JOIN tags t         ON t.id = p.id"
+  joins'  (S_TagId _)           = joins' $ S_Tag undefined
+  joins'  (S_ReplyOf _)         = S.singleton "LEFT JOIN replies r      ON p.id IN (r.reply_id, r.paste_id)"
+  joins'  (S_ReplyTo _)         = joins' $ S_ReplyOf undefined
   joins'  _                     = S.empty
 
   toWhere (S_And s1 s2)         = "(" ++ toWhere s1 ++ " AND " ++ toWhere s2 ++ ")"
@@ -114,9 +117,9 @@ findPastes limit offset crits =
   toWhere (S_UserName _)        = "u.name = ?"
   toWhere (S_Paste _)           = "p.id = ?"
   toWhere (S_PasteId _)         = "p.id = ?"
-  toWhere (S_PasteType _)       = "p.type = ?"
-  toWhere (S_PasteDesc _)       = "p.description = ?"
-  toWhere (S_PasteCont _)       = "to_tsvector(p.content) @@ to_tsquery(?)" -- TODO
+  toWhere (S_PasteType t)       = "p.type " ++ if isNothing t then "IS NULL" else "= ?"
+  toWhere (S_PasteDesc _)       = "to_tsvector(p.description) @@ plainto_tsquery(?)"
+  toWhere (S_PasteCont _)       = "to_tsvector(p.content)     @@ plainto_tsquery(?)" -- TODO
   toWhere (S_PasteMd5 _)        = "p.md5 = ?"
   toWhere (S_PasteDate _)       = "p.date = ?"
   toWhere (S_PasteDateBefore _) = "p.date < ?"
@@ -124,7 +127,8 @@ findPastes limit offset crits =
   toWhere (S_PasteHidden _)     = "p.hidden IN (?,FALSE)"
   toWhere (S_Tag _)             = "t.tag = ?"
   toWhere (S_TagId _)           = "t.id = ?"
-  toWhere (S_ReplyOf _)         = "r.paste_id = ?"
+  toWhere (S_ReplyOf _)         = "(NOT p.id = ? AND r.reply_id = ?)"
+  toWhere (S_ReplyTo _)         = "(NOT p.id = ? AND r.paste_id = ?)"
 
   toSql'  (S_And s1 s2)         = toSql' s1 ++ toSql' s2
   toSql'  (S_Or  s1 s2)         = toSql' s1 ++ toSql' s2
@@ -133,7 +137,7 @@ findPastes limit offset crits =
   toSql'  (S_UserName n)        = [toSql n]
   toSql'  (S_Paste p)           = [toSql $ pasteId p]
   toSql'  (S_PasteId i)         = [toSql i]
-  toSql'  (S_PasteType t)       = [toSql t]
+  toSql'  (S_PasteType t)       = if isNothing t then [] else [toSql t]
   toSql'  (S_PasteDesc d)       = [toSql d]
   toSql'  (S_PasteCont c)       = [toSql c]
   toSql'  (S_PasteMd5 m)        = [byteaPack m]
@@ -143,7 +147,8 @@ findPastes limit offset crits =
   toSql'  (S_PasteHidden h)     = [toSql h]
   toSql'  (S_Tag t)             = [toSql t]
   toSql'  (S_TagId i)           = [toSql i]
-  toSql'  (S_ReplyOf i)         = [toSql i]
+  toSql'  (S_ReplyOf i)         = [toSql i, toSql i]
+  toSql'  (S_ReplyTo i)         = [toSql i, toSql i]
 
 
 
@@ -151,17 +156,18 @@ findPastes limit offset crits =
 --------------------------------------------------------------------------------
 -- Updates
 
-newPaste :: Maybe User
+addPaste :: Maybe User
          -> Maybe String          -- ^ type
          -> Maybe String          -- ^ description
          -> Bool                  -- ^ hidden?
          -> ByteString            -- ^ content
          -> Update (Either AddPasteError Id)
-newPaste muser mtype mdesc hidden cont = runErrorT $ do
+addPaste muser mtype mdesc hidden cont = runErrorT $ do
 
   when (B.null cont) $ throwError APE_NoContent
 
   let hash = B.concat . toChunks . md5 $ fromChunks [cont]
+      lang = maybe mtype id $ fmap findLang mtype
 
   pid <- getRandomId 4
 
@@ -171,7 +177,7 @@ newPaste muser mtype mdesc hidden cont = runErrorT $ do
     let uid   = maybe (-1) userId muser
     updateSql_ "INSERT INTO pastes (id, user_id, date, type, description, content, md5, hidden) \
                \     VALUES        (?,  ?,       ?,    ?,    ?,           ?,       ?,   ?     ) "
-               [ toSql pid, toSql uid, toSql now, toSql mtype, toSql mdesc
+               [ toSql pid, toSql uid, toSql now, toSql lang, toSql mdesc
                , byteaPack cont, byteaPack hash, toSql hidden ]
 
     -- Add tags & replies if a description is given

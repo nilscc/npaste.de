@@ -1,19 +1,32 @@
 
 /* INFO / DESCRIPTION BOX */
 
+#main form#filter_form p {
+  display: inline-block;
+  margin-right: 20px;
+}
+
+#filter_form input[type=submit] {
+  padding: 4px;
+  margin-left: 20px;
+  display: inline-block;
+}
+
 div.pasteInfo {
   background-color: #999;
   border: 1px solid #666;
   width: 650px;
   padding: 5px;
+  margin-top: 16px;
   border-radius: 3px;
   color: white;
   font-size: 11px;
+  box-shadow: 3px 3px 10px #666;
 }
 
 div.pasteInfo p {
   margin: 0;
-  padding: 2px;
+  padding: 4px;
 }
 
 div.pasteInfo p a {
@@ -40,9 +53,6 @@ div.pasteInfo p a {
   margin-left: 5px;
   margin-right: 5px;
   color: #ccc;
-}
-
-div.pasteInfo p a {
   background-color: #666;
   padding: 2px 5px 2px;
   border: 0;
@@ -50,14 +60,14 @@ div.pasteInfo p a {
   font-size: 11px;
   font-family: sans-serif;
   font-weight: normal;
-  display: inline-block;
+  display: inline;
   vertical-align: baseline;
   cursor: pointer;
+  font-style: normal;
 }
 
-#main form#tag_search_form p {
-  display: inline-block;
-  margin-right: 20px;
+div.pasteInfo p.language a {
+  margin: 0;
 }
 
 div.formatedCode pre.plainText,

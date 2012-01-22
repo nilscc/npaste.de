@@ -18,7 +18,7 @@ data Search
     -- Paste searches
   | S_Paste           Paste
   | S_PasteId         Id
-  | S_PasteType       String
+  | S_PasteType       (Maybe String)
   | S_PasteDesc       String
   | S_PasteCont       ByteString
   | S_PasteDate       UTCTime
@@ -33,4 +33,5 @@ data Search
 
     -- Replies
   | S_ReplyOf         Id
+  | S_ReplyTo         Id
   deriving (Eq, Show)

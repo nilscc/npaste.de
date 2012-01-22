@@ -12,16 +12,16 @@ import NPaste.Database
 import NPaste.Html
 import NPaste.Types
 import NPaste.State
+import NPaste.Utils
 
 
 indexR :: NPaste ()
 indexR = do
 
-  -- set menu location
-  setNP M_AddNewPaste
+  ActiveMenu .= Just M_Index
 
   pdata <- choice
-    [ methodM POST >> getIndexPostData
+    [ methodM POST >> getPostData
     , return nullPostData ]
 
   r <- if pdata == nullPostData then
@@ -41,28 +41,29 @@ indexR = do
          if asReply then
             return $ Left Nothing
           else do
-            e <- newPaste Nothing   -- TODO: no user lookup function/support yet
-                          filetype desc hidden content
+            mu <- getCurrentUser
+            e <- addPaste mu filetype desc hidden content
             return $
               case e of
                     Left err  -> Left $ Just err
                     Right pId -> Right pId
 
   case r of
+       Right pId -> do
+         let url = "/" ++ pId ++ "/"
+         rq <- askRq
+         PlainResponse rq .= seeOther url . toResponse $
+                             "New paste added: http://npaste.de" ++ url ++ "\n"
        Left (Just (APE_AlreadyExists Paste{pasteId})) -> do -- TODO: replace with proper ID
          let url = "/" ++ pasteId ++ "/"
          rq <- askRq
          PlainResponse rq .= seeOther url . toResponse $
                              "Paste already exists at: http://npaste.de" ++ url ++ "\n"
        Left err -> do
+         mu <- getCurrentUser
          HtmlFrame .= mainFrame
          CSS       .= ["index.css"]
-         HtmlBody  .= indexHtml pdata err
-       Right pId -> do
-         let url = "/" ++ pId ++ "/"
-         rq <- askRq
-         PlainResponse rq .= seeOther url . toResponse $
-                             "New paste added: http://npaste.de" ++ url ++ "\n"
+         HtmlBody  .= indexHtml mu pdata err
 
  where
   cutTrailingSpaces :: String -> String
@@ -74,14 +75,3 @@ indexR = do
     listToMaybe $ [ l | l <- languages, map toLower l == map toLower t ]
                ++ languagesByExtension t
                ++ languagesByFilename t
-
---------------------------------------------------------------------------------
--- Post data
-
-getIndexPostData :: NPaste IndexPostData
-getIndexPostData = do
-  decodeBody (defaultBodyPolicy "/tmp/npaste.de/" 1000000 1000000 1000000)
-  fmap IndexPostData $ body lookPairs
-
-nullPostData :: IndexPostData
-nullPostData = IndexPostData []

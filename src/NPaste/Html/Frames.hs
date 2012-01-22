@@ -7,16 +7,19 @@ module NPaste.Html.Frames
   , nullContext
   ) where
 
+import Data.Maybe
+import Data.List
 import Text.Blaze (toHtml, toValue, (!))
 import qualified Text.Blaze.Html5             as H
 import qualified Text.Blaze.Html5.Attributes  as A
 
+import NPaste.Html.Menu
 import NPaste.Types
 
 nullContext :: HtmlContext
 nullContext = HtmlContext
   { title = Title Nothing
-  , section = M_Other
+  , menu = nullMenu
   , script = Script []
   , css = CSS []
   }
@@ -49,7 +52,7 @@ mainFrame htmlcontext htmlbody = H.docTypeHtml $ do
 
   H.body $ do
     H.header $ mainHeader
-    H.menu   $ mainMenu (section htmlcontext)
+    H.menu   $ mainMenu (menu htmlcontext)
     H.section ! A.id "main" $ unHtmlBody htmlbody
 
 -- | Header
@@ -66,19 +69,25 @@ mainHeader = do
     "IO String"
   H.p ! A.id "info" $
     "a haskell happstack pastebin"
-  
 
 -- | Menu
-mainMenu :: MenuSection -> Html
-mainMenu active = sequence_ $ do -- list monad
-  (s,u,t) <- [ (M_AddNewPaste, "/",  "New paste")
-             , (M_Recent,      "/r", "Show recent pastes")
-             , (M_Tags,        "/t", "Search tags")
-             , (M_About,       "/a", "About")
-             ]
-  return $
-    (if (active == s) then H.li ! A.class_ "active" else H.li)
-      (H.a ! A.href u $ t)
+mainMenu :: Menu -> Html
+mainMenu Menu{ activeMenuSection = ActiveMenu mactive
+             , menuStructure     = MenuStructure mstr } =
+  sequence_ $ do -- list monad
+    s <- mstr
+    return $
+      case mactive of
+           Just active | isCurrentMenu active s ->
+             H.li ! A.class_ "active highlight" $ do
+               menuLink s $ menuTitle s
+               -- build submenu if available
+               let subm = subMenu active
+               unless (null subm) $ H.ul ! A.class_ "submenu" $
+                 mapM_ H.li subm
+           _ -> 
+             (if s == M_HR then H.li else H.li ! A.class_ "highlight") $
+               menuLink s $ menuTitle s
 
 
 --------------------------------------------------------------------------------
@@ -91,15 +100,5 @@ compactFrame :: Html        -- ^ header content
 compactFrame compH htmlcontext htmlbody = H.docTypeHtml $ do
   htmlHeader htmlcontext{ css = CSS $ unCSS (css htmlcontext) ++ ["compact.css"] }
   H.body $ do
-    H.header $ compactHeader compH
+    H.header                $ compH
     H.section ! A.id "main" $ unHtmlBody htmlbody
-
--- | Header
-compactHeader :: Html -> Html
-compactHeader compH = do
-  H.div ! A.id "compactMenu" $ compH
-  H.p ! A.id "logo" $ H.a ! A.href "/" $ do
-    H.span ! A.id "n3" $ do
-      "n"
-      H.sup "3"
-    "paste.de"

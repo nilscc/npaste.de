@@ -1,0 +1,35 @@
+form p.label {
+  display: inline-block;
+  width: 150px;
+  margin-top: 5px;
+  margin-bottom: 5px;
+}
+
+form p.checkbox {
+  display: inline-block;
+  margin-top: 5px;
+  margin-bottom: 5px;
+  margin-left: 5px;
+}
+
+#settings-form input[type=submit],
+#settings-form input[type=reset] {
+  margin: 20px 20px 5px 0;
+  display: inline-block;
+}
+
+#user-activated-links a,
+#logout-links a {
+  background-color: #777;
+  color: white;
+  border: 1px solid #666;
+  font-family: 'Ubuntu', sans-serif;
+  font-weight: bold;
+  padding: 10px;
+  margin: 5px 0 5px;
+  border-radius: 3px;
+  display: inline-block;
+  box-shadow: 3px 3px 10px #666;
+  cursor: pointer;
+  margin-right: 20px;
+}
