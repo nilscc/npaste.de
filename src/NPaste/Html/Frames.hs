@@ -48,11 +48,14 @@ mainFrame :: HtmlContext
           -> HtmlBody
           -> Html
 mainFrame htmlcontext htmlbody = H.docTypeHtml $ do
-  htmlHeader htmlcontext{ css = CSS $ ["main.css"] ++ unCSS (css htmlcontext) }
+  htmlHeader htmlcontext{
+    css    = CSS $ ["main.css", "notifications.css"] ++ unCSS (css htmlcontext),
+    script = Script $ ["notifications.js"] ++ unScript (script htmlcontext)  }
 
   H.body $ do
     H.header $ mainHeader
     H.menu   $ mainMenu (menu htmlcontext)
+    H.section ! A.id "notifications" $ return ()
     H.section ! A.id "main" $ unHtmlBody htmlbody
 
 -- | Header
