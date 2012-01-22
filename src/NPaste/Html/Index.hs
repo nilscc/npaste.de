@@ -5,9 +5,9 @@ module NPaste.Html.Index where
 
 import Text.Blaze.Html5             as H
 import Text.Blaze.Html5.Attributes  as A
-import Text.Highlighting.Kate (languages)
 
 import NPaste.Types
+import NPaste.Utils
 
 indexHtml :: Maybe User -> PostData -> Maybe AddPasteError -> Html
 indexHtml u pdata err = do

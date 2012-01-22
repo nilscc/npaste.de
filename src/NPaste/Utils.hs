@@ -20,7 +20,7 @@ module NPaste.Utils
   , module NPaste.Utils.Database
 
     -- ** Other
-  , module NPaste.Utils.Kate
+  , module NPaste.Utils.Highlight
   , module NPaste.Utils.Mail
   ) where
 
@@ -29,7 +29,7 @@ import Data.Convertible
 import Data.Maybe
 
 import NPaste.Utils.Database
-import NPaste.Utils.Kate
+import NPaste.Utils.Highlight
 import NPaste.Utils.Mail
 import NPaste.Utils.State
 import NPaste.Utils.Happstack

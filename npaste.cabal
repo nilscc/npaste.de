@@ -23,6 +23,7 @@ executable npaste.de
         random                  == 1.*,
         time                    == 1.*,
         old-locale              == 1.*,
+        text                    == 0.11.*,
         MaybeT                  == 0.1.*,
         parsec                  == 3.*,
         HDBC                    == 2.*,
@@ -39,6 +40,6 @@ executable npaste.de
         happstack-util          == 6.*,
         blaze-html              == 0.4.*,
         hslogger                == 1.*,
-        highlighting-kate       == 0.2.*,
+        highlighter             == 0.2.*,
         SMTPClient              == 1.*,
         email-validate          == 0.2.*

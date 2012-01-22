@@ -3,19 +3,24 @@
 
 module NPaste.Html.Read where
 
-import Data.ByteString.Char8 (unpack)
-import Data.List                    as L
+import Data.List                              as L
 import Data.Time
+import Data.Text (Text)
+import qualified Data.Text                    as T
+import qualified Data.Text.Encoding           as TE
+import qualified Data.Text.Encoding.Error     as TEE
 import Data.Maybe
 import System.Locale
 import Text.Blaze.Html5 (toHtml, toValue, (!))
 import qualified Text.Blaze.Html5             as H
 import qualified Text.Blaze.Html5.Attributes  as A
-
-import Text.Highlighting.Kate
+import qualified Data.ByteString.Char8        as B8
 
 import NPaste.Types
 import NPaste.Utils
+
+decodeUtf8 :: B8.ByteString -> Text
+decodeUtf8 = TE.decodeUtf8With TEE.ignore
 
 -- | Show links in description etc
 formatDesc :: Description -> Html
@@ -33,17 +38,14 @@ formatDesc d =
 -- | Read/show a single paste
 readHtml :: Maybe Paste -> Html
 readHtml (Just p@Paste{ pasteType = Just lang, pasteContent }) = do
-  H.div ! A.class_ "formatedCode" $ do
-    let cont = unpack pasteContent
-    case highlightAs lang cont of
-         Right source -> formatCode p source
-         Left  err    -> do
-           H.p ! A.class_ "warning" $ toHtml err
-           formatPlain p cont
+  H.div ! A.class_ "formatedCode" $
+    case highlightAs lang pasteContent of
+         Just html -> formatCode  p html
+         Nothing   -> formatPlain p (decodeUtf8 pasteContent)
 
 readHtml (Just p@Paste{ pasteContent }) = do
   H.div ! A.class_ "formatedCode" $
-    formatPlain p $ unpack pasteContent
+    formatPlain p $ decodeUtf8 pasteContent
 
 readHtml _ = do
   H.h3 ! A.class_ "error" $ "Paste not found."
@@ -102,7 +104,7 @@ readInfo (Just p) mu r = do
         H.li $ H.a ! A.href (toValue $ p_id ++ "Plaintext") $ "Plaintext"
         H.li ! A.class_ "spacer" $ H.hr
         forM_ (languages) $ \l ->
-          H.li $ H.a ! A.href (toValue $ p_id ++ l) $ toHtml l
+          H.li $ H.a ! A.href (toValue $ p_id ++ escape l) $ toHtml l
 
   -- logo
   H.p ! A.id "logo" $ H.a ! A.href "/" $ do
@@ -120,6 +122,31 @@ readInfo (Just p) mu r = do
   for = flip L.map
   p_id = "/" ++ pasteId p ++ "/"
 
+  escape = concatMap $ \c -> case c of
+    ' '  -> "%20"
+    '+'  -> "%2B"
+    '<'  -> "%3C"
+    '>'  -> "%3E"
+    '#'  -> "%23"
+    '%'  -> "%25"
+    '{'  -> "%7B"
+    '}'  -> "%7D"
+    '|'  -> "%7C"
+    '\\' -> "%5C"
+    '^'  -> "%5E"
+    '~'  -> "%7E"
+    '['  -> "%5B"
+    ']'  -> "%5D"
+    '`'  -> "%60"
+    ';'  -> "%3B"
+    '/'  -> "%2F"
+    '?'  -> "%3F"
+    ':'  -> "%3A"
+    '@'  -> "%40"
+    '&'  -> "%26"
+    '$'  -> "%24"
+    ok   -> [ok]
+
 --------------------------------------------------------------------------------
 -- | List multiple pastes
 listPastes :: [Paste]
@@ -129,16 +156,14 @@ listPastes [] _                               = return ()
 listPastes (p@Paste{ pasteContent } : r) lnum = do
   pasteInfo p
   H.div ! A.class_ "formatedCode" $ do
-    let cont = maybe id (\i -> unlines . take i . lines) lnum $ unpack pasteContent
+    let cont = maybe id (\i -> T.unlines . take i . T.lines) lnum $ decodeUtf8 pasteContent
         lang = pasteType p
     case lang of
          Nothing -> formatPlain p cont
          Just l  ->
-           case highlightAs l cont of
-               Right source -> formatCode p source
-               Left  err    -> do
-                 H.p ! A.class_ "warning" $ toHtml err
-                 formatPlain p cont
+           case highlightAs l pasteContent of
+               Just html -> formatCode  p html
+               Nothing   -> formatPlain p cont
   listPastes r lnum
 
 -- | Show a nice header with all kind of informations about our paste
@@ -168,32 +193,21 @@ pasteInfo Paste{ pasteId, pasteDate, pasteDescription, pasteType } =
 
 -- | Turn source lines into HTML
 formatCode :: Paste
-           -> [SourceLine]      -- ^ Source lines to format
            -> Html
-formatCode Paste{pasteId} source = do
+           -> Html
+formatCode Paste{pasteId, pasteContent} html = do
   H.div ! A.class_ "lineNumbers" $ H.pre ! A.class_ "lineNumbers" $
-    sequence_ . intersperse H.br . for [1..length source] $ \(show->n) ->
+    sequence_ . intersperse H.br . for [1..length (B8.lines pasteContent)] $ \(show->n) ->
       let url  = "/" ++ pasteId ++ "/#" ++ n
        in H.a ! A.href (toValue url) ! A.name (toValue n) $ toHtml n
-  H.div ! A.class_ "sourceCode" $ H.pre ! A.class_ "sourceCode" $
-    sequence_ . intersperse H.br $ L.map sourceLineToHtml source
+  H.div ! A.class_ "sourceCode" $ H.pre html
  where
   for = flip L.map
 
-sourceLineToHtml :: SourceLine -> Html
-sourceLineToHtml []             = return ()
-sourceLineToHtml (([],txt):r)   = toHtml txt >> sourceLineToHtml r
-sourceLineToHtml ((labs,txt):r) = do
-  let atts = drop 1 labs -- no idea why, lol
-  if null atts
-     then toHtml txt
-     else H.span ! A.class_ (toValue $ intercalate " " atts) $ toHtml txt
-  sourceLineToHtml r
-
 -- | Format plain text without highlighting
-formatPlain :: Paste -> String -> Html
+formatPlain :: Paste -> Text -> Html
 formatPlain Paste{pasteId} cont = do
-  let l = lines cont
+  let l = T.lines cont
   H.div ! A.class_ "lineNumbers" $ H.pre $
     sequence_ . intersperse H.br . for [1..length l] $ \(show->n) ->
       let url  = "/" ++ pasteId ++ "/#" ++ n
@@ -201,4 +215,3 @@ formatPlain Paste{pasteId} cont = do
   H.pre ! A.class_ "plainText" $ toHtml cont
  where
   for = flip L.map
-
