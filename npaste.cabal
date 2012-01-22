@@ -19,6 +19,7 @@ executable npaste.de
         bytestring              == 0.9.*,
         containers              == 0.4.*,
         mtl                     == 2.*,
+        transformers            == 0.2.*,
         random                  == 1.*,
         time                    == 1.*,
         old-locale              == 1.*,
