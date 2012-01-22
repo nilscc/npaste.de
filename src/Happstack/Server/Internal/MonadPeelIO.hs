@@ -6,8 +6,8 @@ module Happstack.Server.Internal.MonadPeelIO where
 import Control.Monad.Error
 import Control.Monad.Writer
 import Control.Monad.Reader
-import Control.Monad.Maybe
 import Control.Monad.Trans.Peel
+import Control.Monad.Trans.Maybe
 import Control.Monad.IO.Peel
 import Happstack.Server.Internal.Monads
 import Happstack.Server.Internal.Types
