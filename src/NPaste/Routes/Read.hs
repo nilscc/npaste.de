@@ -47,7 +47,7 @@ showPasteR pid = choice
                          _                                 -> return Nothing
        Title     .= Just $ "/" ++ pid ++ "/" ++ maybe "" ((" - " ++) . take 50 . descToString)
                                                       (join $ fmap pasteDescription paste)
-       CSS       .= ["code/hk-pyg.css", "code.css", "read.css"]
+       CSS       .= ["code.css", "read.css"]
        Script    .= ["read.js"]
        HtmlFrame .= compactFrame (readInfo paste muser repl)
        HtmlBody  .= readHtml paste

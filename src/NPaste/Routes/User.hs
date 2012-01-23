@@ -187,7 +187,7 @@ profileR :: NPaste ()
 profileR = do -- | TODO: Show statistics instead of current profile and use @user show a users pastes
 
   modifyNP_ $ \(CSS cur) ->
-    CSS $ cur ++ ["code/hk-pyg.css", "code.css", "view.css"]
+    CSS $ cur ++ ["code.css", "view.css"]
 
   f <- choice
          [ do methodM POST

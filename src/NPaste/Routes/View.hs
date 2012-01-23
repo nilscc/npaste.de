@@ -19,7 +19,7 @@ import NPaste.Utils
 viewR :: NPaste ()
 viewR = do
 
-  CSS .= ["code/hk-pyg.css", "code.css", "view.css"]
+  CSS .= ["code.css", "view.css"]
 
   f <- choice
     [ do methodM POST
