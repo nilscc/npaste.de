@@ -162,7 +162,7 @@ listPastes (p@Paste{ pasteContent } : r) lnum = do
     case lang of
          Nothing -> formatPlain p cont
          Just l  ->
-           case highlightAs l pasteContent of
+           case highlightAs l preview of
                Just html -> formatCode  p html
                Nothing   -> formatPlain p cont
   listPastes r lnum
