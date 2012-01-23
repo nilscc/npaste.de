@@ -156,7 +156,8 @@ listPastes [] _                               = return ()
 listPastes (p@Paste{ pasteContent } : r) lnum = do
   pasteInfo p
   H.div ! A.class_ "formatedCode" $ do
-    let cont = maybe id (\i -> T.unlines . take i . T.lines) lnum $ decodeUtf8 pasteContent
+    let preview = maybe id (\i -> B8.unlines . take i . B8.lines) lnum $ pasteContent
+        cont = TE.decodeUtf8With TEE.ignore preview
         lang = pasteType p
     case lang of
          Nothing -> formatPlain p cont
