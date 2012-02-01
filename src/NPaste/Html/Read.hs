@@ -163,8 +163,8 @@ listPastes (p@Paste{ pasteContent } : r) lnum = do
          Nothing -> formatPlain p cont
          Just l  ->
            case highlightAs l preview of
-               Just html -> formatCode  p html
-               Nothing   -> formatPlain p cont
+               Just html -> formatCode  p{ pasteContent = preview} html
+               Nothing   -> formatPlain p{ pasteContent = preview} cont
   listPastes r lnum
 
 -- | Show a nice header with all kind of informations about our paste

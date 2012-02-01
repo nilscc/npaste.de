@@ -7,6 +7,14 @@ div.formatedCode {
   padding: 0;
 }
 
+div.formatedCode div.lineNumbers {
+  border-right: 1px solid #ccc;
+  text-align: right;
+}
+div.formatedCode div.lineNumbers a {
+  color: #aaa;
+}
+
 div.formatedCode div.lineNumbers,
 div.formatedCode div.sourceCode {
   display: table-cell;
@@ -20,3 +28,69 @@ div.formatedCode div.sourceCode pre {
   line-height: 12pt;
   font-size: 10pt;
 }
+
+/* stolen from
+ *
+ * http://darcsden.com/public/css/highlight.css
+ *
+ * */
+div.sourceCode span.hll { background-color: #ffffcc }
+div.sourceCode span.c { color: #888888 } /* Comment */
+div.sourceCode span.err { color: #a61717; background-color: #e3d2d2 } /* Error */
+div.sourceCode span.k { color: #008800; font-weight: bold } /* Keyword */
+div.sourceCode span.cm { color: #888888 } /* Comment.Multiline */
+div.sourceCode span.cp { color: #cc0000; font-weight: bold } /* Comment.Preproc */
+div.sourceCode span.c1 { color: #888888 } /* Comment.Single */
+div.sourceCode span.cs { color: #cc0000; font-weight: bold; background-color: #fff0f0 } /* Comment.Special */
+div.sourceCode span.gd { color: #000000; background-color: #ffdddd } /* Generic.Deleted */
+div.sourceCode span.ge { font-style: italic } /* Generic.Emph */
+div.sourceCode span.gr { color: #aa0000 } /* Generic.Error */
+div.sourceCode span.gh { color: #303030 } /* Generic.Heading */
+div.sourceCode span.gi { color: #000000; background-color: #ddffdd } /* Generic.Inserted */
+div.sourceCode span.go { color: #888888 } /* Generic.Output */
+div.sourceCode span.gp { color: #555555 } /* Generic.Prompt */
+div.sourceCode span.gs { font-weight: bold } /* Generic.Strong */
+div.sourceCode span.gu { color: #606060 } /* Generic.Subheading */
+div.sourceCode span.gt { color: #aa0000 } /* Generic.Traceback */
+div.sourceCode span.kc { color: #008800; font-weight: bold } /* Keyword.Constant */
+div.sourceCode span.kd { color: #008800; font-weight: bold } /* Keyword.Declaration */
+div.sourceCode span.kn { color: #008800; font-weight: bold } /* Keyword.Namespace */
+div.sourceCode span.kp { color: #008800 } /* Keyword.Pseudo */
+div.sourceCode span.kr { color: #008800; font-weight: bold } /* Keyword.Reserved */
+div.sourceCode span.kt { color: #888888; font-weight: bold } /* Keyword.Type */
+div.sourceCode span.m { color: #0000DD; font-weight: bold } /* Literal.Number */
+div.sourceCode span.s { color: #dd2200; background-color: #fff0f0 } /* Literal.String */
+div.sourceCode span.na { color: #336699 } /* Name.Attribute */
+div.sourceCode span.nb { color: #003388 } /* Name.Builtin */
+div.sourceCode span.nc { color: #bb0066; font-weight: bold } /* Name.Class */
+div.sourceCode span.no { color: #003366; font-weight: bold } /* Name.Constant */
+div.sourceCode span.nd { color: #555555 } /* Name.Decorator */
+div.sourceCode span.ne { color: #bb0066; font-weight: bold } /* Name.Exception */
+div.sourceCode span.nf { color: #0066bb; font-weight: bold } /* Name.Function */
+div.sourceCode span.nl { color: #336699; font-style: italic } /* Name.Label */
+div.sourceCode span.nn { color: #bb0066; font-weight: bold } /* Name.Namespace */
+div.sourceCode span.py { color: #336699; font-weight: bold } /* Name.Property */
+div.sourceCode span.nt { color: #bb0066; font-weight: bold } /* Name.Tag */
+div.sourceCode span.nv { color: #336699 } /* Name.Variable */
+div.sourceCode span.ow { color: #008800 } /* Operator.Word */
+div.sourceCode span.w { color: #bbbbbb } /* Text.Whitespace */
+div.sourceCode span.mf { color: #0000DD; font-weight: bold } /* Literal.Number.Float */
+div.sourceCode span.mh { color: #0000DD; font-weight: bold } /* Literal.Number.Hex */
+div.sourceCode span.mi { color: #0000DD; font-weight: bold } /* Literal.Number.Integer */
+div.sourceCode span.mo { color: #0000DD; font-weight: bold } /* Literal.Number.Oct */
+div.sourceCode span.sb { color: #dd2200; background-color: #fff0f0 } /* Literal.String.Backtick */
+div.sourceCode span.sc { color: #dd2200; background-color: #fff0f0 } /* Literal.String.Char */
+div.sourceCode span.sd { color: #dd2200; background-color: #fff0f0 } /* Literal.String.Doc */
+div.sourceCode span.s2 { color: #dd2200; background-color: #fff0f0 } /* Literal.String.Double */
+div.sourceCode span.se { color: #0044dd; background-color: #fff0f0 } /* Literal.String.Escape */
+div.sourceCode span.sh { color: #dd2200; background-color: #fff0f0 } /* Literal.String.Heredoc */
+div.sourceCode span.si { color: #3333bb; background-color: #fff0f0 } /* Literal.String.Interpol */
+div.sourceCode span.sx { color: #22bb22; background-color: #f0fff0 } /* Literal.String.Other */
+div.sourceCode span.sr { color: #008800; background-color: #fff0ff } /* Literal.String.Regex */
+div.sourceCode span.s1 { color: #dd2200; background-color: #fff0f0 } /* Literal.String.Single */
+div.sourceCode span.ss { color: #aa6600; background-color: #fff0f0 } /* Literal.String.Symbol */
+div.sourceCode span.bp { color: #003388 } /* Name.Builtin.Pseudo */
+div.sourceCode span.vc { color: #336699 } /* Name.Variable.Class */
+div.sourceCode span.vg { color: #dd7700 } /* Name.Variable.Global */
+div.sourceCode span.vi { color: #3333bb } /* Name.Variable.Instance */
+div.sourceCode span.il { color: #0000DD; font-weight: bold } /* Literal.Number.Integer.Long */
