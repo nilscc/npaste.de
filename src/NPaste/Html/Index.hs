@@ -3,6 +3,8 @@
 
 module NPaste.Html.Index where
 
+import Data.ByteString.Char8 (pack)
+
 import Text.Blaze.Html5             as H
 import Text.Blaze.Html5.Attributes  as A
 

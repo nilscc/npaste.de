@@ -50,8 +50,8 @@ loginR = choice
        pdata <- getPostData
        choice
          [ do -- require that both email and password are correct
-              u    <- require $ getUserByEmail  (getValue pdata "email")
-              isOk <-           checkPassword u (getValue pdata "password")
+              u    <- require $ getUserByEmail  (B8.unpack $ getValue pdata "email")
+              isOk <-           checkPassword u (B8.unpack $ getValue pdata "password")
               unless isOk mzero
               performLogin u
               -- forward to index page
@@ -95,8 +95,8 @@ requireLogin h1 doWhenLoggedIn = choice
   [ requireUser >>= \_ -> doWhenLoggedIn
   , do method POST
        pdata <- getPostData
-       u     <- require $ getUserByEmail  (getValue pdata "email")
-       isOk  <-           checkPassword u (getValue pdata "password")
+       u     <- require $ getUserByEmail  (B8.unpack $ getValue pdata "email")
+       isOk  <-           checkPassword u (B8.unpack $ getValue pdata "password")
        unless isOk mzero
        performLogin u
        localRq (\rq -> rq{ rqMethod = GET }) doWhenLoggedIn
@@ -129,10 +129,10 @@ lostPasswordR = do
         res <- choice
           [ do methodM POST
 
-               let email = getValue pdata "email"
-                   key   = getValue pdata "key"
-                   pw1   = getValue pdata "pw1"
-                   pw2   = getValue pdata "pw2"
+               let email = B8.unpack $ getValue pdata "email"
+                   key   = B8.unpack $ getValue pdata "key"
+                   pw1   = B8.unpack $ getValue pdata "pw1"
+                   pw2   = B8.unpack $ getValue pdata "pw2"
 
                mu <- getUserByEmail email
                case mu of
@@ -151,7 +151,7 @@ lostPasswordR = do
              _                  -> HtmlBody .= lostPasswordChangeHtml res pdata
     , do res <- choice
            [ do methodM POST
-                let email = getValue pdata "email"
+                let email = B8.unpack $ getValue pdata "email"
                 mu <- getUserByEmail email
                 case mu of
                      Nothing -> err "Unknown email address."
@@ -277,10 +277,10 @@ settingsR = do
 
          -- account details
          pdata <- getPostData
-         let email = getValue pdata "email" 
-             pw1   = getValue pdata "pw1"
-             pw2   = getValue pdata "pw2"
-             pwCur = getValue pdata "pw-cur"
+         let email = B8.unpack $ getValue pdata "email" 
+             pw1   = B8.unpack $ getValue pdata "pw1"
+             pw2   = B8.unpack $ getValue pdata "pw2"
+             pwCur = B8.unpack $ getValue pdata "pw-cur"
 
          -- change email
          emailRes <- runErrorT $
@@ -345,9 +345,9 @@ registerR = choice
        pdata <- getPostData
        -- add inactive user
        choice
-         [ do let email = getValue pdata "email"
-                  uname = getValue pdata "username"
-                  pw    = getValue pdata "password"
+         [ do let email = B8.unpack $ getValue pdata "email"
+                  uname = B8.unpack $ getValue pdata "username"
+                  pw    = B8.unpack $ getValue pdata "password"
               when (any null [email, uname] || invalidPw pw) mzero
               case validate email of
                    Left  _ -> HtmlBody .= registerHtml (Just $ AUE_Other "Invalid email address.")
