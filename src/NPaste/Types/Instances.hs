@@ -8,11 +8,15 @@ import Control.Applicative
 import Control.Concurrent.MState
 import Control.Monad.Error
 import Control.Monad.IO.Peel
+import qualified Data.ByteString as B
 import Data.Convertible
 import Data.Time
+import Data.Text.Encoding
+import Data.Text.Encoding.Error
 import Database.HDBC
 import Happstack.Server
 import Happstack.Server.Internal.MonadPeelIO ()
+import Text.Blaze
 
 import NPaste.Parser.Description
 
@@ -81,3 +85,13 @@ instance (Error err, MonadIO m, HasRqData m) => HasRqData (ErrorT err m) where
   askRqEnv       = lift askRqEnv
   localRqEnv f m = mapErrorT (localRqEnv f) m
   rqDataError  _ = mzero -- lift $ rqDataError e
+
+
+--------------------------------------------------------------------------------
+-- * HTML instances
+
+instance ToHtml B.ByteString where
+  toHtml = toHtml . decodeUtf8With ignore
+
+instance ToValue B.ByteString where
+  toValue = toValue . decodeUtf8With ignore
