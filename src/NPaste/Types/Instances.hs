@@ -16,7 +16,7 @@ import Data.Text.Encoding.Error
 import Database.HDBC
 import Happstack.Server
 import Happstack.Server.Internal.MonadPeelIO ()
-import Text.Blaze
+import Text.Blaze.Html
 
 import NPaste.Parser.Description
 
@@ -90,8 +90,8 @@ instance (Error err, MonadIO m, HasRqData m) => HasRqData (ErrorT err m) where
 --------------------------------------------------------------------------------
 -- * HTML instances
 
-instance ToHtml B.ByteString where
-  toHtml = toHtml . decodeUtf8With ignore
+instance ToMarkup B.ByteString where
+  toMarkup = toHtml . decodeUtf8With ignore
 
 instance ToValue B.ByteString where
   toValue = toValue . decodeUtf8With ignore

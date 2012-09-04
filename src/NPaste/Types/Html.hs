@@ -9,7 +9,7 @@ module NPaste.Types.Html
   , module NPaste.Types.Html.PostData
   ) where
 
-import Text.Blaze
+import Text.Blaze.Html
 
 import NPaste.Types.Html.Context
 import NPaste.Types.Html.Menu

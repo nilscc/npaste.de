@@ -7,7 +7,6 @@ module NPaste.Parser.Filter
 
 import Control.Applicative
 import Data.Char
-import Data.Maybe
 import Text.ParserCombinators.Parsec hiding (many, optional, (<|>))
 
 import NPaste.Types.Parser.Filter

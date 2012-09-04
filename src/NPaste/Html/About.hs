@@ -3,7 +3,7 @@
 
 module NPaste.Html.About where 
 
-import Text.Blaze (Html, (!))
+import Text.Blaze.Html (Html, (!))
 -- import Data.Time
 -- import System.Locale
 import qualified Text.Blaze.Html5             as H

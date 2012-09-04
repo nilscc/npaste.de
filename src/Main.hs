@@ -18,7 +18,7 @@ main = simpleHTTP npasteConf npaste
 npasteConf :: Conf
 npasteConf = nullConf
   { port = 8080
-  , logAccess = Just logMAccess
+  , logAccess = Just logMAccess'
   }
 
 --------------------------------------------------------------------------------
@@ -27,16 +27,16 @@ npasteConf = nullConf
 -- | Access logger (taken from Happstack.Server.Internal.Types)
 --
 -- TODO: Add proper logging to all of npastes routines (most import: database -- access)
-logMAccess :: FormatTime t
-           => String
-           -> String
-           -> t
-           -> String
-           -> Int
-           -> Integer
-           -> String
-           -> String
-           -> IO ()
-logMAccess h user time requestLine responseCode size referer userAgent =
+logMAccess' :: FormatTime t
+            => String
+            -> String
+            -> t
+            -> String
+            -> Int
+            -> Integer
+            -> String
+            -> String
+            -> IO ()
+logMAccess' h user time requestLine responseCode size referer userAgent =
   logM "NPaste.AccessLog.Combined" INFO $
     formatRequestCombined h user time requestLine responseCode size referer userAgent

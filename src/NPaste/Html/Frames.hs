@@ -7,9 +7,7 @@ module NPaste.Html.Frames
   , nullContext
   ) where
 
-import Data.Maybe
-import Data.List
-import Text.Blaze (toHtml, toValue, (!))
+import Text.Blaze.Html (toHtml, toValue, (!))
 import qualified Text.Blaze.Html5             as H
 import qualified Text.Blaze.Html5.Attributes  as A
 

@@ -6,7 +6,6 @@ import Happstack.Server
 import Data.ByteString.Char8 (pack, unpack)
 import qualified Data.ByteString as B
 import Data.Char
-import Data.Maybe
 import qualified Data.Text as T
 import Data.Text.Encoding
 import Data.Text.Encoding.Error
