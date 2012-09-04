@@ -64,6 +64,7 @@ header {
 
 section#main {
   margin: 20px;
+  overflow-x: auto;
 }
 
   section#main .error {
