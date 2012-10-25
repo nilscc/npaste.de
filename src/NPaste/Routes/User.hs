@@ -55,7 +55,7 @@ loginR = choice
               unless isOk mzero
               performLogin u
               -- forward to index page
-              ResponseCode .= seeOther ("/u" :: String)
+              ResponseCode .= seeOther ("/" :: String)
               HtmlBody     .= loginCorrectHtml
          , -- throw error otherwise
            HtmlBody .= loginHtml (Just "Wrong email or password.") pdata
