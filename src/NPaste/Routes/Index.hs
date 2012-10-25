@@ -9,6 +9,7 @@ import Data.Char
 import qualified Data.Text as T
 import Data.Text.Encoding
 import Data.Text.Encoding.Error
+import Data.Time
 
 import NPaste.Database
 import NPaste.Html
@@ -38,7 +39,11 @@ indexR = do
              spam      = not . B.null $ getValue pdata "email" -- should always be null!
              asReply   = not . B.null $ getValue pdata "asreply"
 
-         when spam $ error "Are you human?" -- TODO: throw APE error instead of 'error'
+         when spam $ do
+           -- TODO: pretty hacky :]
+           t <- liftIO $ getCurrentTime
+           liftIO $ appendFile "spam.log" $ show t
+           error "Are you human?" -- TODO: throw APE error instead of 'error'
 
          if asReply then
             return $ Left Nothing
