@@ -1,6 +1,6 @@
 function getTagSearchResults (tag) {
   $.ajax({
-    url: "/p/t/" + tag,
+    url: "/j/t/" + tag,
     success: function (data) {
       $("div#tag_list_pastes").html(data);
       rebindTagLinks();

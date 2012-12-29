@@ -1,7 +1,7 @@
 {-# LANGUAGE NamedFieldPuns #-}
 
 module NPaste.Routes.Read
-  ( readR
+  ( readR, readRedirectR
   ) where
 
 import Data.ByteString.Char8 (unpack)
@@ -15,9 +15,18 @@ import NPaste.Utils
 
 -- TODO: handle /u/<user>/<id> urls
 
-readR :: String -> NPaste ()
+readR, readRedirectR :: String -> NPaste ()
+
 readR pid | length pid >= 2 = showPasteR pid
 readR _                     = mzero
+
+readRedirectR pid | length pid >= 2 = do
+  rq  <- askRq
+  url <- choice [ trailingSlash >> return ("/p/" ++ pid ++ "/")
+                , return ("/p/" ++ pid)
+                ]
+  PlainResponse rq .= seeOther url . toResponse $ "Paste moved to " ++ url
+readRedirectR _                     = mzero
 
 showPasteR :: Id -> NPaste ()
 showPasteR pid = choice

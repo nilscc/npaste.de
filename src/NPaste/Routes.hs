@@ -28,16 +28,24 @@ npasteR = do
   choice
     [ nullDir >> indexR
     , dir "a" aboutR
-    , dir "p" partialR
+    , dir "j" partialR
+    , dir "p" $ path readR
     , dir "s" staticR
     , dir "u" userR
     , dir "v" viewR
-    , path readR
+    , path robotsR
+    , path readRedirectR
     , notFoundR
     ]
 
 --------------------------------------------------------------------------------
 -- Simple routes
+
+robotsR :: String -> NPaste ()
+robotsR "robots.txt" = do
+  rq <- askRq
+  PlainResponse rq .= serveFile (asContentType "text/plain") "htdocs/robots.txt"
+robotsR _ = mzero
 
 notFoundR :: NPaste ()
 notFoundR = do

@@ -57,12 +57,12 @@ indexR = do
 
   case r of
        Right pId -> do
-         let url = "/" ++ pId ++ "/"
+         let url = "/p/" ++ pId ++ "/"
          rq <- askRq
          PlainResponse rq .= seeOther url . toResponse $
                              "New paste added: http://npaste.de" ++ url ++ "\n"
        Left (Just (APE_AlreadyExists Paste{pasteId})) -> do -- TODO: replace with proper ID
-         let url = "/" ++ pasteId ++ "/"
+         let url = "/p/" ++ pasteId ++ "/"
          rq <- askRq
          PlainResponse rq .= seeOther url . toResponse $
                              "Paste already exists at: http://npaste.de" ++ url ++ "\n"
