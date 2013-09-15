@@ -1,4 +1,6 @@
-{-# LANGUAGE NamedFieldPuns, ViewPatterns #-}
+{-# LANGUAGE NamedFieldPuns #-}
+{-# LANGUAGE ViewPatterns #-}
+{-# LANGUAGE RankNTypes #-}
 
 module NPaste.Database.Pastes.Replies
   ( -- * Queries

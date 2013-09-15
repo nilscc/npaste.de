@@ -285,7 +285,7 @@ settingsR = do
          -- change email
          emailRes <- runErrorT $
            if (null email || userEmail u == Just email) then return Nothing else do
-              when (isLeft $ validate email) $
+              when (isLeft $ validate $ B8.pack email) $
                  throwError "Invalid email address."
               akey <- genActivationKey
               suc  <- addIncativeEmail u email akey
@@ -349,7 +349,7 @@ registerR = choice
                   uname = B8.unpack $ getValue pdata "username"
                   pw    = B8.unpack $ getValue pdata "password"
               when (any null [email, uname] || invalidPw pw) mzero
-              case validate email of
+              case validate $ B8.pack email of
                    Left  _ -> HtmlBody .= registerHtml (Just $ AUE_Other "Invalid email address.")
                                                        pdata
                    Right _ -> do

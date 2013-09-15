@@ -1,5 +1,9 @@
-{-# LANGUAGE NamedFieldPuns, ViewPatterns, FlexibleContexts,
-   MultiParamTypeClasses, FlexibleInstances #-}
+{-# LANGUAGE NamedFieldPuns #-}
+{-# LANGUAGE ViewPatterns #-}
+{-# LANGUAGE FlexibleContexts #-}
+{-# LANGUAGE MultiParamTypeClasses #-}
+{-# LANGUAGE FlexibleInstances #-}
+{-# LANGUAGE RankNTypes #-}
 {-# OPTIONS -fno-warn-orphans #-}
 
 module NPaste.Database.Pastes

@@ -1,4 +1,6 @@
-{-# LANGUAGE NamedFieldPuns, ScopedTypeVariables #-}
+{-# LANGUAGE NamedFieldPuns #-}
+{-# LANGUAGE ScopedTypeVariables #-}
+{-# LANGUAGE RankNTypes #-}
 
 module NPaste.Database.Users
   ( -- * Queries
