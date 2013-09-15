@@ -23,5 +23,6 @@ executable npaste.de
         mstate, convertible, monad-peel,
         Crypto,
         happstack, happstack-server, acid-state, safecopy,
+        happstack-monad-peel,
         blaze-markup, blaze-html, highlighter,
         SMTPClient, email-validate

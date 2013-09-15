@@ -1,5 +1,9 @@
-{-# LANGUAGE OverloadedStrings, TypeSynonymInstances, FlexibleInstances, MultiParamTypeClasses,
-             UndecidableInstances, TupleSections #-}
+{-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE TypeSynonymInstances #-}
+{-# LANGUAGE FlexibleInstances #-}
+{-# LANGUAGE MultiParamTypeClasses #-}
+{-# LANGUAGE UndecidableInstances #-}
+{-# LANGUAGE TupleSections #-}
 {-# OPTIONS -fno-warn-orphans #-}
 
 module NPaste.Types.Instances where
@@ -15,7 +19,7 @@ import Data.Text.Encoding
 import Data.Text.Encoding.Error
 import Database.HDBC
 import Happstack.Server
-import Happstack.Server.Internal.MonadPeelIO ()
+import Happstack.Server.MonadPeel ()
 import Text.Blaze.Html
 
 import NPaste.Parser.Description
