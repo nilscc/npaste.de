@@ -17,7 +17,7 @@ main = simpleHTTP npasteConf npaste
 
 npasteConf :: Conf
 npasteConf = nullConf
-  { port = 8080
+  { port = 8090
   , logAccess = Just logMAccess'
   }
 
