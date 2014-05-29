@@ -64,16 +64,7 @@ instance (MonadIO m, FilterMonad a m) => FilterMonad a (MState t m) where
   composeFilter = lift . composeFilter
   getFilter m   = mapMState_ getFilter m
 
-instance (Error err, FilterMonad a m) => FilterMonad a (ErrorT err m) where
-  setFilter     = lift . setFilter
-  composeFilter = lift . composeFilter
-  getFilter m   = do (errT, aa) <- lift $ getFilter (runErrorT m)
-                     either throwError (return . (,aa)) errT
-
 -- ** WebMonad instances
-
-instance (Error err, WebMonad a m) => WebMonad a (ErrorT err m) where
-  finishWith = lift . finishWith
 
 instance WebMonad a m => WebMonad a (MState t m) where
   finishWith = lift . finishWith
@@ -83,11 +74,6 @@ instance WebMonad a m => WebMonad a (MState t m) where
 instance (MonadPlus m, MonadPeelIO m, HasRqData m) => HasRqData (MState t m) where
   askRqEnv       = lift askRqEnv
   localRqEnv f m = mapMState_ (localRqEnv f) m
-  rqDataError  _ = mzero -- lift $ rqDataError e
-
-instance (Error err, MonadIO m, HasRqData m) => HasRqData (ErrorT err m) where
-  askRqEnv       = lift askRqEnv
-  localRqEnv f m = mapErrorT (localRqEnv f) m
   rqDataError  _ = mzero -- lift $ rqDataError e
 
 

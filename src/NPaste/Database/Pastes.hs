@@ -19,6 +19,7 @@ module NPaste.Database.Pastes
   , addPaste
   ) where
 
+import Control.Monad.Trans.Except
 import Data.ByteString (ByteString)
 import Data.ByteString.Lazy (fromChunks, toChunks)
 import qualified Data.ByteString as B
@@ -166,7 +167,7 @@ addPaste :: Maybe User
          -> Bool                  -- ^ hidden?
          -> ByteString            -- ^ content
          -> Update (Either AddPasteError Id)
-addPaste muser mtype mdesc hidden cont = runErrorT $ do
+addPaste muser mtype mdesc hidden cont = runExceptT $ do
 
   when (B.null cont) $ throwError APE_NoContent
 

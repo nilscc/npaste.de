@@ -2,7 +2,7 @@
 
 module NPaste.Types.Error.AddPaste where
 
-import Control.Monad.Error
+import Control.Monad.Trans.Except
 import Control.Monad.IO.Peel
 
 import NPaste.Types.Database.Paste
@@ -16,7 +16,4 @@ data AddPasteError
   | APE_DescTooLong
   deriving Show
 
-instance Error AddPasteError where
-  strMsg = APE_Other
-
-type AddPaste a = (MonadPeelIO m, Functor m) => ErrorT AddPasteError m a
+type AddPaste a = (MonadPeelIO m, Functor m) => ExceptT AddPasteError m a

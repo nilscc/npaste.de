@@ -4,6 +4,7 @@ module NPaste.Routes.User
   ( userR
   ) where
 
+import Control.Monad.Trans.Except
 import qualified Data.ByteString.Char8 as B8
 import Data.Either
 import Data.Maybe
@@ -277,13 +278,13 @@ settingsR = do
 
          -- account details
          pdata <- getPostData
-         let email = B8.unpack $ getValue pdata "email" 
+         let email = B8.unpack $ getValue pdata "email"
              pw1   = B8.unpack $ getValue pdata "pw1"
              pw2   = B8.unpack $ getValue pdata "pw2"
              pwCur = B8.unpack $ getValue pdata "pw-cur"
 
          -- change email
-         emailRes <- runErrorT $
+         emailRes <- runExceptT $
            if (null email || userEmail u == Just email) then return Nothing else do
               when (isLeft $ validate $ B8.pack email) $
                  throwError "Invalid email address."
@@ -307,7 +308,7 @@ settingsR = do
                  throwError "Email address already in use."
 
          -- change password
-         pwRes <- runErrorT $
+         pwRes <- runExceptT $
            if (null pw1 && null pw2) then return Nothing else do
               when (pw1 /= pw2) $
                 throwError "New password and password confirmation have to match."
@@ -331,10 +332,7 @@ settingsR = do
          u <- requireUser
          HtmlBody .= settingsHtml u Nothing []
     ]
- where
-  isLeft (Left  _) = True
-  isLeft (Right _) = False
-  
+
 
 --------------------------------------------------------------------------------
 -- Registration & activation

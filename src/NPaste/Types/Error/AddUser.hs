@@ -2,7 +2,7 @@
 
 module NPaste.Types.Error.AddUser where
 
-import Control.Monad.Error
+import Control.Monad.Trans.Except
 import Control.Monad.IO.Peel
 
 data AddUserError
@@ -12,7 +12,4 @@ data AddUserError
   | AUE_Other String
   deriving Show
 
-instance Error AddUserError where
-  strMsg = AUE_Other
-
-type AddUser a = (MonadPeelIO m, Functor m) => ErrorT AddUserError m a
+type AddUser a = (MonadPeelIO m, Functor m) => ExceptT AddUserError m a

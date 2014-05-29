@@ -25,6 +25,7 @@ module NPaste.Database.Users
   ) where
 
 -- import Data.Maybe
+import Control.Monad.Trans.Except
 import Data.Time
 import Database.HDBC.PostgreSQL
 
@@ -73,7 +74,7 @@ addUser :: String           -- ^ username
         -> String           -- ^ password (plaintext)
         -> Maybe String     -- ^ optional email
         -> Update (Either AddUserError User)
-addUser un pw me = runErrorT $ do
+addUser un pw me = runExceptT $ do
   unless (all (`elem` validChars) un) $
     throwError $ AUE_InvalidUsername un
   i <- getNextId
@@ -122,7 +123,7 @@ addIncativeEmail User{ userId } email akey =
                   \     VALUES           (?      , ?             , ?    , ?      ) "
                   [ toSql userId, toSql akey, toSql email, toSql expires ]
        return True
-     else 
+     else
        return False
  where
   onSqlError _ = return False
@@ -169,7 +170,7 @@ addLostPasswordKey u k = do
                \     VALUES                   (?      , ?  , ?      )"
                [ toSql (userId u), toSql k, toSql expires ]
 
-changeLostPassword :: User 
+changeLostPassword :: User
                    -> String        -- ^ the key
                    -> String        -- ^ the new password
                    -> Update Bool

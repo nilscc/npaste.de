@@ -22,7 +22,7 @@ executable npaste.de
         HDBC, HDBC-postgresql,
         mstate, convertible, monad-peel,
         Crypto,
-        happstack, happstack-server, acid-state, safecopy,
+        happstack-server, acid-state, safecopy,
         happstack-monad-peel,
         blaze-markup, blaze-html, highlighter,
         SMTPClient, email-validate
