@@ -14,3 +14,4 @@ happstack
 *.swp
 *~
 npaste.de
+.hs_tags
