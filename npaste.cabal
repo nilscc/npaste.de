@@ -16,8 +16,9 @@ executable npaste.de
 
     build-depends:
         base                    == 4.*,
-        bytestring, containers, mtl,
+        bytestring, containers,
         transformers >= 0.4,
+        mtl >= 2.2,
         random, time, old-locale,
         text, MaybeT,
         parsec, hslogger,
