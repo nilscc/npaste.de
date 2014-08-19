@@ -10,7 +10,9 @@ import System.Log.Logger
 
 
 main :: IO ()
-main = simpleHTTP npasteConf npaste
+main = do
+  putStrLn $ "Listening on " ++ show (port npasteConf)
+  simpleHTTP npasteConf npaste
 
 --------------------------------------------------------------------------------
 -- Config
