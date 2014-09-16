@@ -23,7 +23,7 @@ executable npaste.de
         text, MaybeT,
         parsec, hslogger,
         HDBC, HDBC-postgresql,
-        mstate, convertible, monad-peel >= 1.1.2,
+        mstate, convertible, monad-peel >= 0.1.2,
         Crypto,
         happstack-server, acid-state, safecopy,
         happstack-monad-peel,

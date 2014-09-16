@@ -10,7 +10,7 @@ module NPaste.Types.Instances where
 
 import Control.Applicative
 import Control.Concurrent.MState
-import Control.Monad.Error
+import Control.Monad.Except
 import Control.Monad.IO.Peel
 import qualified Data.ByteString as B
 import Data.Convertible
