@@ -5,7 +5,7 @@
     font-family: 'Ubuntu';
     font-style: normal;
     font-weight: normal;
-    src: local('Ubuntu'), url('/css/Ubuntu-Regular.woff') format('woff');
+    src: local('Ubuntu'), url('/s/css/Ubuntu-Regular.woff') format('woff');
   }
 }
 
@@ -14,7 +14,7 @@
     font-family: 'Just Another Hand';
     font-style: normal;
     font-weight: normal;
-    src: local('Just Another Hand'), local('JustAnotherHand-Regular'), url('/css/JustAnotherHand.woff') format('woff');
+    src: local('Just Another Hand'), local('JustAnotherHand-Regular'), url('/s/css/JustAnotherHand.woff') format('woff');
   }
 }
 
@@ -23,6 +23,6 @@
     font-family: 'Ubuntu';
     font-style: normal;
     font-weight: 500;
-    src: local('Ubuntu Medium'), local('Ubuntu-Medium'), url('/css/Ubuntu-Medium.woff') format('woff');
+    src: local('Ubuntu Medium'), local('Ubuntu-Medium'), url('/s/css/Ubuntu-Medium.woff') format('woff');
   }
 }
