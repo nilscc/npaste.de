@@ -47,8 +47,20 @@ mainFrame :: HtmlContext
           -> Html
 mainFrame htmlcontext htmlbody = H.docTypeHtml $ do
   htmlHeader htmlcontext{
-    css    = CSS $ ["main.css", "notifications.css"] ++ unCSS (css htmlcontext),
-    script = Script $ ["notifications.js"] ++ unScript (script htmlcontext)  }
+    css    = CSS $
+              [ "main.css"
+              , "notifications.css"
+              , "header.css"
+              ]
+              ++
+              unCSS (css htmlcontext),
+    script = Script $
+              [ "notifications.js"
+              , "header.js"
+              ]
+              ++
+              unScript (script htmlcontext)
+    }
 
   H.body $ do
     H.header $ mainHeader
@@ -59,15 +71,16 @@ mainFrame htmlcontext htmlbody = H.docTypeHtml $ do
 -- | Header
 mainHeader :: Html
 mainHeader = do
-  H.p ! A.id "left" $ do
-    H.a ! A.id "n3" ! A.href "/a" $ do
-      "n"
-      H.sup "3"
-    "paste.de"
-  H.p ! A.id "center" $
-    "::"
-  H.p ! A.id "right" $
-    "IO String"
+  H.div ! A.id "main-title" $ do
+    H.p ! A.id "left" $ do
+      H.a ! A.id "n3" ! A.href "/a" $ do
+        "n"
+        H.sup "3"
+      "paste.de"
+    H.p ! A.id "center" $
+      "::"
+    H.p ! A.id "right" $
+      "IO String"
   H.p ! A.id "info" $
     "a haskell happstack pastebin"
 
@@ -86,7 +99,7 @@ mainMenu Menu{ activeMenuSection = ActiveMenu mactive
                let subm = subMenu active
                unless (null subm) $ H.ul ! A.class_ "submenu" $
                  mapM_ H.li subm
-           _ -> 
+           _ ->
              (if s == M_HR then H.li else H.li ! A.class_ "highlight") $
                menuLink s $ menuTitle s
 
