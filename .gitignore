@@ -15,3 +15,5 @@ happstack
 *~
 npaste.de
 .hs_tags
+.cabal-sandbox
+cabal.sandbox.config
