@@ -10,7 +10,6 @@ import qualified Data.Text                    as T
 import qualified Data.Text.Encoding           as TE
 import qualified Data.Text.Encoding.Error     as TEE
 import Data.Maybe
-import System.Locale
 import Text.Blaze.Html5 (toHtml, toValue, (!))
 import qualified Text.Blaze.Html5             as H
 import qualified Text.Blaze.Html5.Attributes  as A
