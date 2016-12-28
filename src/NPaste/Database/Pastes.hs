@@ -19,7 +19,6 @@ module NPaste.Database.Pastes
   , addPaste
   ) where
 
-import Control.Monad.Trans.Except
 import Data.ByteString (ByteString)
 import Data.ByteString.Lazy (fromChunks, toChunks)
 import qualified Data.ByteString as B
@@ -167,7 +166,7 @@ addPaste :: Maybe User
          -> Bool                  -- ^ hidden?
          -> ByteString            -- ^ content
          -> Update (Either AddPasteError Id)
-addPaste muser mtype mdesc hidden cont = runExceptT $ do
+addPaste muser mtype mdesc hidden cont = runWithEither $ do
 
   when (B.null cont) $ throwError APE_NoContent
 
@@ -200,7 +199,6 @@ addPaste muser mtype mdesc hidden cont = runExceptT $ do
     return pid
 
 
-
 --------------------------------------------------------------------------------
 -- Ids
 
@@ -211,7 +209,7 @@ getRandomId :: Int
             -> AddPaste Id
 getRandomId m = do
 
-  ids   <- getGlobalIds
+  ids   <- liftIO getGlobalIds
   n     <- liftIO $ randomRIO (2,m)
   iList <- rnds n (0,length validChars - 1) []
 
@@ -243,19 +241,20 @@ filterExistingIds = filterM checkExistingId
 -- Errors
 
 -- | Convert SQL exceptions to APE errors
-sqlErrorToAPE :: Maybe User
+sqlErrorToAPE :: MonadIO m
+              => Maybe User
               -> ByteString     -- ^ MD5 hash
               -> SqlError
-              -> AddPaste a
+              -> m AddPasteError
 sqlErrorToAPE mu hash e =
   case seState e of
        l | l == uniqueViolation -> do
-           mpi <- getPasteByMD5 mu hash
-           throwError $ maybe
+           mpi <- liftIO $ getPasteByMD5 mu hash
+           return $ maybe
              (APE_Other $ show e)
              APE_AlreadyExists
              mpi
          | l == stringDataRightTruncation -> do
-           throwError APE_DescTooLong
+           return APE_DescTooLong
          | otherwise ->
-           throwError $ APE_Other (show e)
+           return $ APE_Other (show e)

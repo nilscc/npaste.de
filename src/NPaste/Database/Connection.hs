@@ -16,14 +16,17 @@ module NPaste.Database.Connection
     -- * SQL Exceptions
   , catchSql
   , handleSql
-  , throwSqlError
+  --, throwSqlError
+  , runWithEither
+  , runWithId
+  , runWithMaybe
+
 
     -- * Reexport
   , module Database.HDBC
   ) where
 
-import Control.Monad
-import Control.Monad.IO.Peel
+--import Control.Monad
 import Control.Monad.Trans
 import Database.HDBC hiding (catchSql, handleSql, throwSqlError)
 import Database.HDBC.PostgreSQL
@@ -58,18 +61,27 @@ querySql s v = withConnection $ \c -> quickQuery' c s v
 --------------------------------------------------------------------------------
 -- Exceptions
 
-catchSql :: MonadPeelIO m => m a -> (SqlError -> m a) -> m a
+catchSql :: IO a -> (SqlError -> IO b) -> ExceptT b IO a
 catchSql m h = do
-  k <- peelIO
-  join . liftIO $ H.catchSql (k m) (\e -> k (h e))
+  result <- liftIO $ H.catchSql (Right `fmap` m) (fmap Left . h)
+  case result of
+    Right ok -> return ok
+    Left err -> throwError err
 
-handleSql :: MonadPeelIO m => (SqlError -> m a) -> m a -> m a
+handleSql :: (SqlError -> IO b) -> IO a -> ExceptT b IO a
 handleSql = flip catchSql
 
-throwSqlError :: MonadIO m => SqlError -> m a
-throwSqlError e = do
-  liftIO $ H.throwSqlError e
+--throwSqlError :: SqlError -> ExceptT b IO a
+--throwSqlError e = H.throwSqlError e
 
+runWithEither :: ExceptT b m a -> m (Either b a)
+runWithEither = runExceptT
+
+runWithId :: Functor m => ExceptT a m a -> m a
+runWithId = fmap (either id id) . runExceptT
+
+runWithMaybe :: Functor m => ExceptT b m a -> m (Maybe a)
+runWithMaybe = fmap (either (const Nothing) Just) . runExceptT
 
 --------------------------------------------------------------------------------
 -- SELECT class

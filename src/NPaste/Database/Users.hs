@@ -25,7 +25,7 @@ module NPaste.Database.Users
   ) where
 
 -- import Data.Maybe
-import Control.Monad.Trans.Except
+-- import Control.Monad.Trans.Except
 import Data.Time
 import Database.HDBC.PostgreSQL
 
@@ -74,16 +74,16 @@ addUser :: String           -- ^ username
         -> String           -- ^ password (plaintext)
         -> Maybe String     -- ^ optional email
         -> Update (Either AddUserError User)
-addUser un pw me = runExceptT $ do
+addUser un pw me = runWithEither $ do
   unless (all (`elem` validChars) un) $
     throwError $ AUE_InvalidUsername un
-  i <- getNextId
+  i <- lift getNextId
   let u = User i un me False True
   mpw <- packPassword pw
   case mpw of
        Nothing    -> throwError AUE_NoPassword
        Just sqlPw -> do
-         handleSql sqlErrorToAUE $
+         handleSql (return . sqlErrorToAUE) $
            updateSql_ "INSERT INTO users (id, name, email, password) \
                       \VALUES (?, ?, ?, ?)"
                       [ toSql i, toSql un, toSql me, sqlPw ]
@@ -92,13 +92,13 @@ addUser un pw me = runExceptT $ do
 validChars :: [Char]
 validChars = ['0'..'9'] ++ ['A'..'Z'] ++ ['a'..'z']
 
-sqlErrorToAUE :: SqlError -> AddUser ()
+sqlErrorToAUE :: SqlError -> AddUserError
 sqlErrorToAUE e =
   case seState e of
        l | l == uniqueViolation -> do
-           throwError $ AUE_AlreadyExists
+           AUE_AlreadyExists
          | otherwise ->
-           throwError $ AUE_Other (show e)
+           AUE_Other (show e)
 
 updateUserPassword :: User -> String -> Update ()
 updateUserPassword u p = changePassword u p >> return ()
@@ -107,7 +107,7 @@ addIncativeEmail :: User
                  -> String         -- ^ new email
                  -> String         -- ^ activation key
                  -> Update Bool    -- ^ true on success, false on UNIQUE violation/other
-addIncativeEmail User{ userId } email akey =
+addIncativeEmail User{ userId } email akey = runWithId $
   handleSql onSqlError $ do
     rmOldInactiveEmails
     -- make sure the email really is unique
@@ -131,7 +131,7 @@ addIncativeEmail User{ userId } email akey =
 activateEmail :: User
               -> String                 -- ^ activation key
               -> Update (Maybe String)  -- ^ (Just newEmail) on success
-activateEmail User{ userId } akey =
+activateEmail User{ userId } akey = runWithId $
   handleSql onSqlError $ do
     rmOldInactiveEmails
     res <- fmap convertListToMaybe $
@@ -162,7 +162,7 @@ updateUserSettings u =
 addLostPasswordKey :: User
                    -> String       -- ^ the key
                    -> Update ()
-addLostPasswordKey u k = do
+addLostPasswordKey u k = runWithId $ do
   now <- liftIO getCurrentTime
   let expires = addUTCTime (60 * 60 * 24 * 7) now
   handleSql (\_ -> return ()) $

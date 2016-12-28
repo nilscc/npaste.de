@@ -9,11 +9,9 @@ module NPaste.Types.Database
   , module NPaste.Types.Database.User
   ) where
 
-import Control.Monad.IO.Peel
-
 import NPaste.Types.Database.Paste
 import NPaste.Types.Database.Session
 import NPaste.Types.Database.User
 
-type Query  a = (Functor m, MonadPeelIO m) => m a
-type Update a = (Functor m, MonadPeelIO m) => m a
+type Query  a = IO a
+type Update a = IO a
