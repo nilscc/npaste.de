@@ -83,7 +83,7 @@ initSession = try $ do
             getHeader' "x-forwarded-for" (HS.rqHeaders rq)
       ua = fromMaybe "" $
             getHeader' "user-agent"      (HS.rqHeaders rq)
-  ms <- getSession s ip ua
+  ms <- runUpdate $ getSession s ip ua
   CurrentSession .= ms
  where
   try f = choice [f, return ()]

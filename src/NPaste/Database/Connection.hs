@@ -1,10 +1,8 @@
 {-# LANGUAGE RankNTypes, OverloadedStrings #-}
 
 module NPaste.Database.Connection
-  ( withConnection
-
-    -- * SQL Updates
-  , Update
+  ( -- * SQL Updates
+    Update
   , updateSql
   , updateSql_
 
@@ -45,34 +43,41 @@ withConnection = liftIO . withPostgreSQL conStr
 --------------------------------------------------------------------------------
 -- SQL
 
-updateSql :: MonadIO m => String -> [SqlValue] -> m Integer
-updateSql s v = withConnection $ \c -> do
+updateSql :: String -> [SqlValue] -> Update Integer
+updateSql s v = Update $ withConnection $ \c -> do
   i <- run c s v
   commit c
   return i
 
-updateSql_ :: MonadIO m => String -> [SqlValue] -> m ()
+updateSql_ :: String -> [SqlValue] -> Update ()
 updateSql_ s v = updateSql s v >> return ()
 
-querySql :: MonadIO m => String -> [SqlValue] -> m [[SqlValue]]
-querySql s v = withConnection $ \c -> quickQuery' c s v
+querySql :: String -> [SqlValue] -> Query [[SqlValue]]
+querySql s v = Query $ withConnection $ \c -> quickQuery' c s v
 
 
 --------------------------------------------------------------------------------
 -- Exceptions
 
-catchSql :: IO a -> (SqlError -> IO b) -> ExceptT b IO a
-catchSql m h = do
-  result <- liftIO $ H.catchSql (Right `fmap` m) (fmap Left . h)
-  case result of
-    Right ok -> return ok
-    Left err -> throwError err
+class CatchSql m where
+  catchSql :: m a -> (SqlError -> IO b) -> ExceptT b m a
 
-handleSql :: (SqlError -> IO b) -> IO a -> ExceptT b IO a
+instance CatchSql Query where
+  catchSql (Query m) h = do
+    result <- liftIO $ (Right `fmap` m) `H.catchSql` (fmap Left . h)
+    case result of
+      Right ok -> return ok
+      Left err -> throwError err
+
+instance CatchSql Update where
+  catchSql (Update m) h = do
+    result <- liftIO $ (Right `fmap` m) `H.catchSql` (fmap Left . h)
+    case result of
+      Right ok -> return ok
+      Left err -> throwError err
+
+handleSql :: CatchSql t => (SqlError -> IO b) -> t a -> ExceptT b t a
 handleSql = flip catchSql
-
---throwSqlError :: SqlError -> ExceptT b IO a
---throwSqlError e = H.throwSqlError e
 
 runWithEither :: ExceptT b m a -> m (Either b a)
 runWithEither = runExceptT
@@ -101,13 +106,12 @@ runWithMaybe = fmap (either (const Nothing) Just) . runExceptT
 class Select res where
 
   convertFromSql :: [[SqlValue]] -> res
-  select         :: MonadIO m => String -> [SqlValue] -> m res
-  fullSelect     :: MonadIO m => String -> [SqlValue] -> m res
-  withSelectStr  :: MonadIO m
-                 => String        -- ^ "SELECT .. FROM .."
+  select         :: String -> [SqlValue] -> Query res
+  fullSelect     :: String -> [SqlValue] -> Query res
+  withSelectStr  :: String        -- ^ "SELECT .. FROM .."
                  -> String        -- ^ "WHERE .." / "JOIN .." etc
                  -> [SqlValue]
-                 -> m res
+                 -> Query res
 
   -- default implementations
   fullSelect    s     v = querySql s v >>= return . convertFromSql

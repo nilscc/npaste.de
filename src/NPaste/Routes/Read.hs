@@ -49,10 +49,10 @@ showPasteR pid = choice
                                       _                -> id
                            , return id ]
        -- get all informations, set the language etc pp
-       paste     <- fmap setLang `fmap` getPasteById pid
-       repl      <-  map pasteId `fmap` getReplies pid 20 0
+       paste     <- fmap setLang `fmap` runQuery (getPasteById pid)
+       repl      <-  map pasteId `fmap` runQuery (getReplies pid 20 0)
        muser     <- case paste of
-                         Just (Paste{ pasteUserId = uid }) -> getUserById uid
+                         Just (Paste{ pasteUserId = uid }) -> runQuery $ getUserById uid
                          _                                 -> return Nothing
        Title     .= Just $ "/" ++ pid ++ "/" ++ maybe "" ((" - " ++) . take 50 . descToString)
                                                       (join $ fmap pasteDescription paste)
@@ -60,7 +60,7 @@ showPasteR pid = choice
        Script    .= ["read.js"]
        HtmlFrame .= compactFrame (readInfo paste muser repl)
        HtmlBody  .= readHtml paste
-  , do paste <- getPasteById pid
+  , do paste <- runQuery $ getPasteById pid
        rq    <- askRq
        case paste of
             Just p  -> PlainResponse rq .= ok . toResponse . unpack $ pasteContent p

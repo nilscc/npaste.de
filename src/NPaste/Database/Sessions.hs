@@ -22,16 +22,16 @@ import NPaste.Utils
 getSession :: String      -- ^ session ID
            -> String      -- ^ IP
            -> String      -- ^ user agent
-           -> Query (Maybe Session)
+           -> Update (Maybe Session)
 getSession sid ip ua = do
   removeOldSessions
-  mr <- fmap convertListToMaybe $
+  mr <- liftQuery . fmap convertListToMaybe $
              querySql "SELECT expires, user_id FROM sessions \
                       \ WHERE id = ? AND ip = ? AND user_agent = ?"
                       [ toSql sid, toSql ip, toSql ua ]
   case mr of
        Just (expires, Just uid) -> do
-         mu <- getUserById uid
+         mu <- liftQuery $ getUserById uid
          return . Just $ Session sid expires mu
        Just (expires, Nothing) ->
          return . Just $ Session sid expires Nothing
@@ -54,7 +54,7 @@ addSession mu ip ua = do
   now <- liftIO getCurrentTime
   let expires = addUTCTime (60 * 60 * 24 * 30) now
   g   <- liftIO newStdGen
-  i   <- genId g
+  i   <- liftQuery $ genId g
   updateSql_ "INSERT INTO sessions(id, ip, user_agent, expires, user_id)\
              \     VALUES         (? , ? , ?         , ?      , ?      )"
              [ toSql i, toSql ip, toSql ua, toSql expires, toSql (fmap userId mu) ]

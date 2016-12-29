@@ -51,8 +51,8 @@ loginR = choice
        pdata <- getPostData
        choice
          [ do -- require that both email and password are correct
-              u    <- require $ getUserByEmail  (B8.unpack $ getValue pdata "email")
-              isOk <-           checkPassword u (B8.unpack $ getValue pdata "password")
+              u    <- require $ runQuery $ getUserByEmail  (B8.unpack $ getValue pdata "email")
+              isOk <-           runQuery $ checkPassword u (B8.unpack $ getValue pdata "password")
               unless isOk mzero
               performLogin u
               -- forward to index page
@@ -73,7 +73,7 @@ performLogin u = do
       ua = fromMaybe "" $
              getHeader' "user-agent"      (rqHeaders rq)
   -- add session
-  s  <- addSession (Just u) ip ua
+  s  <- runUpdate $ addSession (Just u) ip ua
   CurrentSession .= Just s
   -- set session cookie
   let clife = Expires (sessionExpires s)
@@ -96,8 +96,8 @@ requireLogin h1 doWhenLoggedIn = choice
   [ requireUser >>= \_ -> doWhenLoggedIn
   , do method POST
        pdata <- getPostData
-       u     <- require $ getUserByEmail  (B8.unpack $ getValue pdata "email")
-       isOk  <-           checkPassword u (B8.unpack $ getValue pdata "password")
+       u     <- require $ runQuery $ getUserByEmail  (B8.unpack $ getValue pdata "email")
+       isOk  <-           runQuery $ checkPassword u (B8.unpack $ getValue pdata "password")
        unless isOk mzero
        performLogin u
        localRq (\rq -> rq{ rqMethod = GET }) doWhenLoggedIn
@@ -114,7 +114,7 @@ logoutR _ = choice
   [ do nullDir
        HtmlBody     .= logoutHtml
   , dir "confirm" $ do
-       rmSession =<< requireSession
+       runUpdate . rmSession =<< requireSession
        expireCookie "sessionId"
        ResponseCode .= seeOther ("/" :: String)
        HtmlBody     .= logoutSuccessfulHtml
@@ -135,13 +135,13 @@ lostPasswordR = do
                    pw1   = B8.unpack $ getValue pdata "pw1"
                    pw2   = B8.unpack $ getValue pdata "pw2"
 
-               mu <- getUserByEmail email
+               mu <- runQuery $ getUserByEmail email
                case mu of
                     Nothing                -> err "Unknown email address."
                     Just u | pw1 /= pw2    -> err "Both passwords have to match."
                            | invalidPw pw1 -> err "Invalid password. Make sure it is at least 6 characters long."
                            | otherwise     -> do
-                      s <- changeLostPassword u key pw1
+                      s <- runUpdate $ changeLostPassword u key pw1
                       if not s then err "Invalid key." else do
                          performLogin u
                          success (u,"Password changed.")
@@ -153,13 +153,13 @@ lostPasswordR = do
     , do res <- choice
            [ do methodM POST
                 let email = B8.unpack $ getValue pdata "email"
-                mu <- getUserByEmail email
+                mu <- runQuery $ getUserByEmail email
                 case mu of
                      Nothing -> err "Unknown email address."
                      Just u  -> do
                        k <- genActivationKey
-                       addLostPasswordKey u k
-                       sendEMail [(Nothing, email)]
+                       runUpdate $ addLostPasswordKey u k
+                       liftIO $ sendEMail [(Nothing, email)]
                                  "npaste.de - Your lost password" $
                                  "Hello " ++ userName u ++ ",\n\n\
                                  \You have requested a new password. To set your \
@@ -213,24 +213,23 @@ profileR = do -- | TODO: Show statistics instead of current profile and use @use
              myProfile u f
 
         , do -- <username> has deactivated his public profile
-             u <- maybe mzero return =<< getUserByName uname
+             u <- maybe mzero return =<< runQuery (getUserByName uname)
              when (userPublicProfile u) mzero
              ActiveMenu .= Just $ M_View Nothing
              HtmlBody   .= profileErrorHtml (Just u) "User has deactivated his public profile."
 
         , do -- <username> is an existing user
-             u@User{ userName } <- maybe mzero return =<< getUserByName uname
-             Title .= Just $ "Pastes by " ++ userName
+             u@User{ userName } <- maybe mzero return =<< runQuery (getUserByName uname)
              case parseFilter f of
                   Left err -> do
                     ActiveMenu .= Just $ M_View Nothing
                     HtmlBody   .= profileHtml (Just userName) (Just f) (Left err)
                   Right fl@(filterToSearch -> Just s) -> do
-                    p <- findPastes 20 0 $ S_And (S_User u) s
+                    p <- runQuery $ findPastes 20 0 $ S_And (S_User u) s
                     ActiveMenu .= Just $ M_View (Just fl)
                     HtmlBody   .= profileHtml (Just userName) (Just f) (Right p)
                   _ -> do
-                    p <- getRecentPastes (Just u) 20 0 False
+                    p <- runQuery $ getRecentPastes (Just u) 20 0 False
                     ActiveMenu .= Just $ M_View Nothing
                     HtmlBody   .= profileHtml (Just userName) Nothing (Right p)
 
@@ -246,11 +245,11 @@ profileR = do -- | TODO: Show statistics instead of current profile and use @use
            Title      .= Just "My pastes"
            HtmlBody   .= profileHtml Nothing (Just f) (Left err)
          Right (filterToSearch -> Just s) -> do
-           p <- findPastes 20 0 $ S_And (S_User u) s
+           p <- runQuery $ findPastes 20 0 $ S_And (S_User u) s
            Title      .= Just "My pastes (filtered)"
            HtmlBody   .= profileHtml Nothing (Just f) (Right p)
          _ -> do
-           p <- getRecentPastes (Just u) 20 0 True
+           p <- runQuery $ getRecentPastes (Just u) 20 0 True
            Title      .= Just "My pastes"
            HtmlBody   .= profileHtml Nothing Nothing (Right p)
 
@@ -263,7 +262,7 @@ settingsR = do
       dir "new-email" $ path $ \akey -> do
         s <- requireSession
         u <- requireUser
-        r <- activateEmail u akey
+        r <- runUpdate $ activateEmail u akey
         case r of
              Just newEmail -> do
                let u' = u{ userEmail = Just newEmail }
@@ -289,7 +288,7 @@ settingsR = do
               when (isLeft $ validate $ B8.pack email) $
                  throwError "Invalid email address."
               akey <- genActivationKey
-              suc  <- addIncativeEmail u email akey
+              suc  <- runUpdate $ addIncativeEmail u email akey
               -- send activation email on success
               if suc then do
                  sendEMail [(Nothing, email)]
@@ -312,16 +311,16 @@ settingsR = do
            if (null pw1 && null pw2) then return Nothing else do
               when (pw1 /= pw2) $
                 throwError "New password and password confirmation have to match."
-              pwOk <- checkPassword u pwCur
+              pwOk <- runQuery $ checkPassword u pwCur
               unless pwOk $
                 throwError "Current password is wrong."
-              updateUserPassword u pw1
+              runUpdate $ updateUserPassword u pw1
               return $ Just "Password changed."
 
          -- update user settings
          let u' = u { userDefaultHidden = getValue pdata "default_hidden" == "on"
                     , userPublicProfile = getValue pdata "public_profile" == "on" }
-         updateUserSettings u'
+         runUpdate $ updateUserSettings u'
 
          let (errs,msgs) = partitionEithers [emailRes, pwRes]
              msgs' | null msgs = []
@@ -351,12 +350,12 @@ registerR = choice
                    Left  _ -> HtmlBody .= registerHtml (Just $ AUE_Other "Invalid email address.")
                                                        pdata
                    Right _ -> do
-                     mu  <- addUser uname pw (Just email)
+                     mu  <- runUpdate $ addUser uname pw (Just email)
                      case mu of
                          Left err -> HtmlBody .= registerHtml (Just err) pdata
                          Right  u -> do
                            akey <- genActivationKey
-                           addInactiveUser u akey
+                           runUpdate $ addInactiveUser u akey
                            sendEMail [(Nothing, email)]
                                      "npaste.de - Your activation key" $
                                      "Hello " ++ uname ++ ",\n\n\
@@ -387,9 +386,9 @@ activateR = choice
   [ dir "id" $ path $ \uidStr ->
       dir "key" $ path $ \akey -> do
         uid     <- maybe mzero return $ readMaybe uidStr
-        success <- rmInactiveUser uid akey
+        success <- runUpdate $ rmInactiveUser uid akey
         if success then do
-           Just u <- getUserById uid
+           Just u <- runQuery $ getUserById uid
            performLogin u
            ActiveMenu .= Just $ M_User (Just u)
            HtmlBody   .= activateSuccessHtml u

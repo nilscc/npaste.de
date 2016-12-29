@@ -189,7 +189,7 @@ addPaste muser mtype mdesc hidden cont = runWithEither $ do
 
       -- add replies
       let replies = P.idsOnly descVals
-      replies'  <- filterExistingIds replies
+      replies'  <- liftQuery $ filterExistingIds replies
       addReplyIds pid replies'
 
       -- add tags
@@ -209,7 +209,7 @@ getRandomId :: Int
             -> AddPaste Id
 getRandomId m = do
 
-  ids   <- liftIO getGlobalIds
+  ids   <- runQuery getGlobalIds
   n     <- liftIO $ randomRIO (2,m)
   iList <- rnds n (0,length validChars - 1) []
 
@@ -249,7 +249,7 @@ sqlErrorToAPE :: MonadIO m
 sqlErrorToAPE mu hash e =
   case seState e of
        l | l == uniqueViolation -> do
-           mpi <- liftIO $ getPasteByMD5 mu hash
+           mpi <- runQuery $ getPasteByMD5 mu hash
            return $ maybe
              (APE_Other $ show e)
              APE_AlreadyExists

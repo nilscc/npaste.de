@@ -77,7 +77,7 @@ addUser :: String           -- ^ username
 addUser un pw me = runWithEither $ do
   unless (all (`elem` validChars) un) $
     throwError $ AUE_InvalidUsername un
-  i <- lift getNextId
+  i <- lift $ liftQuery getNextId
   let u = User i un me False True
   mpw <- packPassword pw
   case mpw of
@@ -111,7 +111,7 @@ addIncativeEmail User{ userId } email akey = runWithId $
   handleSql onSqlError $ do
     rmOldInactiveEmails
     -- make sure the email really is unique
-    c <- fmap convertListToMaybe $
+    c <- liftQuery . fmap convertListToMaybe $
               querySql "SELECT count(*) \
                        \  FROM users u LEFT JOIN new_emails ne ON u.id = ne.user_id \
                        \ WHERE u.email = ?"
@@ -134,7 +134,7 @@ activateEmail :: User
 activateEmail User{ userId } akey = runWithId $
   handleSql onSqlError $ do
     rmOldInactiveEmails
-    res <- fmap convertListToMaybe $
+    res <- liftQuery . fmap convertListToMaybe $
                 querySql "SELECT email FROM new_emails \
                          \ WHERE user_id = ? AND activation_key = ?"
                          [ toSql userId, toSql akey ]

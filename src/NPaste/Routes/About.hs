@@ -24,8 +24,8 @@ aboutR = do
       Title    .= Just "Contact"
       HtmlBody .= contactHtml
     , dir "statistics" $ do
-      u        <- getNumberOfUsers
-      p        <- getNumberOfPastes
+      u        <- runQuery getNumberOfUsers
+      p        <- runQuery getNumberOfPastes
       Title    .= Just "Statistics"
       HtmlBody .= statisticsHtml u p
     -- , dir "disclaimer" $ do
