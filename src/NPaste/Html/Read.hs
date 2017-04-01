@@ -195,27 +195,29 @@ pasteInfo Paste{ pasteId, pasteDate, pasteDescription, pasteType } =
 --------------------------------------------------------------------------------
 -- Highlight source code
 
--- | Turn source lines into HTML
-formatCode :: Paste
-           -> Html
-           -> Html
-formatCode Paste{pasteId, pasteContent} html = do
+-- HTML for line numbers
+lineNumbers
+  :: Id     -- ^ PasteID
+  -> Int    -- ^ Number of lines
+  -> Html
+lineNumbers pasteId numberOfLines =
   H.div ! A.class_ "lineNumbers" $ H.pre ! A.class_ "lineNumbers" $
-    sequence_ . intersperse H.br . for [1..length (B8.lines pasteContent)] $ \(show->n) ->
+    sequence_ . intersperse H.br . for [1..numberOfLines] $ \(show->n) ->
       let url  = "/" ++ pasteId ++ "/#" ++ n
        in H.a ! A.href (toValue url) ! A.name (toValue n) $ toHtml n
-  H.div ! A.class_ "sourceCode" $ H.pre html
  where
   for = flip L.map
+
+-- | Turn source lines into HTML
+formatCode :: Paste -> Html -> Html
+formatCode Paste{pasteId, pasteContent} html = do
+  let numberOfLines = length $ B8.lines pasteContent
+  lineNumbers pasteId numberOfLines
+  H.div ! A.class_ "sourceCode" $ H.pre html
 
 -- | Format plain text without highlighting
 formatPlain :: Paste -> Text -> Html
 formatPlain Paste{pasteId} cont = do
-  let l = T.lines cont
-  H.div ! A.class_ "lineNumbers" $ H.pre $
-    sequence_ . intersperse H.br . for [1..length l] $ \(show->n) ->
-      let url  = "/" ++ pasteId ++ "/#" ++ n
-       in H.a ! A.href (toValue url) ! A.name (toValue n) $ toHtml n
+  let numberOfLines = length $ T.lines cont
+  lineNumbers pasteId numberOfLines
   H.pre ! A.class_ "plainText" $ toHtml cont
- where
-  for = flip L.map
