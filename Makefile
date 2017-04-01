@@ -18,7 +18,8 @@ haddock: conf
 	cabal haddock --hyperlink-source
 
 install:
+	cabal install --dependencies-only
 	cabal install --bindir=.
 
 run: install
-	-./npaste.de
+	./npaste.de
