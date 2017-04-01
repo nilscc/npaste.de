@@ -26,6 +26,6 @@ executable npaste.de
         HDBC, HDBC-postgresql,
         convertible,
         Crypto,
-        happstack-server, acid-state, safecopy,
+        happstack-server,
         blaze-markup, blaze-html,
         SMTPClient, email-validate
