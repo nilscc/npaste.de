@@ -22,14 +22,14 @@ readR _                     = mzero
 
 readRedirectR pid | length pid >= 2 = do
   rq  <- askRq
-  url <- choice [ trailingSlash >> return ("/p/" ++ pid ++ "/")
-                , return ("/p/" ++ pid)
-                ]
+  url <- msum [ trailingSlash >> return ("/p/" ++ pid ++ "/")
+              , return ("/p/" ++ pid)
+              ]
   PlainResponse rq .= seeOther url . toResponse $ "Paste moved to " ++ url
 readRedirectR _                     = mzero
 
 showPasteR :: Id -> NPaste ()
-showPasteR pid = choice
+showPasteR pid = msum
   [ do methodM POST
        decodeBody (defaultBodyPolicy "/tmp/" 0 100000 100000)
        lang <- body $ look "lang"
@@ -42,12 +42,12 @@ showPasteR pid = choice
   , do -- See if we have a trailing slash if there is no data following
        checkPath
        -- See if the URL contains some language informations
-       setLang   <- choice [ path $ \l -> return $
-                                 case findLang l of
-                                      Just "Plaintext" -> \p -> p{ pasteType = Nothing }
-                                      Just newLang     -> \p -> p{ pasteType = Just newLang }
-                                      _                -> id
-                           , return id ]
+       setLang   <- msum [ path $ \l -> return $
+                             case findLang l of
+                               Just "Plaintext" -> \p -> p{ pasteType = Nothing }
+                               Just newLang     -> \p -> p{ pasteType = Just newLang }
+                               _                -> id
+                         , return id ]
        -- get all informations, set the language etc pp
        paste     <- fmap setLang `fmap` runQuery (getPasteById pid)
        repl      <-  map pasteId `fmap` runQuery (getReplies pid 20 0)
@@ -67,4 +67,4 @@ showPasteR pid = choice
             Nothing -> PlainResponse rq .= notFound $ toResponse "Paste not found.\n"
   ]
  where
-  checkPath     = join $ choice [ nullDir >> return trailingSlash, return (return ()) ]
+  checkPath     = join $ msum [ nullDir >> return trailingSlash, return (return ()) ]

@@ -20,8 +20,8 @@ module NPaste.Utils
   , module NPaste.Utils.Database
 
     -- ** Other
-  , module NPaste.Utils.Highlight
   , module NPaste.Utils.Mail
+  , module NPaste.Utils.Highlight
   ) where
 
 import Control.Monad
@@ -29,8 +29,8 @@ import Data.Convertible
 import Data.Maybe
 
 import NPaste.Utils.Database
-import NPaste.Utils.Highlight
 import NPaste.Utils.Mail
+import NPaste.Utils.Highlight
 import NPaste.Utils.State
 import NPaste.Utils.Happstack
 

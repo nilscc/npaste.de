@@ -25,7 +25,7 @@ import NPaste.Routes.View
 npasteR :: NPaste ()
 npasteR = do
   setupUserMenu
-  choice
+  msum
     [ nullDir >> indexR
     , dir "a" aboutR
     , dir "j" partialR

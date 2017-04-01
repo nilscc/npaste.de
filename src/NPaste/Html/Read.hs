@@ -36,11 +36,13 @@ formatDesc d =
 --------------------------------------------------------------------------------
 -- | Read/show a single paste
 readHtml :: Maybe Paste -> Html
-readHtml (Just p@Paste{ pasteType = Just lang, pasteContent }) = do
+readHtml (Just p@Paste{ pasteType = Just _lang, pasteContent }) = do
   H.div ! A.class_ "formatedCode" $
-    case highlightAs lang pasteContent of
-         Just html -> formatCode  p html
-         Nothing   -> formatPlain p (decodeUtf8 pasteContent)
+    -- TODO: re-enable code highlighting
+    --case highlightAs lang pasteContent of
+         --Just html -> formatCode  p html
+         --Nothing   ->
+    formatPlain p (decodeUtf8 pasteContent)
 
 readHtml (Just p@Paste{ pasteContent }) = do
   H.div ! A.class_ "formatedCode" $
@@ -160,10 +162,12 @@ listPastes (p@Paste{ pasteContent } : r) lnum = do
         lang = pasteType p
     case lang of
          Nothing -> formatPlain p cont
-         Just l  ->
-           case highlightAs l preview of
-               Just html -> formatCode  p{ pasteContent = preview} html
-               Nothing   -> formatPlain p{ pasteContent = preview} cont
+         Just _l  ->
+           -- TODO: re-enable highlighting
+           --case highlightAs l preview of
+               --Just html -> formatCode  p{ pasteContent = preview} html
+               --Nothing   ->
+           formatPlain p{ pasteContent = preview} cont
   listPastes r lnum
 
 -- | Show a nice header with all kind of informations about our paste

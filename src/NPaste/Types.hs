@@ -14,7 +14,6 @@ module NPaste.Types
   , module NPaste.Types.Error
 
     -- * Reexports of other modules
-  , module Control.Concurrent.MState
   , module Control.Monad.Except
   , module Happstack.Server.Monads
   ) where
@@ -29,6 +28,5 @@ import NPaste.Types.Database
 
 import NPaste.Types.Html
 
-import Control.Concurrent.MState
 import Control.Monad.Except
 import Happstack.Server.Monads hiding (require)

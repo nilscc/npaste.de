@@ -23,7 +23,7 @@ indexR = do
 
   ActiveMenu .= Just M_Index
 
-  pdata <- choice
+  pdata <- msum
     [ methodM POST >> getPostData
     , return nullPostData ]
 

@@ -5,7 +5,7 @@ import NPaste.Types
 import NPaste.Utils
 
 staticR :: NPaste ()
-staticR = choice
+staticR = msum
   [ dir "css" $ do
       rq <- askRq
       PlainResponse rq .= serveDirectory DisableBrowsing [] "htdocs/css"

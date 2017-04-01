@@ -8,18 +8,12 @@
 
 module NPaste.Types.Instances where
 
-import Control.Applicative
-import Control.Concurrent.MState
-import Control.Monad.Except
-import Control.Monad.IO.Peel
 import qualified Data.ByteString as B
 import Data.Convertible
 import Data.Time
 import Data.Text.Encoding
 import Data.Text.Encoding.Error
 import Database.HDBC
-import Happstack.Server
-import Happstack.Server.MonadPeel ()
 import Text.Blaze.Html
 
 import NPaste.Parser.Description
@@ -51,6 +45,8 @@ instance Convertible [SqlValue] (UTCTime, Maybe Int) where
 --------------------------------------------------------------------------------
 -- * Happstack instances
 
+{-
+
 -- ** Server Monad instances
 
 instance (MonadIO m, ServerMonad m) => ServerMonad (MState t m) where
@@ -71,11 +67,12 @@ instance WebMonad a m => WebMonad a (MState t m) where
 
 -- ** HasRqData instances
 
-instance (MonadPlus m, MonadPeelIO m, HasRqData m) => HasRqData (MState t m) where
+instance (MonadPlus m, MonadIO m, HasRqData m) => HasRqData (MState t m) where
   askRqEnv       = lift askRqEnv
   localRqEnv f m = mapMState_ (localRqEnv f) m
   rqDataError  _ = mzero -- lift $ rqDataError e
 
+-}
 
 --------------------------------------------------------------------------------
 -- * HTML instances

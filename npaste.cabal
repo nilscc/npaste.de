@@ -15,17 +15,17 @@ executable npaste.de
     default-language: Haskell2010
 
     build-depends:
-        base                    == 4.*,
+        base == 4.*,
         bytestring, containers,
         transformers >= 0.4,
         mtl >= 2.2,
+        stm,
         random, time, old-locale,
-        text, MaybeT,
+        text,
         parsec, hslogger,
         HDBC, HDBC-postgresql,
-        mstate, convertible, monad-peel >= 0.1.2,
+        convertible,
         Crypto,
         happstack-server, acid-state, safecopy,
-        happstack-monad-peel,
-        blaze-markup, blaze-html, highlighter,
+        blaze-markup, blaze-html,
         SMTPClient, email-validate

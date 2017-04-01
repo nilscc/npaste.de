@@ -11,9 +11,7 @@ import NPaste.Utils
 
 aboutR :: NPaste ()
 aboutR = do
-  ActiveMenu .= Just M_About
-  CSS        .= ["document.css"]
-  choice
+  msum
     [ nullDir >> do
       Title    .= Just "About"
       HtmlBody .= aboutHtml
@@ -32,3 +30,5 @@ aboutR = do
     --   Title    .= Just "Disclaimer"
     --   HtmlBody .= disclaimerHtml
     ]
+  ActiveMenu .= Just M_About
+  CSS        .= ["document.css"]

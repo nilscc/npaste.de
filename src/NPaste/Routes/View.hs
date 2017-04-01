@@ -2,7 +2,6 @@
 
 module NPaste.Routes.View where
 
-import Control.Applicative
 import Happstack.Server
 
 import NPaste.Database
@@ -21,7 +20,7 @@ viewR = do
 
   CSS .= ["code.css", "view.css"]
 
-  f <- choice
+  f <- msum
     [ do methodM POST
          decodeBody (defaultBodyPolicy "/tmp/" 0 100000 100000)
          body $ look "filter"
@@ -45,7 +44,7 @@ viewR = do
          HtmlBody   .= viewHtml Nothing (Right p)
 
 buildFilterFromUrl :: NPaste [String]
-buildFilterFromUrl = choice
+buildFilterFromUrl = msum
   [ dir "id"   $ path $ \i -> fmap (("/" ++ i ++ "/")  :) buildFilterFromUrl
   , dir "tag"  $ path $ \t -> fmap (("#" ++ t)         :) buildFilterFromUrl
   -- , dir "user" $ path $ \u -> fmap (("@" ++ u)         :) buildFilterFromUrl

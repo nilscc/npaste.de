@@ -27,8 +27,8 @@ userR = do
   mu         <- getCurrentUser
   ActiveMenu .= Just $ M_User mu
   CSS        .= [ "user.css" ]
-  choice
-    [ nullDir >> choice   [ requireNoUser >> loginR
+  msum
+    [ nullDir >> msum     [ requireNoUser >> loginR
                           ,                  profileR ]
     , dir "profile"       $                  profileR
     , dir "settings"      $ requireLogin "Settings" settingsR
@@ -46,10 +46,10 @@ invalidPw pw = length pw < 6
 -- Log in/out
 
 loginR :: NPaste ()
-loginR = choice
+loginR = msum
   [ do methodM POST
        pdata <- getPostData
-       choice
+       msum
          [ do -- require that both email and password are correct
               u    <- require $ runQuery $ getUserByEmail  (B8.unpack $ getValue pdata "email")
               isOk <-           runQuery $ checkPassword u (B8.unpack $ getValue pdata "password")
@@ -92,7 +92,7 @@ performLogin u = do
 requireLogin :: String      -- ^ <H1> content
              -> NPaste ()
              -> NPaste ()
-requireLogin h1 doWhenLoggedIn = choice
+requireLogin h1 doWhenLoggedIn = msum
   [ requireUser >>= \_ -> doWhenLoggedIn
   , do method POST
        pdata <- getPostData
@@ -104,13 +104,13 @@ requireLogin h1 doWhenLoggedIn = choice
   , do -- show login form if we're not logged in
        pdata <- getPostData
        rq    <- askRq
-       err   <- choice [ method POST >> return "Wrong email or password."
-                       ,                return "Login required" ]
+       err   <- msum [ method POST >> return "Wrong email or password."
+                     ,                return "Login required" ]
        HtmlBody .= requireLoginHtml h1 (rqUri rq ++ rqQuery rq) (Just err) pdata
   ]
 
 logoutR :: User -> NPaste ()
-logoutR _ = choice
+logoutR _ = msum
   [ do nullDir
        HtmlBody     .= logoutHtml
   , dir "confirm" $ do
@@ -125,9 +125,9 @@ lostPasswordR = do
 
   pdata <- getPostData
 
-  choice
+  msum
     [ dir "change" $ do
-        res <- choice
+        res <- msum
           [ do methodM POST
 
                let email = B8.unpack $ getValue pdata "email"
@@ -150,7 +150,7 @@ lostPasswordR = do
         case res of
              Just (Right (u,s)) -> HtmlBody .= settingsHtml u (Just s) []
              _                  -> HtmlBody .= lostPasswordChangeHtml res pdata
-    , do res <- choice
+    , do res <- msum
            [ do methodM POST
                 let email = B8.unpack $ getValue pdata "email"
                 mu <- runQuery $ getUserByEmail email
@@ -190,14 +190,14 @@ profileR = do -- | TODO: Show statistics instead of current profile and use @use
   modifyNP_ $ \(CSS cur) ->
     CSS $ cur ++ ["code.css", "view.css"]
 
-  f <- choice
+  f <- msum
          [ do methodM POST
               decodeBody (defaultBodyPolicy "/tmp/" 0 100000 100000)
               body $ look "filter"
          , fmap unwords buildFilterFromUrl
          ]
 
-  choice
+  msum
 
       -- /u or /u/profile
     [ do nullDir
@@ -205,7 +205,7 @@ profileR = do -- | TODO: Show statistics instead of current profile and use @use
          myProfile u f
 
       -- /u/profile/<username>
-    , path $ \uname -> choice
+    , path $ \uname -> msum
 
         [ do -- <username> == current user -> show my own profile
              u <- requireUser
@@ -232,6 +232,7 @@ profileR = do -- | TODO: Show statistics instead of current profile and use @use
                     p <- runQuery $ getRecentPastes (Just u) 20 0 False
                     ActiveMenu .= Just $ M_View Nothing
                     HtmlBody   .= profileHtml (Just userName) Nothing (Right p)
+             Title .= Just $ "Pastes by " ++ userName
 
         , do -- <username> is no valid user
              Title    .= Just "User not found"
@@ -256,8 +257,7 @@ profileR = do -- | TODO: Show statistics instead of current profile and use @use
 
 settingsR :: NPaste ()
 settingsR = do
-  Title .= Just "Settings"
-  choice
+  msum
     [ -- verify/activate new email addresses
       dir "new-email" $ path $ \akey -> do
         s <- requireSession
@@ -331,17 +331,18 @@ settingsR = do
          u <- requireUser
          HtmlBody .= settingsHtml u Nothing []
     ]
+  Title .= Just "Settings"
 
 
 --------------------------------------------------------------------------------
 -- Registration & activation
 
 registerR :: NPaste ()
-registerR = choice
+registerR = msum
   [ do methodM POST
        pdata <- getPostData
        -- add inactive user
-       choice
+       msum
          [ do let email = B8.unpack $ getValue pdata "email"
                   uname = B8.unpack $ getValue pdata "username"
                   pw    = B8.unpack $ getValue pdata "password"
@@ -382,7 +383,7 @@ genActivationKey = do
   chars = ['0'..'9'] ++ ['A'..'Z'] ++ ['a'..'z']
 
 activateR :: NPaste ()
-activateR = choice
+activateR = msum
   [ dir "id" $ path $ \uidStr ->
       dir "key" $ path $ \akey -> do
         uid     <- maybe mzero return $ readMaybe uidStr

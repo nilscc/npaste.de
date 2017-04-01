@@ -12,7 +12,7 @@ import NPaste.Types
 -- Happstack helper functions
 
 getPostData :: NPaste PostData
-getPostData = choice
+getPostData = msum
   [ do method POST
        _ <- optional $ decodeBody (defaultBodyPolicy "/tmp/npaste.de/" 1000000 1000000 1000000)
        fmap toPostData $ body lookPairsBS
@@ -20,7 +20,7 @@ getPostData = choice
   ]
 
 getPostData' :: NPaste PostData
-getPostData' = choice
+getPostData' = msum
   [ do methodM POST
        _ <- optional $ decodeBody (defaultBodyPolicy "/tmp/npaste.de/" 1000000 1000000 1000000)
        fmap toPostData $ body lookPairsBS

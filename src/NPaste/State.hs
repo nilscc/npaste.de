@@ -20,6 +20,9 @@ module NPaste.State
   , requireNoSession
   ) where
 
+import Control.Concurrent.STM
+import Control.Monad.Reader
+
 import Data.Maybe
 import qualified Data.ByteString.Char8 as B8
 import qualified Happstack.Server      as HS
@@ -48,7 +51,11 @@ expireCookie n =
 -- * State management
 
 runNPaste :: NPasteState -> NPaste a -> ServerPart (a, NPasteState)
-runNPaste s n = runMState n s
+runNPaste s n = do
+  tvar <- liftIO $ atomically $ newTVar s
+  res <- runReaderT n tvar
+  s' <- liftIO $ atomically $ readTVar tvar
+  return (res, s')
 
 evalNPaste :: NPasteState -> NPaste a -> ServerPart a
 evalNPaste s n = fmap fst $ runNPaste s n
@@ -86,7 +93,7 @@ initSession = try $ do
   ms <- runUpdate $ getSession s ip ua
   CurrentSession .= ms
  where
-  try f = choice [f, return ()]
+  try f = msum [f, return ()]
   getHeader' h = fmap B8.unpack . HS.getHeader h
 
 getCurrentUser :: NPaste (Maybe User)
