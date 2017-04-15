@@ -30,14 +30,19 @@ htmlHeader htmlcontext =
 
     -- load javascript
     unless (null . unScript $ script htmlcontext) $ do
-      let scripts = ["jquery-1.6.2.min.js"] ++ unScript (script htmlcontext)
+      let scripts = [ "jquery-1.6.2.min.js"
+                    , "hl/highlight.pack.js"
+                    ] ++ unScript (script htmlcontext)
       forM_ scripts $ \s ->
         H.script ! A.type_ "text/javascript" ! A.src (toValue $ "/s/js/" ++ s) $ return ()
+      H.script ! A.type_ "text/javascript" $ do
+        "hljs.initHighlightingOnLoad();"
 
     -- load css
     let cssFiles = unCSS (css htmlcontext) ++ ["fonts.css"]
     forM_ cssFiles $ \c ->
       H.link ! A.type_ "text/css" ! A.href (toValue $ "/s/css/" ++ c) ! A.rel "stylesheet"
+    H.link ! A.type_ "text/css" ! A.href "/s/js/hl/styles/arduino-light.css" ! A.rel "stylesheet"
 
 --------------------------------------------------------------------------------
 -- Main frame
@@ -86,7 +91,7 @@ mainMenu Menu{ activeMenuSection = ActiveMenu mactive
                let subm = subMenu active
                unless (null subm) $ H.ul ! A.class_ "submenu" $
                  mapM_ H.li subm
-           _ -> 
+           _ ->
              (if s == M_HR then H.li else H.li ! A.class_ "highlight") $
                menuLink s $ menuTitle s
 

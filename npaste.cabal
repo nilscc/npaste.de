@@ -28,5 +28,4 @@ executable npaste.de
         Crypto,
         happstack-server,
         blaze-markup, blaze-html,
-        highlighter2,
         SMTPClient, email-validate

@@ -5,6 +5,7 @@ module NPaste.Html.Read where
 
 import Data.List                              as L
 import Data.Time
+import Data.Char (isAlphaNum)
 import Data.Text (Text)
 import qualified Data.Text                    as T
 import qualified Data.Text.Encoding           as TE
@@ -36,17 +37,13 @@ formatDesc d =
 --------------------------------------------------------------------------------
 -- | Read/show a single paste
 readHtml :: Maybe Paste -> Html
-readHtml (Just p@Paste{ pasteType = Just _lang, pasteContent }) = do
+readHtml (Just Paste{ pasteId, pasteType = Just lang, pasteContent }) = do
   H.div ! A.class_ "formatedCode" $
-    -- TODO: re-enable code highlighting
-    --case highlightAs lang pasteContent of
-         --Just html -> formatCode  p html
-         --Nothing   ->
-    formatPlain p (decodeUtf8 pasteContent)
+    formatCode pasteId lang (decodeUtf8 pasteContent)
 
-readHtml (Just p@Paste{ pasteContent }) = do
+readHtml (Just Paste{ pasteId, pasteContent }) = do
   H.div ! A.class_ "formatedCode" $
-    formatPlain p $ decodeUtf8 pasteContent
+    formatPlain pasteId $ decodeUtf8 pasteContent
 
 readHtml _ = do
   H.h3 ! A.class_ "error" $ "Paste not found."
@@ -154,20 +151,20 @@ listPastes :: [Paste]
            -> Maybe Int     -- ^ number of lines (Nothing = no limit)
            -> Html
 listPastes [] _                               = return ()
-listPastes (p@Paste{ pasteContent } : r) lnum = do
+listPastes (p@Paste{ pasteId, pasteContent } : r) lnum = do
   pasteInfo p
   H.div ! A.class_ "formatedCode" $ do
     let preview = maybe id (\i -> B8.unlines . take i . B8.lines) lnum $ pasteContent
         cont = TE.decodeUtf8With TEE.ignore preview
         lang = pasteType p
     case lang of
-         Nothing -> formatPlain p cont
+         Nothing -> formatPlain pasteId cont
          Just _l  ->
            -- TODO: re-enable highlighting
            --case highlightAs l preview of
                --Just html -> formatCode  p{ pasteContent = preview} html
                --Nothing   ->
-           formatPlain p{ pasteContent = preview} cont
+           formatPlain pasteId cont
   listPastes r lnum
 
 -- | Show a nice header with all kind of informations about our paste
@@ -209,15 +206,21 @@ lineNumbers pasteId numberOfLines =
   for = flip L.map
 
 -- | Turn source lines into HTML
-formatCode :: Paste -> Html -> Html
-formatCode Paste{pasteId, pasteContent} html = do
-  let numberOfLines = length $ B8.lines pasteContent
+formatCode
+  :: Id     -- ^ Paste ID
+  -> String -- ^ Paste language
+  -> Text   -- ^ Paste content
+  -> Html
+formatCode pasteId lang cont = do
+  let numberOfLines = length $ T.lines cont
   lineNumbers pasteId numberOfLines
-  H.div ! A.class_ "sourceCode" $ H.pre html
+  H.div ! A.class_ "sourceCode" $
+    H.pre $ H.code ! A.class_ (toValue $ "lang-" ++ filter isAlphaNum lang) $
+      toHtml cont
 
 -- | Format plain text without highlighting
-formatPlain :: Paste -> Text -> Html
-formatPlain Paste{pasteId} cont = do
+formatPlain :: Id -> Text -> Html
+formatPlain pasteId cont = do
   let numberOfLines = length $ T.lines cont
   lineNumbers pasteId numberOfLines
   H.pre ! A.class_ "plainText" $ toHtml cont
