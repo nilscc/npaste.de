@@ -28,21 +28,26 @@ htmlHeader htmlcontext =
     H.title . toHtml $
       maybe "npaste.de" ("npaste.de - " ++) (unTitle $ title htmlcontext)
 
+    -- enable highlight.js
+    H.link   ! A.type_ "text/css"
+             ! A.href "/s/js/hl/styles/arduino-light.css"
+             ! A.rel "stylesheet"
+    H.script ! A.type_ "text/javascript" ! A.src "/s/js/hl/highlight.pack.js" $
+      return ()
+    H.script ! A.type_ "text/javascript" $
+      "hljs.initHighlightingOnLoad();"
+
     -- load javascript
     unless (null . unScript $ script htmlcontext) $ do
       let scripts = [ "jquery-1.6.2.min.js"
-                    , "hl/highlight.pack.js"
                     ] ++ unScript (script htmlcontext)
       forM_ scripts $ \s ->
         H.script ! A.type_ "text/javascript" ! A.src (toValue $ "/s/js/" ++ s) $ return ()
-      H.script ! A.type_ "text/javascript" $ do
-        "hljs.initHighlightingOnLoad();"
 
     -- load css
     let cssFiles = unCSS (css htmlcontext) ++ ["fonts.css"]
     forM_ cssFiles $ \c ->
       H.link ! A.type_ "text/css" ! A.href (toValue $ "/s/css/" ++ c) ! A.rel "stylesheet"
-    H.link ! A.type_ "text/css" ! A.href "/s/js/hl/styles/arduino-light.css" ! A.rel "stylesheet"
 
 --------------------------------------------------------------------------------
 -- Main frame
