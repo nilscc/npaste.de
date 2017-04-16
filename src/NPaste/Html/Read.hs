@@ -194,13 +194,14 @@ pasteInfo Paste{ pasteId, pasteDate, pasteDescription, pasteType } =
 
 -- HTML for line numbers
 lineNumbers
-  :: Id     -- ^ PasteID
-  -> Int    -- ^ Number of lines
+  :: Id           -- ^ PasteID
+  -> Int          -- ^ Number of lines
+  -> Maybe String -- ^ Language to link to
   -> Html
-lineNumbers pasteId numberOfLines =
+lineNumbers pasteId numberOfLines mLang =
   H.div ! A.class_ "lineNumbers" $ H.pre ! A.class_ "lineNumbers" $
     sequence_ . intersperse H.br . for [1..numberOfLines] $ \(show->n) ->
-      let url  = "/" ++ pasteId ++ "/#" ++ n
+      let url  = "/p/" ++ pasteId ++ "/" ++ fromMaybe "" mLang ++ "#" ++ n
        in H.a ! A.href (toValue url) ! A.name (toValue n) $ toHtml n
  where
   for = flip L.map
@@ -213,7 +214,7 @@ formatCode
   -> Html
 formatCode pasteId lang cont = do
   let numberOfLines = length $ T.lines cont
-  lineNumbers pasteId numberOfLines
+  lineNumbers pasteId numberOfLines (Just lang)
   H.div ! A.class_ "sourceCode" $
     H.pre $ H.code ! A.class_ (toValue $ "lang-" ++ filter isAlphaNum lang) $
       toHtml cont
@@ -222,5 +223,5 @@ formatCode pasteId lang cont = do
 formatPlain :: Id -> Text -> Html
 formatPlain pasteId cont = do
   let numberOfLines = length $ T.lines cont
-  lineNumbers pasteId numberOfLines
+  lineNumbers pasteId numberOfLines Nothing
   H.pre ! A.class_ "plainText" $ toHtml cont
